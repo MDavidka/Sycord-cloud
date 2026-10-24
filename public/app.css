@@ -1094,3 +1094,318 @@ body.airshell-home { overflow:hidden; height:100vh; height:100dvh; background:#1
   .watcher-details { grid-template-columns: 1fr 1fr; }
   .watcher-details > div:last-child { grid-column: 1 / -1; }
 }
+
+
+/* Reference home UI recreation: compact page actions, paired KPI cards, and bottom query bar. */
+body.airshell-home .home-main.home-dashboard {
+  position: absolute;
+  inset: 92px 0 0;
+  overflow: hidden !important;
+  background: linear-gradient(180deg, #121212 0%, #121212 55%, #171919 100%);
+}
+.airshell-home .home-topbar {
+  height: 92px;
+  padding: 30px 28px 0;
+  gap: 12px;
+  background: #121212 !important;
+  border-bottom: 1px solid #292929;
+}
+.airshell-home .home-icon-button {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  color: #d7d7d9;
+}
+.airshell-home .home-icon-button svg { width: 25px; height: 25px; }
+.airshell-home .home-brand {
+  gap: 0;
+  color: #f7f7f7;
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: -.025em;
+}
+.airshell-home .home-brand img { display: none; }
+.airshell-home .home-avatar {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  margin-left: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 50%;
+  color: transparent;
+  background: transparent;
+}
+.airshell-home .home-avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.home-dashboard .page-tools {
+  position: absolute;
+  z-index: 5;
+  top: 30px;
+  left: 24px;
+  display: inline-flex;
+  align-items: center;
+  height: 42px;
+  padding: 3px 6px;
+  border: 1px solid #29292b;
+  border-radius: 20px;
+  background: #19191a;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
+}
+.home-dashboard .page-tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 32px;
+  flex: 0 0 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  color: #d5d5d8;
+  background: transparent;
+  cursor: pointer;
+  text-decoration: none;
+}
+.home-dashboard .page-tool:hover { background: #252527; color: #fff; }
+.home-dashboard .page-tool svg { width: 18px; height: 18px; }
+.home-dashboard .page-tool-divider {
+  display: block;
+  width: 1px;
+  height: 22px;
+  flex: 0 0 1px;
+  background: #303033;
+}
+.home-dashboard .page-tool-chevron { width: 31px; flex-basis: 31px; }
+.home-dashboard .page-tool-chevron svg { width: 16px; height: 16px; }
+.home-dashboard .page-tools-menu {
+  position: absolute;
+  z-index: 12;
+  top: 78px;
+  left: 24px;
+  width: 176px;
+  padding: 5px;
+  border: 1px solid #303033;
+  border-radius: 12px;
+  background: #1d1d1f;
+  box-shadow: 0 12px 32px #0008;
+}
+.home-dashboard .page-tools-menu button,
+.home-dashboard .page-tools-menu a {
+  display: block;
+  width: 100%;
+  padding: 10px 11px;
+  border: 0;
+  border-radius: 7px;
+  color: #e8e8ea;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.home-dashboard .page-tools-menu button:hover,
+.home-dashboard .page-tools-menu a:hover { background: #2a2a2d; }
+.home-dashboard .tool-feedback {
+  position: absolute;
+  top: 78px;
+  left: 24px;
+  z-index: 10;
+  margin: 0;
+  padding: 7px 10px;
+  border: 1px solid #303033;
+  border-radius: 8px;
+  color: #dcdcdf;
+  background: #202022;
+  font-size: 11px;
+}
+.home-dashboard .account-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 124px 24px 0;
+}
+.home-dashboard .account-card {
+  min-width: 0;
+  height: 78px;
+  padding: 8px 8px 6px;
+  overflow: hidden;
+  border: 1px solid #2b2b2d;
+  border-radius: 17px;
+  background: #19191a;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.018);
+}
+.home-dashboard .account-card-label {
+  margin: 0;
+  overflow: hidden;
+  color: #a8a8ad;
+  font-size: 9px;
+  font-weight: 400;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.home-dashboard .account-value-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  margin-top: 4px;
+}
+.home-dashboard .account-value-row > strong {
+  color: #f0f0f2;
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -.035em;
+  font-variant-numeric: tabular-nums;
+}
+.home-dashboard .account-growth {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: #55d878;
+  font-size: 7px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.home-dashboard .account-growth svg { width: 9px; height: 9px; }
+.home-dashboard .account-chart {
+  display: block;
+  width: 100%;
+  height: 25px;
+  margin-top: 4px;
+  overflow: visible;
+}
+.home-dashboard .account-chart-area { fill: #29292a; }
+.home-dashboard .account-chart-line {
+  fill: none;
+  stroke: #b5b5b8;
+  stroke-width: 1.25;
+  vector-effect: non-scaling-stroke;
+}
+.home-dashboard .home-conversation {
+  position: absolute;
+  z-index: 2;
+  top: 190px;
+  right: 18px;
+  bottom: 90px;
+  left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 0 8px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.home-dashboard .home-conversation::-webkit-scrollbar { display: none; }
+.home-dashboard .home-add-button,
+.home-dashboard .home-add-menu { display: none !important; }
+.home-dashboard .home-composer {
+  position: absolute;
+  z-index: 8;
+  right: 18px;
+  bottom: 24px;
+  left: 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 6px 7px 6px 18px;
+  border: 1px solid #29292b !important;
+  border-radius: 999px;
+  background: rgba(25,25,26,.94) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.025) !important;
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
+.home-dashboard .home-composer .composer-add,
+.home-dashboard .home-composer .model-select,
+.home-dashboard .home-composer .mic-button { display: none !important; }
+.home-dashboard .home-composer textarea {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 34px;
+  max-height: 100px;
+  padding: 6px 1px;
+  color: #f0f0f2 !important;
+  font-size: 16px !important;
+  line-height: 1.35;
+  background: transparent;
+}
+.home-dashboard .home-composer textarea::placeholder {
+  color: #a0a0a5 !important;
+  opacity: 1;
+}
+.home-dashboard .home-composer .composer-send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border: 0;
+  border-radius: 50%;
+  background: #242426 !important;
+  color: #9d9da3 !important;
+}
+.home-dashboard .home-composer .composer-send svg { width: 19px; height: 19px; }
+.home-dashboard .home-composer .composer-send.ready {
+  color: #19191a !important;
+  background: #efeff0 !important;
+}
+.home-dashboard .home-disclaimer,
+.home-dashboard .home-model-menu { display: none !important; }
+.home-dashboard [hidden] { display: none !important; }
+@media (max-width: 600px) {
+  .airshell-home .home-topbar {
+    box-sizing: border-box;
+    height: calc(82px + env(safe-area-inset-top, 0px));
+    min-height: calc(82px + env(safe-area-inset-top, 0px));
+    padding: calc(env(safe-area-inset-top, 0px) + 18px) 18px 0;
+    gap: 12px;
+  }
+  .airshell-home .home-main.home-dashboard {
+    inset: calc(82px + env(safe-area-inset-top, 0px)) 0 0 !important;
+  }
+  .airshell-home .home-icon-button { width: 38px; height: 38px; flex-basis: 38px; }
+  .airshell-home .home-brand { font-size: 20px; }
+  .airshell-home .home-avatar { width: 30px; height: 30px; flex-basis: 30px; }
+  .home-dashboard .page-tools { top: 26px; left: 20px; height: 40px; }
+  .home-dashboard .page-tool { width: 32px; flex-basis: 32px; height: 30px; }
+  .home-dashboard .page-tool-chevron { width: 29px; flex-basis: 29px; }
+  .home-dashboard .page-tools-menu,
+  .home-dashboard .tool-feedback { top: 72px; left: 20px; }
+  .home-dashboard .account-grid { margin: 92px 20px 0; gap: 10px; }
+  .home-dashboard .account-card { height: 78px; padding: 8px 8px 6px; border-radius: 17px; }
+  .home-dashboard .account-card-label { font-size: 9px; }
+  .home-dashboard .account-value-row > strong { font-size: 17px; }
+  .home-dashboard .account-chart { height: 25px; margin-top: 4px; }
+  .home-dashboard .home-conversation { top: 190px; right: 14px; bottom: 86px; left: 14px; }
+  .home-dashboard .home-composer {
+    left: 18px;
+    right: 18px;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+    min-height: 56px;
+    padding-left: 18px;
+    padding-right: 6px;
+    gap: 8px;
+  }
+}
+@media (max-width: 360px) {
+  .airshell-home .home-topbar { padding-left: 14px; padding-right: 14px; gap: 9px; }
+  .airshell-home .home-brand { font-size: 18px; }
+  .home-dashboard .page-tools { left: 16px; }
+  .home-dashboard .account-grid { margin-left: 16px; margin-right: 16px; gap: 8px; }
+  .home-dashboard .account-card { padding-left: 7px; padding-right: 7px; }
+  .home-dashboard .account-value-row { gap: 5px; }
+  .home-dashboard .home-composer { left: 14px; right: 14px; }
+}
