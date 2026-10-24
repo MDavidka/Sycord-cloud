@@ -1540,3 +1540,97 @@ body.airshell-home .home-main.home-dashboard {
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
+
+
+/* Chat polish: transparent user/AI text, progressive top fade, and a soft send bounce. */
+.airshell-home .home-conversation {
+  background: transparent !important;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0) 0%,
+    rgba(0,0,0,.015) 7%,
+    rgba(0,0,0,.07) 14%,
+    rgba(0,0,0,.18) 22%,
+    rgba(0,0,0,.36) 31%,
+    rgba(0,0,0,.60) 40%,
+    rgba(0,0,0,.82) 47%,
+    #000 54%,
+    #000 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    rgba(0,0,0,0) 0%,
+    rgba(0,0,0,.015) 7%,
+    rgba(0,0,0,.07) 14%,
+    rgba(0,0,0,.18) 22%,
+    rgba(0,0,0,.36) 31%,
+    rgba(0,0,0,.60) 40%,
+    rgba(0,0,0,.82) 47%,
+    #000 54%,
+    #000 100%
+  );
+}
+.airshell-home .home-conversation::before {
+  content: "";
+  position: absolute;
+  z-index: 5;
+  pointer-events: none;
+  top: 0;
+  left: -2px;
+  right: -2px;
+  height: 44%;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, rgba(0,0,0,.92) 12%, rgba(0,0,0,.7) 28%, rgba(0,0,0,.38) 52%, rgba(0,0,0,.12) 78%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, rgba(0,0,0,.92) 12%, rgba(0,0,0,.7) 28%, rgba(0,0,0,.38) 52%, rgba(0,0,0,.12) 78%, transparent 100%);
+  background: linear-gradient(to bottom, rgba(18,18,18,.96) 0%, rgba(18,18,18,.64) 38%, rgba(18,18,18,.22) 70%, transparent 100%);
+}
+.airshell-home .home-message.user,
+.airshell-home .home-message.system {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+.airshell-home .home-message.user {
+  color: #f2f2f2 !important;
+}
+.airshell-home .home-message.system {
+  color: #d8d8da !important;
+}
+.airshell-home .home-message-loading {
+  opacity: .8;
+}
+.airshell-home .thinking-dots {
+  display: inline-block;
+  animation: airshell-thinking-pulse 1.15s ease-in-out infinite;
+}
+.airshell-home .home-message-error {
+  color: #f0b4b4 !important;
+}
+.airshell-home .composer-send.send-bounce {
+  animation: airshell-send-bounce 420ms cubic-bezier(.2,.85,.25,1.2);
+}
+.airshell-home .composer-send:disabled {
+  cursor: wait;
+  opacity: .72;
+}
+@keyframes airshell-send-bounce {
+  0% { transform: scale(1); }
+  24% { transform: scale(.84) translateY(1px); }
+  52% { transform: scale(1.12) translateY(-2px); }
+  76% { transform: scale(.97) translateY(0); }
+  100% { transform: scale(1); }
+}
+@keyframes airshell-thinking-pulse {
+  0%, 100% { opacity: .25; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-1px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .airshell-home .composer-send.send-bounce,
+  .airshell-home .thinking-dots {
+    animation: none !important;
+  }
+}
