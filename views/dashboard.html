@@ -16,6 +16,112 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/app.css">
+
+  <style>
+    /* Chat composer: compact white widget pill, matching the reference input. */
+    .home-composer {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 62px;
+      padding: 7px 9px 7px 14px;
+      border: 1px solid #d5d5d7 !important;
+      border-radius: 999px;
+      background: #f7f7f8 !important;
+      box-shadow: 0 5px 18px rgb(0 0 0 / 12%) !important;
+    }
+    .home-composer .composer-add {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 32px;
+      width: 32px;
+      height: 36px;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      color: #525257 !important;
+    }
+    .home-composer .composer-add:hover {
+      background: #e9e9eb;
+      color: #202124 !important;
+    }
+    .home-composer .composer-add svg {
+      width: 22px;
+      height: 22px;
+      stroke-width: 1.9;
+    }
+    .home-composer textarea {
+      flex: 1 1 auto;
+      min-width: 0;
+      min-height: 32px;
+      max-height: 112px;
+      padding: 7px 1px;
+      color: #252529 !important;
+      font-size: 16px !important;
+      line-height: 1.35;
+      background: transparent;
+    }
+    .home-composer textarea::placeholder {
+      color: #85858b !important;
+      opacity: 1;
+    }
+    .home-composer .model-select {
+      flex: 0 1 auto;
+      max-width: 180px;
+      min-width: 0;
+      padding: 7px 2px;
+      gap: 4px;
+      color: #55555b !important;
+      font-size: 14px;
+    }
+    .home-composer .composer-send {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 40px;
+      width: 40px;
+      height: 40px;
+      border: 0;
+      border-radius: 50%;
+      background: #e4e4e7 !important;
+      color: #77777e !important;
+    }
+    .home-composer .composer-send.ready {
+      background: #202124 !important;
+      color: #fff !important;
+    }
+    .home-composer .mic-button { display: none !important; }
+    @media (max-width: 600px) {
+      .home-composer {
+        left: 12px;
+        right: 12px;
+        bottom: max(12px, env(safe-area-inset-bottom));
+        min-height: 56px;
+        gap: 6px;
+        padding: 6px 7px 6px 10px;
+      }
+      .home-composer .composer-add {
+        flex-basis: 30px;
+        width: 30px;
+      }
+      .home-composer .model-select {
+        max-width: 126px;
+        font-size: 12px;
+      }
+      .home-composer .composer-send {
+        flex-basis: 36px;
+        width: 36px;
+        height: 36px;
+      }
+    }
+    @media (max-width: 390px) {
+      .home-composer { left: 9px; right: 9px; gap: 4px; }
+      .home-composer .model-select { max-width: 102px; font-size: 11px; }
+    }
+  </style>
+
   <title>Airshell</title>
 </head>
 <body class="airshell-home">
