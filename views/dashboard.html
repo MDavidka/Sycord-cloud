@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/app.css?v=sidebar-icons-transparent-1">
+  <link rel="stylesheet" href="/assets/app.css?v=sidebar-servers-stats-1">
 
   <style>
     /* Match the reference: near-black translucent glass on the dark workspace. */
@@ -523,25 +523,25 @@
           </button>
         </nav>
 
-        <section class="home-sidebar-section" data-sidebar-section="workspace" aria-labelledby="workspaceLabel">
-          <div class="home-nav-label" id="workspaceLabel">Workspace</div>
-          <button class="sidebar-item" id="projectsNavToggle" type="button" data-sidebar-search="projects" aria-expanded="true" aria-controls="sidebarProjects">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-8l-2-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z"/></svg>
-            <span>Projects</span>
-          </button>
-          <div class="home-sidebar-projects" id="sidebarProjects">
-            <button class="sidebar-project-item current" type="button" data-sidebar-action="Checkout redesign" data-sidebar-search="checkout redesign">Checkout redesign</button>
-            <button class="sidebar-project-item" type="button" data-sidebar-action="Mobile onboarding" data-sidebar-search="mobile onboarding">Mobile onboarding</button>
-            <button class="sidebar-project-item" type="button" data-sidebar-action="Design system 2.0" data-sidebar-search="design system 2.0">Design system 2.0</button>
+        <section class="home-sidebar-section" data-sidebar-section="servers" aria-labelledby="serversLabel">
+          <div class="home-nav-label" id="serversLabel">Servers</div>
+          <div class="home-sidebar-servers" id="sidebarServers">
+            <button class="sidebar-server-item current" type="button" data-sidebar-action="Discord bot" data-sidebar-search="servers discord bot online">
+              <svg class="server-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="7" rx="2"/><rect x="3" y="14" width="18" height="7" rx="2"/><path d="M7 6.5h.01M7 17.5h.01M11 6.5h6M11 17.5h6"/></svg>
+              <span class="sidebar-server-name">Discord bot</span>
+              <svg class="sidebar-server-sparkline" viewBox="0 0 100 22" preserveAspectRatio="none" aria-label="Recent activity: variable"><path d="M1 15 C7 15 8 7 14 9 S23 18 29 12 S39 7 44 10 S51 16 57 8 S65 5 70 12 S79 16 84 11 S94 12 99 7"/></svg>
+            </button>
+            <button class="sidebar-server-item" type="button" data-sidebar-action="API server" data-sidebar-search="servers api server online">
+              <svg class="server-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="7" rx="2"/><rect x="3" y="14" width="18" height="7" rx="2"/><path d="M7 6.5h.01M7 17.5h.01M11 6.5h6M11 17.5h6"/></svg>
+              <span class="sidebar-server-name">API server</span>
+              <svg class="sidebar-server-sparkline" viewBox="0 0 100 22" preserveAspectRatio="none" aria-label="Recent activity: steady"><path d="M1 16 C9 16 10 5 16 8 S23 17 29 14 S39 11 44 13 S54 7 60 9 S66 17 71 11 S82 9 88 12 S95 14 99 10"/></svg>
+            </button>
+            <button class="sidebar-server-item" type="button" data-sidebar-action="Ubuntu VPS" data-sidebar-search="servers ubuntu vps linux">
+              <svg class="server-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="7" rx="2"/><rect x="3" y="14" width="18" height="7" rx="2"/><path d="M7 6.5h.01M7 17.5h.01M11 6.5h6M11 17.5h6"/></svg>
+              <span class="sidebar-server-name">Ubuntu VPS</span>
+              <svg class="sidebar-server-sparkline" viewBox="0 0 100 22" preserveAspectRatio="none" aria-label="Recent activity: increasing"><path d="M1 18 C8 17 10 13 16 14 S24 17 29 12 S39 11 45 13 S53 9 58 10 S65 15 70 9 S82 7 87 5 S94 6 99 2"/></svg>
+            </button>
           </div>
-          <button class="sidebar-item" type="button" data-sidebar-action="Roadmap" data-sidebar-search="roadmap">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="5" r="3"/><path d="M6 8v8a3 3 0 0 0 3 3h6"/><circle cx="18" cy="19" r="3"/><circle cx="18" cy="5" r="3"/><path d="M9 5h6"/></svg>
-            <span>Roadmap</span>
-          </button>
-          <button class="sidebar-item" type="button" data-sidebar-action="Research" data-sidebar-search="research">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6"/><path d="M10 3v7l-5.5 9.2A1.8 1.8 0 0 0 6 22h12a1.8 1.8 0 0 0 1.5-2.8L14 10V3"/><path d="M8 16h8"/></svg>
-            <span>Research</span>
-          </button>
         </section>
 
         <section class="home-sidebar-section home-sidebar-pinned" data-sidebar-section="pinned" aria-labelledby="pinnedLabel">
@@ -618,6 +618,6 @@
       <p class="home-disclaimer" id="composerHint" hidden>Airshell workspace · terminal access available</p>
     </main>
   </div>
-  <script src="/assets/home.js?v=sidebar-workspace-1" defer></script>
+  <script src="/assets/home.js?v=sidebar-servers-stats-1" defer></script>
 </body>
 </html>
