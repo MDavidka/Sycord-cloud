@@ -88,7 +88,7 @@ const loginPage = (message = "") => {
   }[ch]));
   return [
     '<!doctype html>',
-    '<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">',
+    '<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">',
     '<meta name="color-scheme" content="dark"><meta name="theme-color" content="#131313">',
     '<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">',
     '<link rel="manifest" href="/manifest.webmanifest">',
