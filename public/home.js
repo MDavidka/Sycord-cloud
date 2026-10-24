@@ -405,9 +405,7 @@
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
   }
-})();
 
-  
   // Account menu theme controls.
   const themeButtons = document.querySelectorAll("[data-theme-choice]");
   const applyThemeChoice = (choice) => {
@@ -435,3 +433,4 @@
     setHidden(profileMenu, true);
     if (profileToggle) profileToggle.setAttribute("aria-expanded", "false");
   }));
+})();
