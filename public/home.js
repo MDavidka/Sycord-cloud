@@ -18,6 +18,9 @@
   const fileInput = $("fileInput");
   const hint = $("composerHint");
   const composer = $("composer");
+  const pageToolsMenu = $("pageToolsMenu");
+  const pageToolsMenuButton = $("pageToolsMenuButton");
+  const toolFeedback = $("toolFeedback");
   const cpuHistory = [];
   const memoryHistory = [];
 
@@ -25,7 +28,7 @@
     if (el) el.hidden = hidden;
   }
   function closeFloatingMenus(except) {
-    [[profileMenu, profileToggle], [addMenu, addButton], [modelMenu, modelButton]].forEach(([menu, trigger]) => {
+    [[profileMenu, profileToggle], [addMenu, addButton], [modelMenu, modelButton], [pageToolsMenu, pageToolsMenuButton]].forEach(([menu, trigger]) => {
       if (menu !== except) {
         setHidden(menu, true);
         if (trigger) trigger.setAttribute("aria-expanded", "false");
@@ -45,6 +48,38 @@
   if ($("sidebarClose")) $("sidebarClose").addEventListener("click", () => openSidebar(false));
   if (backdrop) backdrop.addEventListener("click", () => openSidebar(false));
   document.querySelectorAll(".home-nav a").forEach((link) => link.addEventListener("click", () => openSidebar(false)));
+
+
+  function showToolFeedback(message) {
+    if (!toolFeedback) return;
+    toolFeedback.textContent = message;
+    toolFeedback.hidden = false;
+    window.clearTimeout(showToolFeedback.timer);
+    showToolFeedback.timer = window.setTimeout(() => { toolFeedback.hidden = true; }, 1800);
+  }
+  async function copyText(value, successMessage) {
+    try {
+      await navigator.clipboard.writeText(value);
+      showToolFeedback(successMessage);
+    } catch (_) {
+      showToolFeedback("Copy is not available in this browser");
+    }
+  }
+  const pageLinkButton = $("pageLinkButton");
+  const pageDuplicateButton = $("pageDuplicateButton");
+  const menuCopyPageLink = $("menuCopyPageLink");
+  if (pageLinkButton) pageLinkButton.addEventListener("click", () => copyText(window.location.href, "Page link copied"));
+  if (pageDuplicateButton) pageDuplicateButton.addEventListener("click", () => copyText(document.title + "\\n" + window.location.href, "Page details copied"));
+  if (menuCopyPageLink) menuCopyPageLink.addEventListener("click", () => {
+    closeFloatingMenus();
+    copyText(window.location.href, "Page link copied");
+  });
+  if (pageToolsMenuButton && pageToolsMenu) pageToolsMenuButton.addEventListener("click", () => {
+    const open = pageToolsMenu.hidden;
+    closeFloatingMenus(pageToolsMenu);
+    setHidden(pageToolsMenu, !open);
+    pageToolsMenuButton.setAttribute("aria-expanded", String(open));
+  });
 
   if (profileToggle) profileToggle.addEventListener("click", () => {
     const open = profileMenu.hidden;
