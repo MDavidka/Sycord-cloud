@@ -2149,3 +2149,66 @@ body.airshell-home .home-main.home-dashboard {
 .airshell-home .home-sidebar .sidebar-item svg circle {
   vector-effect: non-scaling-stroke;
 }
+
+
+/* Servers list with compact inline activity sparklines. */
+.airshell-home .home-sidebar-servers {
+  display: grid;
+  gap: 8px;
+  padding: 3px 0 4px;
+}
+.airshell-home .home-sidebar .sidebar-server-item {
+  display: grid;
+  grid-template-columns: 21px minmax(0,1fr) minmax(70px, 38%);
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #8e8e94;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 450;
+  text-align: left;
+  cursor: pointer;
+}
+.airshell-home .home-sidebar .sidebar-server-item.current { color: #e1e1e4; }
+.airshell-home .home-sidebar .sidebar-server-item:hover { background: #1b1b1d; color: #f1f1f2; }
+.airshell-home .home-sidebar .sidebar-server-item .server-icon {
+  width: 21px;
+  height: 21px;
+  color: #77777d;
+}
+.airshell-home .home-sidebar .sidebar-server-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.airshell-home .home-sidebar .sidebar-server-sparkline {
+  display: block;
+  width: 100%;
+  height: 22px;
+  overflow: visible;
+  color: #46464a;
+  opacity: .9;
+}
+.airshell-home .home-sidebar .sidebar-server-sparkline path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+@media (max-width:600px) {
+  .airshell-home .home-sidebar .sidebar-server-item {
+    grid-template-columns: 21px minmax(0,1fr) minmax(58px, 34%);
+    gap: 10px;
+    min-height: 44px;
+    padding: 0 10px;
+    font-size: 14.5px;
+  }
+}
