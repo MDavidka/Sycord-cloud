@@ -181,8 +181,17 @@
           headers: { "Content-Type": "application/json", "Accept": "application/json" },
           body: JSON.stringify({ messages: chatHistory.slice(-20) })
         });
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(data.error || "The AI request failed (HTTP " + response.status + ").");
+        const responseText = await response.text();
+        let data = {};
+        try { data = responseText ? JSON.parse(responseText) : {}; } catch (_) {
+          data = { error: responseText.trim().slice(0, 240) };
+        }
+        if (!response.ok) {
+          const fallback = response.status === 503
+            ? "Chat service returned HTTP 503. Check that the latest server deployment is running and N_API is configured."
+            : "The AI request failed (HTTP " + response.status + ").";
+          throw new Error(data.error || fallback);
+        }
         const answer = typeof data.answer === "string" ? data.answer.trim() : "";
         if (!answer) throw new Error("The AI returned an empty response.");
         loading.textContent = answer;
