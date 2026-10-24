@@ -116,7 +116,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3.5" y="4" width="17" height="16" rx="2"/><path d="M10 4v16"/></svg>
       </button>
       <a class="home-brand" href="/dashboard" aria-label="Airshell home"><img src="/assets/favicon.svg" alt=""><span>Airshell</span></a>
-      <button class="home-avatar" id="profileToggle" aria-label="Open account menu">A</button>
+      <button class="home-avatar" id="profileToggle" aria-label="Open account menu"><img src="data:image/webp;base64,UklGRggEAABXRUJQVlA4WAoAAAAQAAAAPwAAQUxQSLoBAAABCkm2bat2cu57SfB4mkNKuLXJHTrjULO2uLs8ubfw9N/NoLzPORHBwG0jRc3M0jHP3BM4h1AKyUOrO+evXVWl+s6qCckySBbCkpCrRy+//PQ5DaC/tKOrQi7laJTk6vEnX1JHU/dw7fjy5PgqWS7cCrJ54X1S1SqSw4JklVT1/QWXYIuOnv2QNDakTkI6VT+cXWyw4NHH3fJpNt3idlSK2VtTOdOkSF0IUv2MFGHeqC7dTW2tC2PUu17oLC/vp0az4GplofO8Spmo5lgYeFbjxL3uPc9q7qPmvNt5XrtLH71dz3ae2yg29OJwbTG3aObFwIxPU63ZMeWgMp5LjQJwPdezIJs/Y4sQ40+XIFy287FKECq6LUvgyvsUMaK+Xwk02f3bJBDOXTHb90Jx0hf7jMt/NKJE9WXhkV8NTm5HJNxJvaVBCyfj6iuNOFFf+cHPWH227U9Y+faFWCsQ44UbipXeuIbWtf+/8LPgV4S/b/HPDf65xb838O8t/HsT/97Gfzfw3y34dxP/3YbHDfC4BR83weM2eNyIj1vhcTM8bofnDfC8BZ43ofM2eN4Iz1vRefO/l7fD/xsQVlA4ICgCAAAQDACdASpAAEAAPp1AnEsloyKhphVdiLATiWdneybA/QfxqcB3wC9ctpFstxONpi7f2S9QS2/5CbHtnPUfX4NFaEmir2UTPhsGkU9Dw4r+gmnbtZUBAF3f5MKZVUcDy+Pl8G6/ORZlBkAA/vr39WfZZNvjdWPfHdOXyyYTrIRlF+d/t/q2jDuuJe/galEftefu/g2099lGLLz9koOKqYSQrYOHCE/ItiQsmEM5gRk5truRNLKFQFlsBHYfClitt5pU/O2HenxkH1/izeqvA0ZLCsutpHKs47wsMppVlKuYjdFS3yj9F8s8yl1/co+JY4qg1g9rOndn+98T5k6+Gm0fEtpCBIlJiomlTQrZsddx7TZCfKHHTT8s27mqCWDKNEO++LBkbvNGpCQZPfVqNTvsKcwGjviKSEPRMijvxVWyRVRNoAMIel1pi0qtIksYpJGdsrj5QwIMyMe+0hQ6SxVWIKr4pu6etj6Br0F7c1oRvzpjQjUCwTKldS/ZIDsTybw5TMuCBjT4MEF/yem2DlbI1Zc+EuMJty7mKsbaABZvvdRcE0wiNayYvbRvpbkLwwet+4RyNtQtjqbSQ0L5EbKApYKq+s0nzIc/NF/bTn2Jq2AE2R+fC/PxSCLbUYSbkFWfzmjxzqPiBiJiudjIuCctmwofN44aBPO6RvL3KR/Tt+MQBlvr9JzMDfrtgX1Lg5ygrFH49jjotyv+smS0e9av676YUHSAAAAA==" alt=""></button>
       <div class="home-profile-menu" id="profileMenu" hidden>
         <a href="/access">Access &amp; security</a><a href="/terminal">Web terminal</a>
         <form method="post" action="/logout"><button type="submit">Sign out</button></form>
@@ -133,85 +133,68 @@
       <div class="home-sidebar-bottom"><span class="home-online-dot"></span><div><strong>Airshell running</strong><p id="sidebarUptime">Checking runtime…</p></div></div>
     </aside>
     <button class="home-backdrop" id="sidebarBackdrop" aria-label="Close sidebar" hidden></button>
-    <main class="home-main">
-      <section class="watcher-page" aria-live="polite">
-        <header class="watcher-heading">
-          <div>
-            <p class="eyebrow"><span class="live-dot"></span>Live server watcher</p>
-            <h1>Server performance</h1>
-            <p class="server-address"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c2.1 2.2 3.1 4.8 3.1 8s-1 5.8-3.1 8c-2.1-2.2-3.1-4.8-3.1-8S9.9 6.2 12 4Z"/></svg><span id="watcherAddress">Authenticated local runtime</span></p>
-          </div>
-          <a class="watcher-terminal-button" href="/terminal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 6 6 6-6 6M12 18h8"/></svg><span>Open terminal</span></a>
-        </header>
-        <section class="watcher-summary" aria-label="Server status">
-          <div class="watcher-summary-head">
-            <div class="watcher-summary-title"><span class="server-glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 8h8M8 12h8M8 16h4"/></svg></span><span>Server overview</span></div>
-            <span class="status-badge"><span class="live-dot"></span><strong id="watcherStatus">Checking</strong></span>
-          </div>
-          <div class="watcher-details">
-            <div><span>Uptime</span><strong id="watcherUptime">Checking…</strong></div>
-            <div><span>Runtime</span><strong id="watcherPlatform">Checking…</strong><small id="watcherNode">—</small></div>
-            <div><span>SSH terminals</span><strong id="watcherTerminals">—</strong></div>
-          </div>
-        </section>
-        <section class="performance-grid" aria-label="Performance metrics">
-          <article class="performance-card performance-card-cpu">
-            <div class="performance-card-top"><div><span class="card-kicker">Server performance 1</span><h2>CPU load</h2></div><strong class="performance-value" id="watcherCpuValue">—</strong></div>
-            <svg class="performance-chart" viewBox="0 0 300 80" preserveAspectRatio="none" aria-label="CPU load history"><defs><linearGradient id="watcherCpuFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#45c9ad" stop-opacity=".28"/><stop offset="1" stop-color="#45c9ad" stop-opacity="0"/></linearGradient></defs><path id="watcherCpuFillPath" class="chart-fill" fill="url(#watcherCpuFill)"/><path id="watcherCpuLinePath" class="chart-line"/></svg>
-            <div class="performance-card-foot"><span>Last 2 minutes</span><span id="watcherCpuLabel">Waiting for metrics</span></div>
-          </article>
-          <article class="performance-card performance-card-memory">
-            <div class="performance-card-top"><div><span class="card-kicker">Server performance 2</span><h2>Memory usage</h2></div><strong class="performance-value" id="watcherMemoryValue">—</strong></div>
-            <svg class="performance-chart" viewBox="0 0 300 80" preserveAspectRatio="none" aria-label="Memory usage history"><defs><linearGradient id="watcherRamFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#4d9ee8" stop-opacity=".28"/><stop offset="1" stop-color="#4d9ee8" stop-opacity="0"/></linearGradient></defs><path id="watcherMemoryFillPath" class="chart-fill ram" fill="url(#watcherRamFill)"/><path id="watcherMemoryLinePath" class="chart-line ram"/></svg>
-            <div class="performance-card-foot"><span>Heap allocation</span><span id="watcherMemoryLabel">Waiting for metrics</span></div>
-          </article>
-        </section>
-        <section class="watcher-actions" aria-label="Server actions">
-          <a href="/terminal" class="watcher-action watcher-action-primary"><span class="action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 6 6 6-6 6M12 18h8"/></svg></span><span><strong>Connect to terminal</strong><small>Run commands over SSH</small></span><svg class="action-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
-          <a href="/access" class="watcher-action"><span class="action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span><span><strong>Access &amp; security</strong><small>Review session protection</small></span><svg class="action-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
-        </section>
+    <main class="home-main home-dashboard">
+      <div class="page-tools" role="toolbar" aria-label="Page actions">
+        <button class="page-tool" id="pageLinkButton" type="button" aria-label="Copy page link" title="Copy page link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1"/><path d="M14 11a5 5 0 0 0-7.1 0l-2 2a5 5 0 0 0 7.1 7.1l1.1-1.1"/></svg>
+        </button>
+        <span class="page-tool-divider" aria-hidden="true"></span>
+        <button class="page-tool" id="pageDuplicateButton" type="button" aria-label="Copy page details" title="Copy page details">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/><path d="M14 11v6m-3-3h6"/></svg>
+        </button>
+        <span class="page-tool-divider" aria-hidden="true"></span>
+        <a class="page-tool" href="/terminal" aria-label="Open terminal" title="Open terminal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v5H4z"/><path d="M6 9v10h12V9M10 19v-6l2-2 2 2v6"/></svg>
+        </a>
+        <span class="page-tool-divider" aria-hidden="true"></span>
+        <button class="page-tool page-tool-chevron" id="pageToolsMenuButton" type="button" aria-label="More page actions" aria-expanded="false" title="More actions">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7 10 5 5 5-5"/></svg>
+        </button>
+      </div>
+      <div class="page-tools-menu" id="pageToolsMenu" hidden>
+        <button type="button" id="menuCopyPageLink">Copy page link</button>
+        <a href="/terminal">Open Web Terminal</a>
+      </div>
+      <p class="tool-feedback" id="toolFeedback" aria-live="polite" hidden></p>
+
+      <section class="account-grid" aria-label="Account metrics">
+        <article class="account-card">
+          <p class="account-card-label">Revenue per account</p>
+          <div class="account-value-row"><strong>€76.4</strong><span class="account-growth"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12 12 4M5 4h7v7"/></svg>+1.9%</span></div>
+          <svg class="account-chart" viewBox="0 0 300 34" preserveAspectRatio="none" aria-label="Revenue trend">
+            <path class="account-chart-area" d="M0 28 L12 24 L22 26 L34 21 L45 20 L57 16 L68 18 L80 14 L92 15 L105 12 L118 15 L130 12 L143 14 L155 16 L168 9 L180 3 L193 9 L206 13 L220 18 L233 22 L246 16 L260 10 L274 12 L287 7 L300 5 L300 34 L0 34 Z"/>
+            <path class="account-chart-line" d="M0 28 L12 24 L22 26 L34 21 L45 20 L57 16 L68 18 L80 14 L92 15 L105 12 L118 15 L130 12 L143 14 L155 16 L168 9 L180 3 L193 9 L206 13 L220 18 L233 22 L246 16 L260 10 L274 12 L287 7 L300 5"/>
+          </svg>
+        </article>
+        <article class="account-card">
+          <p class="account-card-label">Revenue per account</p>
+          <div class="account-value-row"><strong>€76.4</strong><span class="account-growth"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12 12 4M5 4h7v7"/></svg>+1.9%</span></div>
+          <svg class="account-chart" viewBox="0 0 300 34" preserveAspectRatio="none" aria-label="Revenue trend">
+            <path class="account-chart-area" d="M0 28 L12 24 L22 26 L34 21 L45 20 L57 16 L68 18 L80 14 L92 15 L105 12 L118 15 L130 12 L143 14 L155 16 L168 9 L180 3 L193 9 L206 13 L220 18 L233 22 L246 16 L260 10 L274 12 L287 7 L300 5 L300 34 L0 34 Z"/>
+            <path class="account-chart-line" d="M0 28 L12 24 L22 26 L34 21 L45 20 L57 16 L68 18 L80 14 L92 15 L105 12 L118 15 L130 12 L143 14 L155 16 L168 9 L180 3 L193 9 L206 13 L220 18 L233 22 L246 16 L260 10 L274 12 L287 7 L300 5"/>
+          </svg>
+        </article>
       </section>
-      <section class="home-status" aria-live="polite">
-        <div class="server-heading">
-          <div class="server-title">
-            <h1>Runtime overview</h1>
-            <p class="server-address"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c2.1 2.2 3.1 4.8 3.1 8s-1 5.8-3.1 8c-2.1-2.2-3.1-4.8-3.1-8S9.9 6.2 12 4Z"/></svg><span id="runtimeAddress">Authenticated local runtime</span></p>
-          </div>
-          <a class="migration-button" href="/terminal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 6 6 6-6 6M12 18h8"/></svg>Open Web Terminal</a>
-        </div>
-        <div class="server-card">
-          <div class="server-summary">
-            <div class="summary-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M8 9h8M8 13h8M8 17h4"/></svg>Server Overview</div>
-            <div class="summary-row"><span>Status</span><strong id="runtimeStatus">• CHECKING</strong></div>
-            <div class="summary-row"><span>◷ Uptime</span><b id="runtimeUptime">Checking…</b></div>
-            <div class="summary-row"><span>◉ Runtime</span><b id="runtimePlatform">Checking…<small id="runtimeNode">—</small></b></div>
-            <div class="summary-row"><span>◌ Active terminals</span><b id="runtimeTerminals">—</b></div>
-          </div>
-          <div class="server-metrics">
-            <div class="metric-chart"><strong>CPU</strong><svg id="cpuChart" viewBox="0 0 300 64" preserveAspectRatio="none"><defs><linearGradient id="cpuFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#1d7779" stop-opacity=".35"/><stop offset="1" stop-color="#1d7779" stop-opacity="0"/></linearGradient></defs><path id="cpuFillPath" class="chart-fill" fill="url(#cpuFill)"/><path id="cpuLinePath" class="chart-line"/></svg><span id="cpuChartLabel">CPU usage · waiting</span></div>
-            <div class="metric-chart"><strong>HEAP</strong><svg id="memoryChart" viewBox="0 0 300 64" preserveAspectRatio="none"><defs><linearGradient id="ramFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#17649a" stop-opacity=".4"/><stop offset="1" stop-color="#17649a" stop-opacity="0"/></linearGradient></defs><path id="memoryFillPath" class="chart-fill ram" fill="url(#ramFill)"/><path id="memoryLinePath" class="chart-line ram"/></svg><span id="memoryChartLabel">Heap usage · waiting</span></div>
-          </div>
-        </div>
-      </section>
+
       <section class="home-conversation" id="conversation" aria-label="Conversation" aria-live="polite"></section>
-      <button class="home-add-button" id="addButton" aria-label="More options" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 5v14M5 12h14"/></svg></button>
+      <button class="home-add-button" id="addButton" type="button" aria-label="More options" aria-expanded="false" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 5v14M5 12h14"/></svg></button>
       <div class="home-add-menu" id="addMenu" hidden>
         <button type="button" id="attachAction"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m21 11.5-8.6 8.6a5 5 0 0 1-7.1-7.1l9.2-9.2a3.5 3.5 0 0 1 5 5l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"/></svg>Attach a file</button>
-        <a href="/terminal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 6 6 6-6 6M12 18h8"/></svg>Open terminal</a>
+        <a href="/terminal">Open terminal</a>
       </div>
       <input id="fileInput" type="file" hidden>
       <form class="home-composer" id="composer">
-        <button class="composer-icon composer-add" id="composerAdd" type="button" aria-label="More options"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg></button>
-        <textarea id="promptInput" rows="1" placeholder="Write a message…" aria-label="Write a message"></textarea>
-        <button class="model-select" id="modelButton" type="button" aria-haspopup="listbox" aria-expanded="false"><span id="modelName">DeepSeek V4 Pro</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m7 10 5 5 5-5"/></svg></button>
-        <button class="composer-icon mic-button" id="voiceButton" type="button" aria-label="Voice input unavailable" title="Voice input is not available yet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3m-4 0h8"/></svg></button>
+        <button class="composer-icon composer-add" id="composerAdd" type="button" aria-label="More options" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg></button>
+        <textarea id="promptInput" rows="1" placeholder="Ask about this page" aria-label="Ask about this page"></textarea>
+        <button class="model-select" id="modelButton" type="button" aria-haspopup="listbox" aria-expanded="false" hidden><span id="modelName">DeepSeek V4 Pro</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m7 10 5 5 5-5"/></svg></button>
+        <button class="composer-icon mic-button" id="voiceButton" type="button" aria-label="Voice input unavailable" title="Voice input is not available yet" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3m-4 0h8"/></svg></button>
         <button class="composer-send" type="submit" aria-label="Send message"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
       </form>
       <div class="home-model-menu" id="modelMenu" role="listbox" aria-label="Choose mode" hidden>
         <button type="button" role="option" data-model="DeepSeek V4 Pro" aria-selected="true">DeepSeek V4 Pro <span>Selected</span></button>
         <button type="button" role="option" data-model="Antigravity CLI">Antigravity CLI</button>
       </div>
-      <p class="home-disclaimer" id="composerHint">Airshell workspace · terminal access available</p>
+      <p class="home-disclaimer" id="composerHint" hidden>Airshell workspace · terminal access available</p>
     </main>
   </div>
   <script src="/assets/home.js" defer></script>
