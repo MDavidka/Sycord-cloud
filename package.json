@@ -1,8 +1,8 @@
 {
-  "name": "sycord-cloud-agy",
+  "name": "airshell",
   "version": "0.2.0",
   "private": true,
-  "description": "Password-protected browser terminal for Antigravity CLI",
+  "description": "Airshell private browser terminal and runtime workspace",
   "engines": {
     "node": "22.x"
   },
