@@ -140,18 +140,66 @@
         if (promptInput.value.trim()) composer.requestSubmit();
       }
     });
-    composer.addEventListener("submit", (event) => {
+    const chatHistory = [];
+    const appendChatMessage = (role, content, extraClass = "") => {
+      const node = document.createElement("div");
+      node.className = "home-message " + (role === "user" ? "user" : "system") + (extraClass ? " " + extraClass : "");
+      node.textContent = content;
+      conversation.appendChild(node);
+      conversation.scrollTo({ top: conversation.scrollHeight, behavior: "smooth" });
+      return node;
+    };
+    const conversation = $("conversation");
+    composer.addEventListener("submit", async (event) => {
       event.preventDefault();
       const text = promptInput.value.trim();
-      if (!text) return;
-      const conversation = $("conversation");
-      const bubble = document.createElement("div");
-      bubble.className = "home-message user";
-      bubble.textContent = text;
-      conversation.appendChild(bubble);
-      conversation.scrollTop = conversation.scrollHeight;
+      if (!text || sendButton.disabled) return;
+
+      chatHistory.push({ role: "user", content: text });
+      appendChatMessage("user", text);
       promptInput.value = "";
       updateComposer();
+
+      sendButton.disabled = true;
+      sendButton.classList.remove("send-bounce");
+      void sendButton.offsetWidth;
+      sendButton.classList.add("send-bounce");
+      promptInput.disabled = true;
+
+      const loading = appendChatMessage("assistant", "Thinking", "home-message-loading");
+      const dots = document.createElement("span");
+      dots.className = "thinking-dots";
+      dots.setAttribute("aria-hidden", "true");
+      dots.textContent = " …";
+      loading.appendChild(dots);
+
+      try {
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body: JSON.stringify({ messages: chatHistory.slice(-20) })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || "The AI request failed.");
+        const answer = typeof data.answer === "string" ? data.answer.trim() : "";
+        if (!answer) throw new Error("The AI returned an empty response.");
+        loading.textContent = answer;
+        chatHistory.push({ role: "assistant", content: answer });
+        if (chatHistory.length > 20) chatHistory.splice(0, chatHistory.length - 20);
+        conversation.scrollTo({ top: conversation.scrollHeight, behavior: "smooth" });
+      } catch (error) {
+        loading.textContent = error && error.message ? error.message : "Could not get an AI response. Please try again.";
+        loading.classList.add("home-message-error");
+      } finally {
+        sendButton.disabled = false;
+        promptInput.disabled = false;
+        sendButton.classList.remove("send-bounce");
+        updateComposer();
+        promptInput.focus({ preventScroll: true });
+      }
+    });
+    updateComposer();
       hint.textContent = "Chat responses are not connected yet. Open Terminal to use Antigravity CLI.";
       const status = document.createElement("div");
       status.className = "home-message system";
