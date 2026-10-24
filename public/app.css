@@ -1261,7 +1261,7 @@ body.airshell-home .home-main.home-dashboard {
 }
 .home-dashboard .account-value-row > strong {
   color: #f0f0f2;
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 500;
   line-height: 1.15;
   letter-spacing: -.035em;
@@ -1280,7 +1280,7 @@ body.airshell-home .home-main.home-dashboard {
 .home-dashboard .account-chart {
   display: block;
   width: 100%;
-  height: 25px;
+  height: 20px;
   margin-top: 4px;
   overflow: visible;
 }
@@ -1384,11 +1384,11 @@ body.airshell-home .home-main.home-dashboard {
   .home-dashboard .page-tool-chevron { width: 29px; flex-basis: 29px; }
   .home-dashboard .page-tools-menu,
   .home-dashboard .tool-feedback { top: 72px; left: 20px; }
-  .home-dashboard .account-grid { margin: 92px 20px 0; gap: 10px; }
-  .home-dashboard .account-card { height: 78px; padding: 8px 8px 6px; border-radius: 17px; }
+  .home-dashboard .account-grid { margin: 92px 20px 0; gap: 20px; }
+  .home-dashboard .account-card { height: 78px; padding: 8px 7px 6px; border-radius: 17px; }
   .home-dashboard .account-card-label { font-size: 9px; }
-  .home-dashboard .account-value-row > strong { font-size: 17px; }
-  .home-dashboard .account-chart { height: 25px; margin-top: 4px; }
+  .home-dashboard .account-value-row > strong { font-size: 15px; }
+  .home-dashboard .account-chart { height: 20px; margin-top: 4px; }
   .home-dashboard .home-conversation { top: 190px; right: 14px; bottom: 86px; left: 14px; }
   .home-dashboard .home-composer {
     left: 18px;
