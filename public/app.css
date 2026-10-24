@@ -1418,3 +1418,69 @@ body.airshell-home .home-main.home-dashboard {
 .home-main.home-dashboard > .home-conversation {
   display: flex !important;
 }
+
+
+/* Profile dropdown inspired by the supplied dark rounded action menu. */
+.airshell-home .home-profile-menu {
+  position: absolute;
+  z-index: 60;
+  top: calc(100% - 1px);
+  right: 18px;
+  width: min(290px, calc(100vw - 36px));
+  padding: 8px;
+  border: 1px solid #303033;
+  border-radius: 25px;
+  background: rgba(31,31,32,.98);
+  box-shadow: 0 16px 44px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.025);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+}
+.airshell-home .home-profile-menu .profile-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  min-height: 58px;
+  padding: 0 15px;
+  border: 0;
+  border-radius: 13px;
+  color: #f0f0f2;
+  background: transparent;
+  font: inherit;
+  font-size: 17px;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.airshell-home .home-profile-menu .profile-menu-item:hover {
+  background: #2a2a2c;
+}
+.airshell-home .home-profile-menu .profile-menu-item svg {
+  width: 23px;
+  height: 23px;
+  flex: 0 0 23px;
+  color: #bfc0c4;
+}
+.airshell-home .home-profile-menu form { margin: 0; }
+.airshell-home .home-profile-menu .profile-menu-separator {
+  height: 1px;
+  margin: 6px 2px;
+  background: #303033;
+}
+.airshell-home .home-profile-menu .profile-menu-logout { color: #f0f0f2; }
+.airshell-home .home-profile-menu .profile-menu-logout:hover { background: rgba(255,255,255,.07); }
+@media(max-width:600px) {
+  .airshell-home .home-profile-menu {
+    top: calc(100% + 7px);
+    right: 12px;
+    width: min(280px, calc(100vw - 24px));
+    border-radius: 23px;
+    padding: 7px;
+  }
+  .airshell-home .home-profile-menu .profile-menu-item {
+    min-height: 55px;
+    gap: 14px;
+    font-size: 16px;
+    padding: 0 13px;
+  }
+}
