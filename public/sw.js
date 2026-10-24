@@ -1,9 +1,11 @@
 "use strict";
 
-const CACHE_NAME = "airshell-static-v1";
+// Bump this whenever the app shell changes so installed PWAs fetch current styles.
+const CACHE_NAME = "airshell-static-v2";
 const STATIC_ASSETS = [
   "/assets/app.css",
   "/assets/app.js",
+  "/assets/home.js",
   "/assets/favicon.svg",
   "/assets/favicon.png"
 ];
@@ -19,7 +21,10 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))))
+      .then((keys) => Promise.all(
+        keys.filter((key) => key.startsWith("airshell-static-") && key !== CACHE_NAME)
+          .map((key) => caches.delete(key))
+      ))
       .then(() => self.clients.claim())
   );
 });
@@ -29,21 +34,22 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (request.method !== "GET" || url.origin !== self.location.origin) return;
 
-  // Never cache HTML pages, terminal traffic, login responses, or private API data.
-  if (request.mode === "navigate" || url.pathname.startsWith("/api/") || url.pathname === "/login" || url.pathname === "/logout" || url.pathname === "/ws") return;
+  // Never cache navigation, authenticated HTML, APIs, login/logout, or terminal traffic.
+  if (request.mode === "navigate" || url.pathname.startsWith("/api/") ||
+      url.pathname === "/login" || url.pathname === "/logout" || url.pathname === "/ws") return;
 
   if (url.pathname.startsWith("/assets/")) {
-    event.respondWith(
-      caches.match(request).then((cached) => {
-        const network = fetch(request).then((response) => {
-          if (response.ok) {
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
-          }
-          return response;
-        });
-        return cached || network;
-      })
-    );
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE_NAME);
+      try {
+        const response = await fetch(request, { cache: "no-cache" });
+        if (response.ok) await cache.put(request, response.clone());
+        return response;
+      } catch (error) {
+        const cached = await cache.match(request);
+        if (cached) return cached;
+        throw error;
+      }
+    })());
   }
 });
