@@ -141,6 +141,7 @@
       }
     });
     const chatHistory = [];
+    const conversation = $("conversation");
     const appendChatMessage = (role, content, extraClass = "") => {
       const node = document.createElement("div");
       node.className = "home-message " + (role === "user" ? "user" : "system") + (extraClass ? " " + extraClass : "");
@@ -149,7 +150,7 @@
       conversation.scrollTo({ top: conversation.scrollHeight, behavior: "smooth" });
       return node;
     };
-    const conversation = $("conversation");
+
     composer.addEventListener("submit", async (event) => {
       event.preventDefault();
       const text = promptInput.value.trim();
@@ -181,7 +182,7 @@
           body: JSON.stringify({ messages: chatHistory.slice(-20) })
         });
         const data = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(data.error || "The AI request failed.");
+        if (!response.ok) throw new Error(data.error || "The AI request failed (HTTP " + response.status + ").");
         const answer = typeof data.answer === "string" ? data.answer.trim() : "";
         if (!answer) throw new Error("The AI returned an empty response.");
         loading.textContent = answer;
@@ -198,14 +199,6 @@
         updateComposer();
         promptInput.focus({ preventScroll: true });
       }
-    });
-    updateComposer();
-      hint.textContent = "Chat responses are not connected yet. Open Terminal to use Antigravity CLI.";
-      const status = document.createElement("div");
-      status.className = "home-message system";
-      status.textContent = "Airshell chat is not connected to an AI model yet. Your message has not been sent to a model.";
-      conversation.appendChild(status);
-      conversation.scrollTop = conversation.scrollHeight;
     });
     updateComposer();
   }
