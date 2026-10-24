@@ -461,3 +461,54 @@ body.airshell-home { overflow:hidden; height:100vh; height:100dvh; background:#1
  .composer-send{width:31px;height:31px;flex-basis:31px}
  .home-add-button{width:42px;height:42px;right:16px;bottom:96px}
 }
+
+
+/* Latest iPhone polish: crisp header, slightly larger content, light frosted composer. */
+@media (max-width: 600px) {
+  .home-topbar {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    background: #131313 !important;
+    opacity: 1 !important;
+    filter: none !important;
+    box-shadow: none !important;
+    border-bottom-color: #292929;
+    height: 64px;
+  }
+  .home-topbar > * { filter: none !important; opacity: 1 !important; }
+  .home-brand, .home-brand span, .home-icon-button, .home-avatar {
+    filter: none !important;
+    opacity: 1 !important;
+    text-shadow: none !important;
+  }
+  .home-status { top: 58px; }
+  .home-status h1 { font-size: 24px; }
+  .home-status p { font-size: 17px; }
+  .home-conversation { inset: 148px 14px 94px; }
+  .home-message { font-size: 14px; padding: 11px 13px; }
+  .home-composer {
+    background: rgba(245,245,245,.14);
+    border: 1px solid rgba(255,255,255,.27);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 8px 28px rgba(0,0,0,.2);
+    -webkit-backdrop-filter: blur(24px) saturate(145%);
+    backdrop-filter: blur(24px) saturate(145%);
+  }
+  .home-composer textarea { color: #fff; font-size: 14px; }
+  .home-composer textarea::placeholder { color: rgba(255,255,255,.66); font-size: 14px; }
+  .model-select { color: rgba(255,255,255,.84); font-size: 11px; }
+  .composer-icon { color: rgba(255,255,255,.78); }
+  .composer-send { background: rgba(255,255,255,.15); color: rgba(255,255,255,.78); }
+  .composer-send.ready { background: rgba(255,255,255,.92); color: #131313; }
+}
+@media(max-width:390px) {
+  .home-status { top: 52px; }
+  .home-status h1 { font-size: 22px; }
+  .home-status p { font-size: 16px; }
+  .home-composer { left: 8px; right: 8px; }
+  .model-select { max-width: 108px; font-size: 10px; }
+}
+/* Prevent iOS Safari auto-zoom when a text field is focused (requires >=16px). */
+@media (max-width: 600px) {
+  .home-composer textarea { font-size: 16px !important; }
+  .home-composer textarea::placeholder { font-size: 14px; }
+}
