@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/app.css?v=profile-menu-fix-2">
+  <link rel="stylesheet" href="/assets/app.css?v=profile-menu-reference-v3">
 
   <style>
     /* Match the reference: near-black translucent glass on the dark workspace. */
@@ -228,8 +228,8 @@
 
 
 
-  <style id="profile-menu-reference-v2">
-    /* Reference-style profile popup, anchored to the avatar (not the header). */
+  <style id="profile-menu-reference-v3">
+    /* Compact profile menu matched to the supplied Airshell reference. */
     .airshell-home .home-topbar .home-profile-wrap {
       position: relative !important;
       z-index: 1000;
@@ -253,43 +253,41 @@
       flex-direction: column;
       position: absolute !important;
       z-index: 1001 !important;
-      top: calc(100% + 9px) !important;
+      top: calc(100% + 8px) !important;
       right: -8px !important;
       left: auto !important;
-      width: min(330px, calc(100vw - 24px)) !important;
+      width: min(270px, calc(100vw - 24px)) !important;
       box-sizing: border-box !important;
       margin: 0 !important;
-      padding: 9px 10px !important;
+      padding: 5px !important;
       overflow: hidden;
-      border: 1px solid #303033 !important;
-      border-radius: 29px !important;
+      border: 1px solid #2c2c2d !important;
+      border-radius: 23px !important;
       background: #202021 !important;
-      box-shadow: 0 12px 34px rgba(0,0,0,.34) !important;
-      -webkit-backdrop-filter: blur(22px);
-      backdrop-filter: blur(22px);
+      box-shadow: 0 8px 24px rgba(0,0,0,.28) !important;
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
       visibility: visible;
     }
-    .airshell-home .home-topbar .home-profile-menu[hidden] {
-      display: none !important;
-    }
+    .airshell-home .home-topbar .home-profile-menu[hidden] { display: none !important; }
     .airshell-home .home-topbar .home-profile-menu .profile-menu-item {
       display: flex !important;
       flex-direction: row !important;
       align-items: center !important;
       justify-content: flex-start !important;
-      gap: 23px !important;
+      gap: 15px !important;
       width: 100% !important;
       min-width: 0;
-      min-height: 62px !important;
+      min-height: 40px !important;
       box-sizing: border-box !important;
       margin: 0 !important;
-      padding: 0 18px !important;
+      padding: 0 10px !important;
       border: 0 !important;
       border-radius: 0 !important;
-      color: #f1f1f3 !important;
+      color: #e7e7e9 !important;
       background: transparent !important;
       font-family: inherit !important;
-      font-size: 23px !important;
+      font-size: 13px !important;
       font-weight: 400 !important;
       line-height: 1.2 !important;
       letter-spacing: 0 !important;
@@ -303,13 +301,13 @@
     }
     .airshell-home .home-topbar .home-profile-menu .profile-menu-item svg {
       display: block !important;
-      width: 24px !important;
-      height: 24px !important;
-      min-width: 24px !important;
-      max-width: 24px !important;
-      flex: 0 0 24px !important;
+      width: 16px !important;
+      height: 16px !important;
+      min-width: 16px !important;
+      max-width: 16px !important;
+      flex: 0 0 16px !important;
       margin: 0 !important;
-      color: #c3c3c6 !important;
+      color: #bdbdc1 !important;
       stroke: currentColor !important;
       stroke-width: 1.8 !important;
     }
@@ -334,8 +332,8 @@
       display: block !important;
       flex: 0 0 1px;
       height: 1px !important;
-      margin: 7px 2px !important;
-      background: #303033 !important;
+      margin: 4px 1px !important;
+      background: #2b2b2c !important;
       border: 0 !important;
     }
     @media (max-width: 600px) {
@@ -345,16 +343,16 @@
         height: 30px;
       }
       .airshell-home .home-topbar .home-profile-menu {
-        top: calc(100% + 9px) !important;
+        top: calc(100% + 8px) !important;
         right: -8px !important;
-        width: min(330px, calc(100vw - 24px)) !important;
-        border-radius: 29px !important;
+        width: min(270px, calc(100vw - 24px)) !important;
+        border-radius: 23px !important;
       }
       .airshell-home .home-topbar .home-profile-menu .profile-menu-item {
-        min-height: 62px !important;
-        gap: 23px !important;
-        padding: 0 18px !important;
-        font-size: 23px !important;
+        min-height: 40px !important;
+        gap: 15px !important;
+        padding: 0 10px !important;
+        font-size: 13px !important;
       }
     }
   </style>
