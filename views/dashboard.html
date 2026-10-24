@@ -808,8 +808,12 @@
           </button>
         </nav>
 
-        <section class="home-sidebar-section" data-sidebar-section="servers" aria-labelledby="serversLabel">
-          <div class="home-nav-label" id="serversLabel">Servers</div>
+        <section class="home-sidebar-section" data-sidebar-section="workspace" aria-labelledby="workspaceLabel">
+          <div class="home-nav-label" id="workspaceLabel">Workspace</div>
+          <button class="sidebar-item" type="button" id="serversNavToggle" data-sidebar-search="servers" aria-expanded="true" aria-controls="sidebarServers">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="7" rx="2"/><rect x="3" y="14" width="18" height="7" rx="2"/><path d="M7 6.5h.01M7 17.5h.01M11 6.5h6M11 17.5h6"/></svg>
+            <span>Servers</span>
+          </button>
           <div class="home-sidebar-servers" id="sidebarServers">
             <button class="sidebar-server-item current" type="button" data-sidebar-action="Discord bot" data-sidebar-search="servers discord bot online">
               <svg class="server-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="7" rx="2"/><rect x="3" y="14" width="18" height="7" rx="2"/><path d="M7 6.5h.01M7 17.5h.01M11 6.5h6M11 17.5h6"/></svg>
@@ -827,7 +831,6 @@
               <svg class="sidebar-server-sparkline" viewBox="0 0 100 22" preserveAspectRatio="none" aria-label="Recent activity: increasing"><path d="M1 18 C8 17 10 13 16 14 S24 17 29 12 S39 11 45 13 S53 9 58 10 S65 15 70 9 S82 7 87 5 S94 6 99 2"/></svg>
             </button>
           </div>
-        </section>
           <button class="sidebar-item" type="button" data-sidebar-action="Roadmap" data-sidebar-search="roadmap">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="5" r="3"/><path d="M6 8v8a3 3 0 0 0 3 3h6"/><circle cx="18" cy="19" r="3"/><circle cx="18" cy="5" r="3"/><path d="M9 5h6"/></svg>
             <span>Roadmap</span>
@@ -893,6 +896,6 @@
       <p class="home-disclaimer" id="composerHint" hidden>Airshell workspace · terminal access available</p>
     </main>
   </div>
-  <script src="/assets/home.js?v=main-screen-exact-1" defer></script>
+  <script src="/assets/home.js?v=main-screen-exact-2" defer></script>
 </body>
 </html>
