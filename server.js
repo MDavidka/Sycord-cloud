@@ -91,7 +91,7 @@ const loginPage = (message = "") => {
     '<button type="submit">Continue</button></form>',
     '<small class="note">Stay signed in on this browser. Sign out when using a shared device.</small>',
     '</main></body></html>'
-  ].join("\\n");
+  ].join("\n");
 };
 
 app.get("/", (_req, res) => {
