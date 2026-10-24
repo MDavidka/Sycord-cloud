@@ -53,7 +53,7 @@ button { cursor: pointer; }
 .breadcrumb strong { color: #e8e8e8; font-weight: 550; }
 .top-actions { display: flex; align-items: center; gap: 10px; }
 .avatar { width: 30px; height: 30px; border: 1px solid var(--border-strong); border-radius: 9px; background: #292929; display: grid; place-items: center; color: #ddd; font-size: 11px; font-weight: 700; }
-.button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 38px; padding: 0 13px; border: 1px solid var(--border-strong); border-radius: 9px; color: #e8e8e8; background: #202020; font-weight: 600; font-size: 12px; transition: background .14s ease, border-color .14s ease; }
+.button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 0 13px; border: 1px solid var(--border-strong); border-radius: 9px; color: #e8e8e8; background: #202020; font-weight: 600; font-size: 12px; transition: background .14s ease, border-color .14s ease; }
 .button:hover { background: #292929; border-color: #4a4a4a; }
 .button svg { width: 15px; height: 15px; }
 .button-primary { background: #f3f3f3; color: #151515; border-color: #f3f3f3; }
