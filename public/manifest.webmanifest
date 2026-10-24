@@ -6,11 +6,17 @@
   "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
-  "display_override": ["standalone", "minimal-ui"],
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
   "orientation": "any",
   "background_color": "#131313",
   "theme_color": "#131313",
-  "categories": ["developer", "utilities"],
+  "categories": [
+    "developer",
+    "utilities"
+  ],
   "icons": [
     {
       "src": "/assets/favicon.svg",
