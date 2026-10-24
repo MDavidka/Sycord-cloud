@@ -1673,3 +1673,58 @@ body.airshell-home .home-main.home-dashboard {
 @media (max-width: 600px) {
   .home-main.home-dashboard.has-conversation > .home-conversation { top: 14px !important; }
 }
+
+
+  /* Mobile account menu recreated as a bottom sheet. */
+  .airshell-home .home-profile-menu {
+    padding: 0 !important;
+    overflow: hidden;
+    background: #1f1f20 !important;
+    border: 1px solid rgba(255,255,255,.035) !important;
+    border-radius: 42px !important;
+    box-shadow: 0 12px 38px rgba(0,0,0,.42) !important;
+  }
+  .profile-sheet-handle { height: 30px; display: flex; align-items: center; justify-content: center; }
+  .profile-sheet-handle span { display: block; width: 42px; height: 5px; border-radius: 99px; background: #49494b; }
+  .profile-sheet-account { display: flex; align-items: center; gap: 14px; padding: 8px 25px 28px; border-bottom: 1px solid #2c2c2e; }
+  .profile-sheet-avatar { width: 48px; height: 48px; flex: 0 0 48px; display: grid; place-items: center; border-radius: 50%; background: #dedede; color: #171717; font-size: 20px; font-weight: 600; }
+  .profile-sheet-identity { min-width: 0; }
+  .profile-sheet-name { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; color: #f1f1f2; font-size: 16px; font-weight: 550; }
+  .profile-plan { padding: 3px 7px; border-radius: 7px; background: #303032; color: #bcbcc0; font-size: 12px; font-weight: 500; }
+  .profile-sheet-email { margin-top: 5px; color: #88888d; font-size: 14px; overflow-wrap: anywhere; }
+  .profile-sheet-section { padding: 18px 16px 16px; border-bottom: 1px solid #2c2c2e; }
+  .airshell-home .home-topbar .home-profile-menu .profile-menu-item { min-height: 56px !important; height: 56px !important; gap: 16px !important; padding: 0 13px !important; border-radius: 10px !important; font-size: 16px !important; color: #e4e4e6 !important; }
+  .airshell-home .home-topbar .home-profile-menu .profile-menu-item svg { width: 22px !important; height: 22px !important; min-width: 22px !important; flex-basis: 22px !important; color: #9d9da2 !important; }
+  .profile-sheet-theme { min-height: 92px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 22px 14px 27px; border-bottom: 1px solid #2c2c2e; }
+  .profile-theme-label { display: flex; align-items: center; gap: 13px; color: #e4e4e6; font-size: 16px; }
+  .profile-theme-label svg { width: 22px; height: 22px; color: #9d9da2; }
+  .profile-theme-options { display: flex; align-items: center; gap: 2px; padding: 4px; border-radius: 11px; background: #29292b; }
+  .profile-theme-options button { display: grid; place-items: center; width: 48px; height: 44px; border: 0; border-radius: 8px; color: #77777c; background: transparent; }
+  .profile-theme-options button svg { width: 19px; height: 19px; }
+  .profile-theme-options button[aria-pressed="true"] { background: #414143; color: #e5e5e7; box-shadow: 0 1px 2px #0004; }
+  .profile-sheet-footer { padding: 18px 16px 24px; }
+  .profile-sheet-footer form { margin: 0; }
+  .profile-sheet-footer .profile-menu-item { width: 100%; }
+  @media (max-width: 600px) {
+    .airshell-home .home-topbar .home-profile-menu {
+      position: fixed !important;
+      z-index: 2000 !important;
+      top: auto !important;
+      right: max(8px, env(safe-area-inset-right, 0px)) !important;
+      bottom: max(8px, env(safe-area-inset-bottom, 0px)) !important;
+      left: max(8px, env(safe-area-inset-left, 0px)) !important;
+      width: auto !important;
+      max-width: none !important;
+      border-radius: 44px !important;
+    }
+    .profile-sheet-handle { height: 32px; }
+    .profile-sheet-account { padding: 8px 25px 28px; }
+    .profile-sheet-section { padding: 18px 16px 16px; }
+    .profile-sheet-theme { min-height: 92px; }
+    .profile-sheet-footer { padding-bottom: max(24px, env(safe-area-inset-bottom, 0px)); }
+    .airshell-home .home-topbar .home-profile-menu .profile-menu-item { min-height: 56px !important; height: 56px !important; }
+  }
+  @media (min-width: 601px) {
+    .airshell-home .home-topbar .home-profile-menu { width: 320px !important; top: calc(100% + 10px) !important; right: 0 !important; border-radius: 22px !important; }
+  }
+
