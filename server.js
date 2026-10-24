@@ -169,9 +169,10 @@ app.post("/api/chat", async (req, res) => {
         "Accept": "application/json"
       },
       body: JSON.stringify({
-        model: "deepseek-ai/deepseek-v4.1-flash",
+        model: "minimaxai/minimax-m3.1-flash",
         messages,
-        temperature: 0.6,
+        temperature: 1,
+        top_p: 0.95,
         max_tokens: 2048,
         stream: false
       }),
@@ -180,8 +181,18 @@ app.post("/api/chat", async (req, res) => {
 
     const data = await upstream.json().catch(() => ({}));
     if (!upstream.ok) {
-      console.error("NVIDIA NIM request failed:", upstream.status, data && data.error ? data.error.message || data.error : "upstream error");
-      return res.status(502).json({ error: "The AI provider could not complete the request (" + upstream.status + ")." });
+      const providerMessage = data && data.error
+        ? (typeof data.error === "string" ? data.error : data.error.message || data.error.detail || JSON.stringify(data.error))
+        : (data && data.detail ? String(data.detail) : "No error detail returned");
+      console.error("NVIDIA NIM request failed:", upstream.status, providerMessage.slice(0, 800));
+      const publicStatus = [400, 401, 403, 404, 422, 429, 503].includes(upstream.status) ? upstream.status : 502;
+      let friendlyError = "NVIDIA NIM returned HTTP " + upstream.status + ".";
+      if (upstream.status === 401 || upstream.status === 403) friendlyError += " Check that N_API is a valid NVIDIA API key.";
+      else if (upstream.status === 404) friendlyError += " Confirm the model identifier is available to your key.";
+      else if (upstream.status === 429) friendlyError += " The provider is rate-limiting requests; wait and retry.";
+      else if (upstream.status === 503) friendlyError += " NVIDIA's inference service may be temporarily unavailable; retry shortly.";
+      else if (upstream.status === 400 || upstream.status === 422) friendlyError += " Check the request parameters.";
+      return res.status(publicStatus).json({ error: friendlyError, providerStatus: upstream.status });
     }
 
     const answer = data && data.choices && data.choices[0] && data.choices[0].message
@@ -191,7 +202,7 @@ app.post("/api/chat", async (req, res) => {
       return res.status(502).json({ error: "The AI provider returned an empty response." });
     }
     res.setHeader("Cache-Control", "no-store");
-    return res.json({ answer: answer.trim(), model: "deepseek-ai/deepseek-v4.1-flash" });
+    return res.json({ answer: answer.trim(), model: "minimaxai/minimax-m3.1-flash" });
   } catch (error) {
     const timedOut = error && (error.name === "TimeoutError" || error.name === "AbortError");
     console.error("NVIDIA NIM request error:", error && error.message ? error.message : "unknown error");
