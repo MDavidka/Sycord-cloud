@@ -154,7 +154,7 @@
     const chatHistory = [];
     const conversation = $("conversation");
     const appendInlineMarkdown = (parent, source) => {
-      const pattern = /(\x60[^\x60]+\x60|\*\*[^*]+\*\*|__[^_]+__|\*[^*]+\*|_[^_]+_|\[[^\]]+\]\(https?:\/\/[^\s)]+\))/g;
+      const pattern = /(\x60[^\x60]+\x60|\*\*[^*]+\*\*|__[^_]+__|\*[^*]+\*|_[^_]+_|\[[^\]]+\]\(https?:\/\/[^\s)]+\)|https?:\/\/[^\s<]+)/g;
       let cursor = 0;
       let match;
       while ((match = pattern.exec(source))) {
@@ -173,10 +173,17 @@
         } else {
           const linkMatch = token.match(/^\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)$/);
           node = document.createElement("a");
-          node.textContent = linkMatch[1];
-          node.href = linkMatch[2];
+          if (linkMatch) {
+            node.textContent = linkMatch[1];
+            node.href = linkMatch[2];
+          } else {
+            const url = token.replace(/[.,!?;:]+$/, "");
+            node.textContent = url;
+            node.href = url;
+          }
           node.target = "_blank";
           node.rel = "noopener noreferrer";
+          node.className = "markdown-link";
         }
         parent.appendChild(node);
         cursor = pattern.lastIndex;
@@ -214,6 +221,14 @@
           const h = document.createElement("h" + heading[1].length);
           appendInlineMarkdown(h, heading[2]);
           container.appendChild(h);
+          continue;
+        }
+        const quote = line.match(/^\s*>\s?(.*)$/);
+        if (quote) {
+          flushParagraph(); closeList();
+          const blockquote = document.createElement("blockquote");
+          appendInlineMarkdown(blockquote, quote[1]);
+          container.appendChild(blockquote);
           continue;
         }
         const item = line.match(/^\s*(?:(\d+)\.\s+|[-*+]\s+)(.+)$/);
