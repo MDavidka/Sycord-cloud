@@ -9,6 +9,7 @@ const { WebSocketServer, WebSocket } = require("ws");
 const app = express();
 app.disable("x-powered-by");
 app.use(express.urlencoded({ extended: false, limit: "8kb" }));
+app.use(express.json({ limit: "24kb" }));
 app.use("/assets", express.static(path.join(__dirname, "public"), { index: false, maxAge: "1h" }));
 
 app.get("/manifest.webmanifest", (_req, res) => {
@@ -131,6 +132,73 @@ app.get("/dashboard", (req, res) => {
   if (!hasSession(req)) return res.status(401).type("html").send(loginPage("Sign in to continue."));
   res.setHeader("Cache-Control", "no-store");
   res.sendFile(path.join(__dirname, "views", "dashboard.html"));
+});
+
+app.post("/api/chat", async (req, res) => {
+  if (!hasSession(req)) return res.status(401).json({ error: "Authentication required" });
+
+  const apiKey = String(process.env.N_API || "").trim();
+  if (!apiKey) return res.status(503).json({ error: "AI is not configured. Set N_API in the server environment." });
+
+  const inputMessages = req.body && Array.isArray(req.body.messages) ? req.body.messages : [];
+  if (!inputMessages.length || inputMessages.length > 20) {
+    return res.status(400).json({ error: "Send between 1 and 20 recent messages." });
+  }
+
+  const messages = [];
+  for (const item of inputMessages) {
+    if (!item || !["user", "assistant"].includes(item.role) || typeof item.content !== "string") {
+      return res.status(400).json({ error: "Invalid chat message format." });
+    }
+    const content = item.content.trim();
+    if (!content || content.length > 4000) {
+      return res.status(400).json({ error: "Each message must contain 1–4000 characters." });
+    }
+    messages.push({ role: item.role, content });
+  }
+  if (messages[messages.length - 1].role !== "user") {
+    return res.status(400).json({ error: "The latest message must be from the user." });
+  }
+
+  try {
+    const upstream = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + apiKey,
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify({
+        model: "deepseek-ai/deepseek-v4.1-flash",
+        messages,
+        temperature: 0.6,
+        max_tokens: 2048,
+        stream: false
+      }),
+      signal: AbortSignal.timeout(60000)
+    });
+
+    const data = await upstream.json().catch(() => ({}));
+    if (!upstream.ok) {
+      console.error("NVIDIA NIM request failed:", upstream.status, data && data.error ? data.error.message || data.error : "upstream error");
+      return res.status(502).json({ error: "The AI provider could not complete the request (" + upstream.status + ")." });
+    }
+
+    const answer = data && data.choices && data.choices[0] && data.choices[0].message
+      ? data.choices[0].message.content
+      : "";
+    if (typeof answer !== "string" || !answer.trim()) {
+      return res.status(502).json({ error: "The AI provider returned an empty response." });
+    }
+    res.setHeader("Cache-Control", "no-store");
+    return res.json({ answer: answer.trim(), model: "deepseek-ai/deepseek-v4.1-flash" });
+  } catch (error) {
+    const timedOut = error && (error.name === "TimeoutError" || error.name === "AbortError");
+    console.error("NVIDIA NIM request error:", error && error.message ? error.message : "unknown error");
+    return res.status(timedOut ? 504 : 502).json({
+      error: timedOut ? "The AI request timed out. Please try again." : "Could not connect to the AI provider. Please try again."
+    });
+  }
 });
 
 app.get("/api/stats", (req, res) => {
