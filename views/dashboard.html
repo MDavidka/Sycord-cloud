@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#131313">
+  <meta name="description" content="Sycord Cloud runtime and access dashboard">
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+  <link rel="stylesheet" href="/assets/app.css">
+  <title>Overview · Sycord Cloud</title>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="/dashboard" aria-label="Sycord Cloud overview">
+      <span class="brand-mark"><img src="/assets/favicon.svg" alt=""></span>
+      <span class="brand-title"><strong>Sycord Cloud</strong><span>Runtime workspace</span></span>
+    </a>
+    <div class="nav-label">Workspace</div>
+    <nav class="nav" aria-label="Main navigation">
+      <a class="active" href="/dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="8" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="11" width="7" height="10" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></svg>Overview</a>
+      <a href="/terminal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 6 6 6-6 6"/><path d="M12 18h8"/></svg>Web terminal<span class="nav-side">⌘</span></a>
+      <a href="#server"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/><path d="M7 7h.01M7 17h.01M11 7h6M11 17h6"/></svg>Runtime stats</a>
+      <a href="#access"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg>Access & security</a>
+    </nav>
+    <div class="nav-label">System</div>
+    <nav class="nav" aria-label="System navigation">
+      <a href="#runtime-details"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Runtime details</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="sidebar-status">
+        <div class="status-title"><span class="status-dot"></span><span id="sidebarStatus">Checking runtime…</span></div>
+        <p>Process telemetry refreshes automatically. Values represent this Node.js process, not full host-level metrics.</p>
+      </div>
+      <div class="sidebar-foot">Sycord Cloud <span style="float:right">v0.3</span></div>
+    </div>
+  </aside>
+  <main class="main-area">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="button button-quiet mobile-menu" id="menuToggle" aria-label="Open navigation" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+        <div class="breadcrumb"><span>Workspace</span><span>›</span><strong>Overview</strong></div>
+      </div>
+      <div class="top-actions">
+        <span class="pill"><span class="status-dot"></span><span id="topStatus">Connecting</span></span>
+        <div class="avatar" title="Authenticated session">SC</div>
+        <form method="post" action="/logout"><button class="button button-quiet" type="submit">Sign out</button></form>
+      </div>
+    </header>
+    <section class="page">
+      <div class="page-heading">
+        <div>
+          <div class="eyebrow">Workspace / Overview</div>
+          <h1>Welcome to your cloud.</h1>
+          <p class="subtitle">A clear view of your running terminal, runtime health, and access protection — without unnecessary noise.</p>
+        </div>
+        <div class="page-actions">
+          <a class="button button-primary" href="/terminal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 6 6 6-6 6"/><path d="M12 18h8"/></svg>Open terminal</a>
+          <a class="button" href="#access">Review access</a>
+        </div>
+      </div>
+      <div class="grid stats-grid" aria-label="Runtime metrics">
+        <article class="card stat-card">
+          <div class="card-top"><span>Process CPU</span><span class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 3v3m8-3v3M8 18v3m8-3v3M3 8h3m-3 8h3m12-8h3m-3 8h3"/><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 14l2-4 2 3 2-2"/></svg></span></div>
+          <div class="stat-value" id="cpuValue">—</div>
+          <div class="stat-foot">Recent CPU use · one core scale</div>
+        </article>
+        <article class="card stat-card">
+          <div class="card-top"><span>App memory (RSS)</span><span class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M8 9h8M8 12h5M8 15h6"/></svg></span></div>
+          <div class="stat-value" id="rssValue">—</div>
+          <div class="stat-foot">Resident memory for Node.js</div>
+        </article>
+        <article class="card stat-card">
+          <div class="card-top"><span>Process uptime</span><span class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg></span></div>
+          <div class="stat-value" id="uptimeValue">—</div>
+          <div class="stat-foot">Time since this process started</div>
+        </article>
+        <article class="card stat-card">
+          <div class="card-top"><span>Active terminals</span><span class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3m6 0h4"/></svg></span></div>
+          <div class="stat-value" id="activeValue">—</div>
+          <div class="stat-foot">Authenticated PTY connections</div>
+        </article>
+      </div>
+      <div class="columns" id="server">
+        <section class="card">
+          <div class="card-header">
+            <div><h2>Runtime health</h2><p>Live process-level measurements, refreshed every 5 seconds.</p></div>
+            <span class="pill" id="healthPill"><span class="status-dot"></span>Monitoring</span>
+          </div>
+          <div class="card-body">
+            <div class="runtime-row"><span class="runtime-label">CPU usage</span><div class="runtime-track"><span id="cpuMeter"></span></div><strong class="runtime-value" id="cpuInline">—</strong></div>
+            <div class="runtime-row"><span class="runtime-label">V8 heap used</span><div class="runtime-track"><span id="heapMeter"></span></div><strong class="runtime-value" id="heapInline">—</strong></div>
+            <div class="details" style="margin-top:13px">
+              <div class="detail"><span>V8 heap allocated</span><strong id="heapTotalValue">—</strong><small>Heap capacity currently allocated</small></div>
+              <div class="detail"><span>External memory</span><strong id="externalValue">—</strong><small>Native and buffer allocations</small></div>
+            </div>
+            <div class="updated" id="updatedAt">Waiting for first sample…</div>
+          </div>
+        </section>
+        <section class="card" id="runtime-details">
+          <div class="card-header"><div><h2>Runtime details</h2><p>Environment information reported by this process.</p></div></div>
+          <div class="card-body">
+            <div class="details">
+              <div class="detail"><span>Node.js</span><strong id="nodeValue">—</strong></div>
+              <div class="detail"><span>Platform</span><strong id="platformValue">—</strong></div>
+              <div class="detail"><span>Process ID</span><strong id="pidValue">—</strong></div>
+              <div class="detail"><span>Started at</span><strong id="startedValue">—</strong><small id="startedSub">Runtime start time</small></div>
+            </div>
+            <p class="footnote">Resource figures are scoped to the Node.js application. Heroku may not expose total dyno CPU, memory limits, disk usage, or billing through this endpoint.</p>
+          </div>
+        </section>
+      </div>
+      <section class="card section" id="access">
+        <div class="card-header">
+          <div><h2>Access & security</h2><p>Current protections for the browser terminal.</p></div>
+          <span class="pill"><span class="status-dot"></span>Protected</span>
+        </div>
+        <div class="card-body">
+          <div class="access-grid">
+            <div class="access-item">
+              <div class="access-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
+              <div><strong>Password gate</strong><p>The terminal requires the configured password before access.</p><span class="access-state"><span class="status-dot"></span><span id="passwordGate">Checking</span></span></div>
+            </div>
+            <div class="access-item">
+              <div class="access-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11z"/><path d="m9 12 2 2 4-4"/></svg></div>
+              <div><strong>Session cookie</strong><p>HttpOnly, Secure, and SameSite=Strict attributes are enabled.</p><span class="access-state"><span class="status-dot"></span>Protected cookie</span></div>
+            </div>
+            <div class="access-item">
+              <div class="access-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+              <div><strong>Session lifetime</strong><p>Browser authentication expires after one hour.</p><span class="access-state"><span class="status-dot"></span><span id="sessionLength">60 minutes</span></span></div>
+            </div>
+          </div>
+          <div class="inline-warning">Keep your terminal password private. This dashboard shows application-process metrics; it does not provide account management, IP allowlists, audit logs, or host-level access administration.</div>
+        </div>
+      </section>
+      <div class="footnote">Measurements are refreshed in your browser; this page does not retain metric history. Sign out when you finish using a shared device.</div>
+    </section>
+  </main>
+</div>
+<script src="/assets/app.js" defer></script>
+</body>
+</html>
