@@ -228,8 +228,8 @@
 
 
 
-  <style id="profile-menu-reference-v3">
-    /* Compact profile menu matched to the supplied Airshell reference. */
+  <style id="profile-menu-spec">
+    /* Only the project popover and avatar are styled in this override. */
     .airshell-home .home-topbar .home-profile-wrap {
       position: relative !important;
       z-index: 1000;
@@ -246,48 +246,64 @@
       width: 30px !important;
       height: 30px !important;
       margin: 0 !important;
-      padding: 0 !important;
+      padding: 1px !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+      border: 1px solid #9adca7 !important;
+      border-radius: 50% !important;
+      background: #121212 !important;
+    }
+    .airshell-home .home-topbar .home-profile-wrap > .home-avatar .profile-photo {
+      display: block !important;
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+      object-position: center center !important;
+      border-radius: 50% !important;
     }
     .airshell-home .home-topbar .home-profile-menu {
       display: flex;
       flex-direction: column;
       position: absolute !important;
       z-index: 1001 !important;
-      top: calc(100% + 8px) !important;
-      right: -8px !important;
+      top: calc(100% + 4px) !important;
+      right: 0 !important;
       left: auto !important;
-      width: min(270px, calc(100vw - 24px)) !important;
+      width: 155px !important;
+      max-width: calc(100vw - 24px) !important;
       box-sizing: border-box !important;
       margin: 0 !important;
-      padding: 5px !important;
+      padding: 4px 6px !important;
       overflow: hidden;
-      border: 1px solid #2c2c2d !important;
-      border-radius: 23px !important;
-      background: #202021 !important;
-      box-shadow: 0 8px 24px rgba(0,0,0,.28) !important;
-      -webkit-backdrop-filter: blur(20px);
-      backdrop-filter: blur(20px);
-      visibility: visible;
+      border: 1px solid rgba(255,255,255,.08) !important;
+      border-radius: 16px !important;
+      background: #1c1c1e !important;
+      box-shadow: 0 7px 18px rgba(0,0,0,.3) !important;
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
     }
-    .airshell-home .home-topbar .home-profile-menu[hidden] { display: none !important; }
+    .airshell-home .home-topbar .home-profile-menu[hidden] {
+      display: none !important;
+    }
     .airshell-home .home-topbar .home-profile-menu .profile-menu-item {
       display: flex !important;
       flex-direction: row !important;
       align-items: center !important;
       justify-content: flex-start !important;
-      gap: 15px !important;
+      gap: 10px !important;
       width: 100% !important;
       min-width: 0;
-      min-height: 40px !important;
+      height: 34px !important;
+      min-height: 34px !important;
       box-sizing: border-box !important;
       margin: 0 !important;
-      padding: 0 10px !important;
+      padding: 0 6px !important;
       border: 0 !important;
-      border-radius: 0 !important;
-      color: #e7e7e9 !important;
+      border-radius: 6px !important;
+      color: #f2f2f2 !important;
       background: transparent !important;
       font-family: inherit !important;
-      font-size: 13px !important;
+      font-size: 14px !important;
       font-weight: 400 !important;
       line-height: 1.2 !important;
       letter-spacing: 0 !important;
@@ -297,7 +313,7 @@
       cursor: pointer;
     }
     .airshell-home .home-topbar .home-profile-menu .profile-menu-item:hover {
-      background: rgba(255,255,255,.045) !important;
+      background: rgba(255,255,255,.05) !important;
     }
     .airshell-home .home-topbar .home-profile-menu .profile-menu-item svg {
       display: block !important;
@@ -307,9 +323,9 @@
       max-width: 16px !important;
       flex: 0 0 16px !important;
       margin: 0 !important;
-      color: #bdbdc1 !important;
+      color: #cfcfd1 !important;
       stroke: currentColor !important;
-      stroke-width: 1.8 !important;
+      stroke-width: 1.5 !important;
     }
     .airshell-home .home-topbar .home-profile-menu .profile-menu-item span {
       display: block !important;
@@ -322,55 +338,36 @@
       line-height: 1.2 !important;
       white-space: nowrap;
     }
-    .airshell-home .home-topbar .home-profile-menu form {
-      display: block !important;
-      width: 100%;
-      margin: 0 !important;
-      padding: 0 !important;
-    }
     .airshell-home .home-topbar .home-profile-menu .profile-menu-separator {
       display: block !important;
       flex: 0 0 1px;
       height: 1px !important;
-      margin: 4px 1px !important;
-      background: #2b2b2c !important;
+      margin: 1px 3px !important;
+      background: rgba(255,255,255,.1) !important;
       border: 0 !important;
     }
+    .airshell-home .home-topbar .home-profile-menu form { display: block !important; margin: 0 !important; padding: 0 !important; }
     @media (max-width: 600px) {
-      .airshell-home .home-topbar .home-profile-wrap {
-        flex-basis: 30px;
-        width: 30px;
-        height: 30px;
-      }
+      .airshell-home .home-topbar .home-profile-wrap { flex-basis: 30px; width: 30px; height: 30px; }
       .airshell-home .home-topbar .home-profile-menu {
-        top: calc(100% + 8px) !important;
-        right: -8px !important;
-        width: min(270px, calc(100vw - 24px)) !important;
-        border-radius: 23px !important;
+        top: calc(100% + 4px) !important;
+        right: 0 !important;
+        width: 155px !important;
+        border-radius: 16px !important;
+        padding: 4px 6px !important;
       }
       .airshell-home .home-topbar .home-profile-menu .profile-menu-item {
-        min-height: 40px !important;
-        gap: 15px !important;
-        padding: 0 10px !important;
-        font-size: 13px !important;
+        height: 34px !important;
+        min-height: 34px !important;
+        gap: 10px !important;
+        padding: 0 6px !important;
+        font-size: 14px !important;
       }
     }
   </style>
 
 
-  <style id="profile-avatar-fallback-fix">
-    .airshell-home .home-topbar .home-profile-wrap > .home-avatar {
-      overflow: hidden !important;
-      border-radius: 50% !important;
-      background: #f2f2f2 !important;
-    }
-    .airshell-home .home-topbar .home-profile-wrap > .home-avatar .avatar-fallback {
-      display: block !important;
-      width: 100% !important;
-      height: 100% !important;
-      border-radius: 50%;
-    }
-  </style>
+  
 
   <title>Airshell</title>
 </head>
@@ -382,30 +379,24 @@
       </button>
       <a class="home-brand" href="/dashboard" aria-label="Airshell home"><img src="/assets/favicon.svg" alt=""><span>Airshell</span></a>
       <div class="home-profile-wrap">
-      <button class="home-avatar" id="profileToggle" aria-label="Open account menu">
-        <svg class="avatar-fallback" viewBox="0 0 40 40" role="img" aria-label="Profile">
-          <circle cx="20" cy="20" r="20" fill="#f2f2f2"/>
-          <circle cx="20" cy="13.5" r="6.2" fill="#292929"/>
-          <path d="M7.5 36c1.5-8 6.2-12.3 12.5-12.3S31 28 32.5 36" fill="#292929"/>
-        </svg>
-      </button>
-<div class="home-profile-menu" id="profileMenu" role="menu" hidden>
-        <a class="profile-menu-item" role="menuitem" href="/account">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
-          <span>Account</span>
-        </a>
-        <a class="profile-menu-item" role="menuitem" href="/settings">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.7a8 8 0 0 1-1.7 1l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.7-1l-1.7.7-1.4-2.4L7.3 15a8 8 0 0 1 0-2l-1.4-1.1 1.4-2.4 1.7.7a8 8 0 0 1 1.7-1l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.7 1l1.7-.7 1.4 2.4-1.4 1.1a8 8 0 0 1-.1 2Z"/></svg>
-          <span>Settings</span>
-        </a>
-        <div class="profile-menu-separator" role="separator"></div>
-        <form method="post" action="/logout">
-          <button class="profile-menu-item profile-menu-logout" role="menuitem" type="submit">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 17l5-5-5-5M15 12H3"/><path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/></svg>
-            <span>Log out</span>
+        <button class="home-avatar" id="profileToggle" type="button" aria-label="Open project menu" aria-haspopup="menu" aria-expanded="false">
+          <img class="profile-photo" src="data:image/webp;base64,UklGRnYEAABXRUJQVlA4IGoEAABwGACdASqAAIAAPmEskkYkIqGhLBSpMIAMCWkAV+L9xIR2ZP8e/F367iXmaxHk0rzWPFyO5HciJS/SLuFJ4ACAfDxFpLMsPKtyiUYbebvCxfWO+Fx+Ga0SpYulkX92L0T5Ju2KVG6Ui79NSYh9RH2MOMEiu9JWDkJzrcFz17wkusfVIEiIR3t7fsrZ96YC6pxWg0qXJqf776GYlkK5fgtF4qOAYASOQBDrO+8s1FDA5hqTEfdyg6AqC9usTpamV4RR7h7/DCwf45EOnAAA/vxDUCeC3q4vnhP8L8oYirYHQfKgd6dlnY2XIhpV/vsaG/4Nw62mNV8SmpqH6fvZSyJ4SfmHox/ONo0vJqF7c3HzAmJbAjU1er4P/sV0AIsiNzLYnMIJ8mhqIUpXexgOgebpn+Hl3HUTz7VnXsNpJlBDZxgiIkO7HVHKzK1+InmYSgHoE4W0MD7R1b1QnTtYAE9NWO3EWGGUuXrx0FEG8HqBhNA/E8tOQOIm1kIrg1rvbX0AYEn0r0AlwLm5Ow8rPU3c1nTcroGBpNODTJCzglR5bKk60NRvVWQexqgwAuKgTwM/03ezYy/zO78VJD3VkmdSRY432AhhjFwbgb2poYQkC5my45obmhd++wb4Ng6r/CbXVOzip52OLMwtI3n1XKJHgq82qyqMekdcMgDjIrJIPAyOulnZO3uDmVeJ8VdDQbkYOUamAClT9b3Kdoi0eH4wO4jMdInOlUvWdz/IFH3H1MKSKxbzl7TRhLugakMZr79YpznktE5h6cuB1kBbrOdOLukJ/9jjl7f5iOUv1sKFlzJ/IL8XjgO3yrhUQqySpTC/KwWik/Uhuvqp1Obbr//Ha1RmvRQT/xsukIH56ecxIwRpDqUrbwG4WqUjP3/fv5Cuv2vga6oTohMbmRgkl0pyQI8BrLTd+Ufe+d7rR2KnThy9x8dAMFxdkl2VaUUJMq3Ock4bjTagegkStRUl+8X297rSKBq85B+1L6RQlPZFdx/eNIRjEQmFxatGIZlDeU8fbMuZTTfPoTPT9OfDw4f7eezXCqkFhrtBMuqHQ1GLDvlGE9ON0Lv5cPQPo+TXA/doRc9OYdR2j5FNU8/hIjI+E9vE9vVsnLlTmUZH1+iu8x/MFpbfjo3z4GBv9j3iFZBzOqmRlXPUnrWyy5KdQvwJjKcrg48TLCjT3jGjikcvVpEVhaYWUZODJjQXISPWV5z6T5vIXfmh3p9J4Q58Tt6zP7KKTbB2h9xAa+L3+HeznmjzBrgXoZNwPlV9mgXkRGskhWPfrXJFdHyeYWXwfpvRii2FZMmJY6nyfEjA2QX+k3FyVYAtWilshqu0D5xMadJiHJmv7zvAfkgvl8sn4xbtMiE1oEVMj3aqJx4oBnIzRU+amxEoWP3QsaGxUqrKCSqdMqwJtzCNNyvz7qT5VddYGb7Q8oaDuXfxeshdHTAzq51gZPBYXIKcvrNtknII9ermPxnuB4D3Tt1dH3URjV6DC7lyuqgAAAAAAA==" alt="">
+        </button>
+        <div class="home-profile-menu" id="profileMenu" role="menu" aria-label="Project actions" hidden>
+          <a class="profile-menu-item" role="menuitem" href="/settings">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.2 5.2 18.8 9.8"/><path d="m4 20 4.3-.9L19.6 7.8a2.5 2.5 0 0 0-3.5-3.5L4.8 15.7 4 20Z"/></svg>
+            <span>Edit project</span>
+          </a>
+          <button class="profile-menu-item" id="downloadBriefAction" role="menuitem" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v11"/><path d="m7.5 10 4.5 4.5 4.5-4.5"/><path d="M4 16.5v3a1.5 1.5 0 0 0 1.5 1.5h13a1.5 1.5 0 0 0 1.5-1.5v-3"/></svg>
+            <span>Download brief</span>
           </button>
-        </form>
-      </div>
+          <div class="profile-menu-separator" role="separator"></div>
+          <button class="profile-menu-item" id="archiveProjectAction" role="menuitem" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 5h17v4h-17z"/><path d="M5.5 9v10.5h13V9"/><path d="M9 12.5h6"/></svg>
+            <span>Archive</span>
+          </button>
+        </div>
       </div>
     </header>
     <aside class="home-sidebar" id="sidebar" aria-label="Main navigation">
