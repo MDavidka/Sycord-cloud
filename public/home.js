@@ -58,15 +58,6 @@
   document.querySelectorAll(".home-nav a").forEach((link) => link.addEventListener("click", () => openSidebar(false)));
 
   const sidebarSearch = $("sidebarSearch");
-  const projectsNavToggle = $("projectsNavToggle");
-  const sidebarProjects = $("sidebarProjects");
-  if (projectsNavToggle && sidebarProjects) {
-    projectsNavToggle.addEventListener("click", () => {
-      const expanded = projectsNavToggle.getAttribute("aria-expanded") !== "false";
-      projectsNavToggle.setAttribute("aria-expanded", String(!expanded));
-      sidebarProjects.hidden = expanded;
-    });
-  }
   if (sidebarSearch) sidebarSearch.addEventListener("input", () => {
     const query = sidebarSearch.value.trim().toLowerCase();
     document.querySelectorAll("[data-sidebar-search]").forEach((item) => {
@@ -79,8 +70,6 @@
     });
     const mainNav = document.querySelector(".home-sidebar .home-nav");
     if (mainNav) mainNav.hidden = !Array.from(mainNav.querySelectorAll("[data-sidebar-search]")).some((item) => !item.hidden);
-    if (sidebarProjects && query) sidebarProjects.hidden = false;
-    if (projectsNavToggle) projectsNavToggle.setAttribute("aria-expanded", String(!sidebarProjects?.hidden));
   });
   document.querySelectorAll("[data-sidebar-action]").forEach((item) => item.addEventListener("click", () => {
     const label = item.dataset.sidebarAction;
