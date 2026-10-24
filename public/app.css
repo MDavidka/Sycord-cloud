@@ -1903,3 +1903,204 @@ body.airshell-home .home-main.home-dashboard {
   .airshell-home .home-message.system h2 { font-size: 23px !important; }
   .airshell-home .home-message.system p { margin-bottom: 22px !important; }
 }
+
+
+/* Airshell workspace drawer rebuilt to match the supplied reference. */
+.airshell-home .home-sidebar {
+  position: absolute;
+  z-index: 35;
+  top: 5px;
+  bottom: 5px;
+  left: 4px;
+  width: min(400px, calc(100vw - 76px));
+  max-width: calc(100vw - 16px);
+  padding: max(28px, calc(env(safe-area-inset-top, 0px) + 18px)) 0 24px;
+  border: 1px solid #29292b;
+  border-radius: 42px;
+  background: #111112;
+  color: #e6e6e8;
+  box-shadow: 0 16px 50px rgba(0,0,0,.42), inset 0 0 0 1px rgba(255,255,255,.018);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(calc(-100% - 18px));
+  transition: transform 220ms cubic-bezier(.2,.8,.2,1);
+}
+.airshell-home .home-sidebar.open { transform: translateX(0); }
+.airshell-home .home-sidebar-head {
+  flex: 0 0 auto;
+  min-height: 48px;
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 20px;
+  font-weight: 650;
+}
+.airshell-home .home-sidebar-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 17px;
+  color: #f3f3f4;
+  text-decoration: none;
+  min-width: 0;
+}
+.airshell-home .home-sidebar-brand img {
+  display: block;
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  background: transparent;
+  border-radius: 0;
+  flex: 0 0 42px;
+}
+.airshell-home .home-sidebar-brand span { font-size: 19px; font-weight: 650; letter-spacing: -.025em; }
+.airshell-home .home-sidebar-close {
+  margin-left: auto;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  color: #737377;
+  font-size: 25px;
+  opacity: .0;
+}
+.airshell-home .home-sidebar-search-wrap {
+  display: block;
+  margin: 35px 26px 25px;
+  flex: 0 0 auto;
+}
+.airshell-home .home-sidebar-search {
+  display: block;
+  width: 100%;
+  height: 43px;
+  padding: 0 14px;
+  outline: none;
+  border: 1px solid #3a3a3d;
+  border-radius: 18px;
+  background: #161617;
+  color: #f2f2f3;
+  font: 400 14px/1.2 inherit;
+  font-family: inherit;
+  font-size: 14px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.018);
+  -webkit-appearance: none;
+  appearance: none;
+}
+.airshell-home .home-sidebar-search::placeholder { color: #ceced1; opacity: 1; }
+.airshell-home .home-sidebar-search:focus { border-color: #555559; }
+.airshell-home .home-sidebar-search::-webkit-search-cancel-button { filter: grayscale(1); }
+.airshell-home .home-sidebar-scroll {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 15px 24px;
+  scrollbar-width: none;
+}
+.airshell-home .home-sidebar-scroll::-webkit-scrollbar { display: none; }
+.airshell-home .home-sidebar .home-nav {
+  display: grid;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+}
+.airshell-home .home-sidebar .sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #aaaab0;
+  font-family: inherit;
+  font-size: 15.5px;
+  font-weight: 450;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.airshell-home .home-sidebar .sidebar-item:hover { color: #f1f1f2; background: #1b1b1d; }
+.airshell-home .home-sidebar .sidebar-item.active { color: #e8e8eb; background: transparent; border: 0; }
+.airshell-home .home-sidebar .sidebar-item svg {
+  display: block;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  color: #77777d;
+  stroke-width: 1.7;
+}
+.airshell-home .home-sidebar .sidebar-item > span:nth-of-type(1) { min-width: 0; }
+.airshell-home .home-sidebar .sidebar-count {
+  margin-left: auto;
+  padding: 0 3px;
+  color: #7f7f85;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.airshell-home .home-sidebar-section { margin-top: 19px; }
+.airshell-home .home-sidebar .home-nav-label {
+  margin: 0 11px 8px;
+  color: #77777d;
+  font-size: 13.5px;
+  font-weight: 450;
+}
+.airshell-home .home-sidebar-projects {
+  display: grid;
+  gap: 0;
+  padding: 0 0 5px 27px;
+}
+.airshell-home .home-sidebar-projects[hidden] { display: none !important; }
+.airshell-home .home-sidebar .sidebar-project-item {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #8e8e94;
+  font: 400 15px/1.3 inherit;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 450;
+  text-align: left;
+  cursor: pointer;
+}
+.airshell-home .home-sidebar .sidebar-project-item.current { color: #e1e1e4; }
+.airshell-home .home-sidebar .sidebar-project-item:hover { background: #1b1b1d; color: #f1f1f2; }
+.airshell-home .home-sidebar-section [hidden] { display: none !important; }
+.airshell-home .home-sidebar-pinned { margin-top: 17px; }
+.airshell-home .home-sidebar [hidden] { display: none !important; }
+.airshell-home .home-sidebar-close { display: none; }
+@media (max-width: 600px) {
+  .airshell-home .home-sidebar {
+    top: 4px;
+    bottom: 4px;
+    left: 3px;
+    width: min(400px, calc(100vw - 66px));
+    max-width: calc(100vw - 12px);
+    border-radius: 44px;
+    padding-top: max(62px, calc(env(safe-area-inset-top, 0px) + 12px));
+    padding-bottom: 20px;
+  }
+  .airshell-home .home-sidebar-head { min-height: 42px; padding: 0 27px; gap: 14px; }
+  .airshell-home .home-sidebar-brand { gap: 16px; }
+  .airshell-home .home-sidebar-brand img { width: 40px; height: 40px; flex-basis: 40px; }
+  .airshell-home .home-sidebar-brand span { font-size: 19px; }
+  .airshell-home .home-sidebar-search-wrap { margin: 42px 25px 24px; }
+  .airshell-home .home-sidebar-search { height: 43px; border-radius: 18px; font-size: 14px; }
+  .airshell-home .home-sidebar-scroll { padding: 0 16px 24px; }
+  .airshell-home .home-sidebar .sidebar-item { min-height: 46px; gap: 13px; padding: 0 10px; font-size: 15.5px; }
+  .airshell-home .home-sidebar .sidebar-item svg { width: 21px; height: 21px; flex-basis: 21px; }
+  .airshell-home .home-sidebar .home-nav-label { margin: 0 10px 7px; font-size: 13px; }
+  .airshell-home .home-sidebar-section { margin-top: 18px; }
+  .airshell-home .home-sidebar-projects { padding-left: 26px; padding-bottom: 5px; }
+  .airshell-home .home-sidebar .sidebar-project-item { min-height: 44px; padding-left: 10px; font-size: 15px; }
+  .airshell-home .home-sidebar-pinned { margin-top: 17px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .airshell-home .home-sidebar { transition: none !important; }
+}
