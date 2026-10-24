@@ -143,14 +143,14 @@
     const chatHistory = [];
     const conversation = $("conversation");
     const appendInlineMarkdown = (parent, source) => {
-      const pattern = /(\\x60[^\\x60]+\\x60|\\*\\*[^*]+\\*\\*|__[^_]+__|\\*[^*]+\\*|_[^_]+_|\\[[^\\]]+\\]\\(https?:\\/\\/[^\\s)]+\\))/g;
+      const pattern = /(\x60[^\x60]+\x60|\*\*[^*]+\*\*|__[^_]+__|\*[^*]+\*|_[^_]+_|\[[^\]]+\]\(https?:\/\/[^\s)]+\))/g;
       let cursor = 0;
       let match;
       while ((match = pattern.exec(source))) {
         if (match.index > cursor) parent.appendChild(document.createTextNode(source.slice(cursor, match.index)));
         const token = match[0];
         let node;
-        if (token.startsWith("\\x60")) {
+        if (token.startsWith("\x60")) {
           node = document.createElement("code");
           node.textContent = token.slice(1, -1);
         } else if (token.startsWith("**") || token.startsWith("__")) {
@@ -160,7 +160,7 @@
           node = document.createElement("em");
           node.textContent = token.slice(1, -1);
         } else {
-          const linkMatch = token.match(/^\\[([^\\]]+)\\]\\((https?:\\/\\/[^\\s)]+)\\)$/);
+          const linkMatch = token.match(/^\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)$/);
           node = document.createElement("a");
           node.textContent = linkMatch[1];
           node.href = linkMatch[2];
@@ -174,7 +174,7 @@
     };
     const renderMarkdown = (container, source) => {
       container.replaceChildren();
-      const lines = source.replace(/\\r\\n?/g, "\\n").split("\\n");
+      const lines = source.replace(/\r\n?/g, "\n").split("\n");
       let paragraph = [];
       let list = null;
       let codeBlock = null;
@@ -187,17 +187,17 @@
       };
       const closeList = () => { list = null; };
       for (const line of lines) {
-        if (/^\\s*\\x60{3}/.test(line)) {
+        if (/^\s*\x60{3}/.test(line)) {
           flushParagraph(); closeList();
           if (codeBlock) { container.appendChild(codeBlock); codeBlock = null; }
           else { codeBlock = document.createElement("pre"); codeBlock.appendChild(document.createElement("code")); }
           continue;
         }
         if (codeBlock) {
-          codeBlock.firstChild.appendChild(document.createTextNode(line + "\\n"));
+          codeBlock.firstChild.appendChild(document.createTextNode(line + "\n"));
           continue;
         }
-        const heading = line.match(/^\\s{0,3}(#{1,3})\\s+(.+)$/);
+        const heading = line.match(/^\s{0,3}(#{1,3})\s+(.+)$/);
         if (heading) {
           flushParagraph(); closeList();
           const h = document.createElement("h" + heading[1].length);
@@ -205,7 +205,7 @@
           container.appendChild(h);
           continue;
         }
-        const item = line.match(/^\\s*(?:(\\d+)\\.\\s+|[-*+]\\s+)(.+)$/);
+        const item = line.match(/^\s*(?:(\d+)\.\s+|[-*+]\s+)(.+)$/);
         if (item) {
           flushParagraph();
           const ordered = Boolean(item[1]);
