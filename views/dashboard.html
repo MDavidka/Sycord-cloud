@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/app.css?v=chat-safe-markdown-1">
+  <link rel="stylesheet" href="/assets/app.css?v=sidebar-workspace-1">
 
   <style>
     /* Match the reference: near-black translucent glass on the dark workspace. */
@@ -499,14 +499,59 @@
     </header>
     <button class="profile-sheet-backdrop" id="profileSheetBackdrop" type="button" aria-label="Close account menu" hidden></button>
     <aside class="home-sidebar" id="sidebar" aria-label="Main navigation">
-      <div class="home-sidebar-head"><img src="/assets/favicon.svg" alt=""><span>Airshell</span><button class="home-icon-button home-sidebar-close" id="sidebarClose" aria-label="Close sidebar">×</button></div>
-      <div class="home-nav-label">Workspace</div>
-      <nav class="home-nav" aria-label="Workspace">
-        <a class="active" href="/dashboard" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5V21H3z"/><path d="M9 21v-7h6v7"/></svg>Home</a>
-        <a href="/terminal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 6 6 6-6 6M12 18h8"/></svg>Terminal</a>
-        <a href="/access"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Access &amp; security</a>
-      </nav>
-      <div class="home-sidebar-bottom"><span class="home-online-dot"></span><div><strong>Airshell running</strong><p id="sidebarUptime">Checking runtime…</p></div></div>
+      <div class="home-sidebar-head">
+        <a class="home-sidebar-brand" href="/dashboard" aria-label="Airshell home">
+          <img src="/assets/airshell-cloud-mark.svg" alt="">
+          <span>Airshell</span>
+        </a>
+        <button class="home-icon-button home-sidebar-close" id="sidebarClose" type="button" aria-label="Close navigation">×</button>
+      </div>
+
+      <label class="home-sidebar-search-wrap" for="sidebarSearch">
+        <input id="sidebarSearch" class="home-sidebar-search" type="search" placeholder="Arc launch" autocomplete="off" aria-label="Search workspace">
+      </label>
+
+      <div class="home-sidebar-scroll">
+        <nav class="home-nav" aria-label="Main">
+          <a class="sidebar-item active" href="/dashboard" aria-current="page" data-sidebar-search="home">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7"/><path d="M5.5 9v11h13V9M9.5 20v-6h5v6"/></svg>
+            <span>Home</span>
+          </a>
+          <button class="sidebar-item" type="button" data-sidebar-action="Inbox" data-sidebar-search="inbox">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4.5h16l2 10v5H2v-5l2-10Z"/><path d="M2 14h5l2 3h6l2-3h5"/></svg>
+            <span>Inbox</span><span class="sidebar-count">4</span>
+          </button>
+        </nav>
+
+        <section class="home-sidebar-section" data-sidebar-section="workspace" aria-labelledby="workspaceLabel">
+          <div class="home-nav-label" id="workspaceLabel">Workspace</div>
+          <button class="sidebar-item" id="projectsNavToggle" type="button" data-sidebar-search="projects" aria-expanded="true" aria-controls="sidebarProjects">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6.5A1.5 1.5 0 0 1 4.5 5H10l2 2h7.5A1.5 1.5 0 0 1 21 8.5v10a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18.5v-12Z"/></svg>
+            <span>Projects</span>
+          </button>
+          <div class="home-sidebar-projects" id="sidebarProjects">
+            <button class="sidebar-project-item current" type="button" data-sidebar-action="Checkout redesign" data-sidebar-search="checkout redesign">Checkout redesign</button>
+            <button class="sidebar-project-item" type="button" data-sidebar-action="Mobile onboarding" data-sidebar-search="mobile onboarding">Mobile onboarding</button>
+            <button class="sidebar-project-item" type="button" data-sidebar-action="Design system 2.0" data-sidebar-search="design system 2.0">Design system 2.0</button>
+          </div>
+          <button class="sidebar-item" type="button" data-sidebar-action="Roadmap" data-sidebar-search="roadmap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="5" r="2.5"/><circle cx="18" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 5H13a5 5 0 0 1 5 5v6.5M15.5 19H11a5 5 0 0 1-5-5V7.5"/></svg>
+            <span>Roadmap</span>
+          </button>
+          <button class="sidebar-item" type="button" data-sidebar-action="Research" data-sidebar-search="research">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6M10 3v6l-5.5 9.2A1.8 1.8 0 0 0 6 21h12a1.8 1.8 0 0 0 1.5-2.8L14 9V3"/><path d="M8 15h8"/></svg>
+            <span>Research</span>
+          </button>
+        </section>
+
+        <section class="home-sidebar-section home-sidebar-pinned" data-sidebar-section="pinned" aria-labelledby="pinnedLabel">
+          <div class="home-nav-label" id="pinnedLabel">Pinned</div>
+          <button class="sidebar-item" type="button" data-sidebar-action="Q4 launch plan" data-sidebar-search="q4 launch plan">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h8l4 4V21H6a2 2 0 0 1-2-2V5.5a2 2 0 0 1 2-2Z"/><path d="M14 3.5V8h4M8 12h8M8 16h8"/></svg>
+            <span>Q4 launch plan</span>
+          </button>
+        </section>
+      </div>
     </aside>
     <button class="home-backdrop" id="sidebarBackdrop" aria-label="Close sidebar" hidden></button>
     <main class="home-main home-dashboard">
@@ -573,6 +618,6 @@
       <p class="home-disclaimer" id="composerHint" hidden>Airshell workspace · terminal access available</p>
     </main>
   </div>
-  <script src="/assets/home.js?v=chat-safe-markdown-1" defer></script>
+  <script src="/assets/home.js?v=sidebar-workspace-1" defer></script>
 </body>
 </html>
