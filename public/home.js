@@ -57,6 +57,15 @@
   if (backdrop) backdrop.addEventListener("click", () => openSidebar(false));
   document.querySelectorAll(".home-nav a").forEach((link) => link.addEventListener("click", () => openSidebar(false)));
 
+  const serversNavToggle = $("serversNavToggle");
+  const sidebarServers = $("sidebarServers");
+  if (serversNavToggle && sidebarServers) {
+    serversNavToggle.addEventListener("click", () => {
+      const expanded = serversNavToggle.getAttribute("aria-expanded") !== "false";
+      serversNavToggle.setAttribute("aria-expanded", String(!expanded));
+      sidebarServers.hidden = expanded;
+    });
+  }
   const sidebarSearch = $("sidebarSearch");
   if (sidebarSearch) sidebarSearch.addEventListener("input", () => {
     const query = sidebarSearch.value.trim().toLowerCase();
@@ -70,6 +79,8 @@
     });
     const mainNav = document.querySelector(".home-sidebar .home-nav");
     if (mainNav) mainNav.hidden = !Array.from(mainNav.querySelectorAll("[data-sidebar-search]")).some((item) => !item.hidden);
+    if (sidebarServers && query) sidebarServers.hidden = false;
+    if (serversNavToggle) serversNavToggle.setAttribute("aria-expanded", String(!sidebarServers?.hidden));
   });
   document.querySelectorAll("[data-sidebar-action]").forEach((item) => item.addEventListener("click", () => {
     const label = item.dataset.sidebarAction;
@@ -452,34 +463,4 @@
     window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
   }
 
-  // Account menu theme controls.
-  const themeButtons = document.querySelectorAll("[data-theme-choice]");
-  const systemThemeQuery = window.matchMedia ? window.matchMedia("(prefers-color-scheme: light)") : null;
-  const applyThemeChoice = (choice, persist = true) => {
-    const effectiveChoice = choice === "system" ? (systemThemeQuery && systemThemeQuery.matches ? "light" : "dark") : choice;
-    document.documentElement.dataset.theme = choice;
-    themeButtons.forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.themeChoice === choice)));
-    document.documentElement.style.colorScheme = effectiveChoice;
-    document.body.classList.toggle("airshell-light-theme", effectiveChoice === "light");
-    if (persist) {
-      try { window.localStorage.setItem("airshell-theme-choice", choice); } catch (_) {}
-    }
-  };
-  themeButtons.forEach((button) => button.addEventListener("click", () => applyThemeChoice(button.dataset.themeChoice)));
-  try {
-    const savedTheme = window.localStorage.getItem("airshell-theme-choice");
-    if (savedTheme && ["light", "dark", "system"].includes(savedTheme)) applyThemeChoice(savedTheme);
-  } catch (_) {}
-  if (systemThemeQuery) systemThemeQuery.addEventListener("change", () => {
-    let savedTheme = "dark";
-    try { savedTheme = window.localStorage.getItem("airshell-theme-choice") || "dark"; } catch (_) {}
-    if (savedTheme === "system") applyThemeChoice("system", false);
-  });
-  document.querySelectorAll("[data-profile-action]").forEach((button) => button.addEventListener("click", () => {
-    const action = button.dataset.profileAction;
-    if (action === "profile") showToolFeedback("Profile details are not available yet");
-    if (action === "settings") showToolFeedback("Settings are not available yet");
-    if (action === "billing") showToolFeedback("Billing is not available yet");
-    closeProfileSheet();
-  }));
 })();
