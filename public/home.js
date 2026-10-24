@@ -57,6 +57,38 @@
   if (backdrop) backdrop.addEventListener("click", () => openSidebar(false));
   document.querySelectorAll(".home-nav a").forEach((link) => link.addEventListener("click", () => openSidebar(false)));
 
+  const sidebarSearch = $("sidebarSearch");
+  const projectsNavToggle = $("projectsNavToggle");
+  const sidebarProjects = $("sidebarProjects");
+  if (projectsNavToggle && sidebarProjects) {
+    projectsNavToggle.addEventListener("click", () => {
+      const expanded = projectsNavToggle.getAttribute("aria-expanded") !== "false";
+      projectsNavToggle.setAttribute("aria-expanded", String(!expanded));
+      sidebarProjects.hidden = expanded;
+    });
+  }
+  if (sidebarSearch) sidebarSearch.addEventListener("input", () => {
+    const query = sidebarSearch.value.trim().toLowerCase();
+    document.querySelectorAll("[data-sidebar-search]").forEach((item) => {
+      const matched = !query || item.dataset.sidebarSearch.toLowerCase().includes(query);
+      item.hidden = !matched;
+    });
+    document.querySelectorAll("[data-sidebar-section]").forEach((section) => {
+      const visibleItem = Array.from(section.querySelectorAll("[data-sidebar-search]")).some((item) => !item.hidden);
+      section.hidden = !visibleItem;
+    });
+    const mainNav = document.querySelector(".home-sidebar .home-nav");
+    if (mainNav) mainNav.hidden = !Array.from(mainNav.querySelectorAll("[data-sidebar-search]")).some((item) => !item.hidden);
+    if (sidebarProjects && query) sidebarProjects.hidden = false;
+    if (projectsNavToggle) projectsNavToggle.setAttribute("aria-expanded", String(!sidebarProjects?.hidden));
+  });
+  document.querySelectorAll("[data-sidebar-action]").forEach((item) => item.addEventListener("click", () => {
+    const label = item.dataset.sidebarAction;
+    openSidebar(false);
+    showToolFeedback(label + " is a visual placeholder and is not connected yet.");
+  }));
+
+
 
   function showToolFeedback(message) {
     if (!toolFeedback) return;
