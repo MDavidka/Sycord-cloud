@@ -118,8 +118,21 @@
       <a class="home-brand" href="/dashboard" aria-label="Airshell home"><img src="/assets/favicon.svg" alt=""><span>Airshell</span></a>
       <button class="home-avatar" id="profileToggle" aria-label="Open account menu"><img src="data:image/webp;base64,UklGRggEAABXRUJQVlA4WAoAAAAQAAAAPwAAQUxQSLoBAAABCkm2bat2cu57SfB4mkNKuLXJHTrjULO2uLs8ubfw9N/NoLzPORHBwG0jRc3M0jHP3BM4h1AKyUOrO+evXVWl+s6qCckySBbCkpCrRy+//PQ5DaC/tKOrQi7laJTk6vEnX1JHU/dw7fjy5PgqWS7cCrJ54X1S1SqSw4JklVT1/QWXYIuOnv2QNDakTkI6VT+cXWyw4NHH3fJpNt3idlSK2VtTOdOkSF0IUv2MFGHeqC7dTW2tC2PUu17oLC/vp0az4GplofO8Spmo5lgYeFbjxL3uPc9q7qPmvNt5XrtLH71dz3ae2yg29OJwbTG3aObFwIxPU63ZMeWgMp5LjQJwPdezIJs/Y4sQ40+XIFy287FKECq6LUvgyvsUMaK+Xwk02f3bJBDOXTHb90Jx0hf7jMt/NKJE9WXhkV8NTm5HJNxJvaVBCyfj6iuNOFFf+cHPWH227U9Y+faFWCsQ44UbipXeuIbWtf+/8LPgV4S/b/HPDf65xb838O8t/HsT/97Gfzfw3y34dxP/3YbHDfC4BR83weM2eNyIj1vhcTM8bofnDfC8BZ43ofM2eN4Iz1vRefO/l7fD/xsQVlA4ICgCAAAQDACdASpAAEAAPp1AnEsloyKhphVdiLATiWdneybA/QfxqcB3wC9ctpFstxONpi7f2S9QS2/5CbHtnPUfX4NFaEmir2UTPhsGkU9Dw4r+gmnbtZUBAF3f5MKZVUcDy+Pl8G6/ORZlBkAA/vr39WfZZNvjdWPfHdOXyyYTrIRlF+d/t/q2jDuuJe/galEftefu/g2099lGLLz9koOKqYSQrYOHCE/ItiQsmEM5gRk5truRNLKFQFlsBHYfClitt5pU/O2HenxkH1/izeqvA0ZLCsutpHKs47wsMppVlKuYjdFS3yj9F8s8yl1/co+JY4qg1g9rOndn+98T5k6+Gm0fEtpCBIlJiomlTQrZsddx7TZCfKHHTT8s27mqCWDKNEO++LBkbvNGpCQZPfVqNTvsKcwGjviKSEPRMijvxVWyRVRNoAMIel1pi0qtIksYpJGdsrj5QwIMyMe+0hQ6SxVWIKr4pu6etj6Br0F7c1oRvzpjQjUCwTKldS/ZIDsTybw5TMuCBjT4MEF/yem2DlbI1Zc+EuMJty7mKsbaABZvvdRcE0wiNayYvbRvpbkLwwet+4RyNtQtjqbSQ0L5EbKApYKq+s0nzIc/NF/bTn2Jq2AE2R+fC/PxSCLbUYSbkFWfzmjxzqPiBiJiudjIuCctmwofN44aBPO6RvL3KR/Tt+MQBlvr9JzMDfrtgX1Lg5ygrFH49jjotyv+smS0e9av676YUHSAAAAA==" alt=""></button>
       <div class="home-profile-menu" id="profileMenu" hidden>
-        <a href="/access">Access &amp; security</a><a href="/terminal">Web terminal</a>
-        <form method="post" action="/logout"><button type="submit">Sign out</button></form>
+        <a class="profile-menu-item" href="/account">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+          <span>Account</span>
+        </a>
+        <a class="profile-menu-item" href="/settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.7a8 8 0 0 1-1.7 1l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.7-1l-1.7.7-1.4-2.4L7.3 15a8 8 0 0 1 0-2l-1.4-1.1 1.4-2.4 1.7.7a8 8 0 0 1 1.7-1l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.7 1l1.7-.7 1.4 2.4-1.4 1.1a8 8 0 0 1-.1 2Z"/></svg>
+          <span>Settings</span>
+        </a>
+        <div class="profile-menu-separator" role="separator"></div>
+        <form method="post" action="/logout">
+          <button class="profile-menu-item profile-menu-logout" type="submit">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 17l5-5-5-5M15 12H3"/><path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/></svg>
+            <span>Log out</span>
+          </button>
+        </form>
       </div>
     </header>
     <aside class="home-sidebar" id="sidebar" aria-label="Main navigation">
