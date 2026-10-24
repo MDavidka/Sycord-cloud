@@ -17,8 +17,19 @@ if (!password || password.length < 20) {
   process.exit(1);
 }
 
+const SESSION_TTL_SECONDS = 315360000;
+const SESSION_TTL_MS = SESSION_TTL_SECONDS * 1000;
 const sessionSecret = process.env.TERMINAL_SESSION_SECRET || password;
-const sessionToken = crypto.createHmac("sha256", sessionSecret).update("sycord-cloud-remembered-session-v1").digest("hex");
+
+function createSessionToken() {
+  const issuedAt = Date.now();
+  const expiresAt = issuedAt + SESSION_TTL_MS;
+  const nonce = crypto.randomBytes(24).toString("hex");
+  const payload = "v1." + issuedAt + "." + expiresAt + "." + nonce;
+  const signature = crypto.createHmac("sha256", sessionSecret).update(payload).digest("hex");
+  return payload + "." + signature;
+}
+
 let activeTerminals = 0;
 let cpuPrevious = process.cpuUsage();
 let cpuPreviousAt = process.hrtime.bigint();
@@ -40,16 +51,48 @@ function hasSession(req) {
   const cookies = (req.headers.cookie || "").split(";").map(v => v.trim());
   const item = cookies.find(v => v.startsWith("terminal_auth="));
   if (!item) return false;
-  const supplied = Buffer.from(item.slice("terminal_auth=".length));
-  const expected = Buffer.from(sessionToken);
+  const token = item.slice("terminal_auth=".length);
+  const parts = token.split(".");
+  if (parts.length !== 5 || parts[0] !== "v1") return false;
+  const [version, issuedAtRaw, expiresAtRaw, nonce, suppliedSignature] = parts;
+  if (!/^\d+$/.test(issuedAtRaw) || !/^\d+$/.test(expiresAtRaw)) return false;
+  if (!/^[a-f0-9]{48}$/.test(nonce) || !/^[a-f0-9]{64}$/.test(suppliedSignature)) return false;
+  const issuedAt = Number(issuedAtRaw);
+  const expiresAt = Number(expiresAtRaw);
+  const now = Date.now();
+  if (!Number.isSafeInteger(issuedAt) || !Number.isSafeInteger(expiresAt)) return false;
+  if (issuedAt > now + 60000 || expiresAt <= now || expiresAt - issuedAt !== SESSION_TTL_MS) return false;
+  const payload = version + "." + issuedAtRaw + "." + expiresAtRaw + "." + nonce;
+  const expectedSignature = crypto.createHmac("sha256", sessionSecret).update(payload).digest("hex");
+  const supplied = Buffer.from(suppliedSignature);
+  const expected = Buffer.from(expectedSignature);
   return supplied.length === expected.length && crypto.timingSafeEqual(supplied, expected);
 }
 
-const loginPage = (message = "") => \`<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><meta name="theme-color" content="#131313"><link rel="icon" type="image/png" href="/assets/favicon.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap" rel="stylesheet"><title>Sign in · Sycord Cloud</title>
-<style>
-*{box-sizing:border-box}body{font:14px Geist,system-ui,sans-serif;min-height:100vh;display:grid;place-items:center;margin:0;padding:20px;background:#131313;color:#f5f5f5}.login{width:min(100%,400px);padding:27px;border:1px solid #2e2e2e;border-radius:14px;background:#1b1b1b}.brand{display:flex;align-items:center;gap:10px;margin-bottom:29px}.brand img{width:34px;height:34px;display:block;background:#fff;border-radius:8px}.brand strong{display:block;font-weight:600;font-size:14px;letter-spacing:-.02em}.brand span{display:block;margin-top:3px;color:#949494;font-size:12px}.login h1{font-size:25px;letter-spacing:-.04em;margin:0 0 8px;font-weight:600}.login p{color:#b4b4b4;line-height:1.55;margin:0 0 22px;font-size:13px}.login .error:empty{display:none}.login .error{margin:0 0 14px;color:#f19b9b;font-size:12px}.login label{display:block;color:#d4d4d4;font-size:13px;margin-bottom:8px}.login input,.login button{font:inherit;width:100%;min-height:44px;padding:11px 13px;border-radius:8px}.login input{margin-bottom:14px;border:1px solid #424244;background:#101010;color:#fff}.login input:focus{outline:2px solid #f5f5f5;outline-offset:2px}.login button{border:1px solid #f3f3f3;background:#f3f3f3;color:#131313;font-weight:600;cursor:pointer}.login button:hover{background:#ddd}.login .note{display:block;margin-top:18px;padding-top:15px;border-top:1px solid #2e2e2e;color:#949494;font-size:12px;line-height:1.55}
-</style></head><body><main class="login"><div class="brand"><img src="/assets/favicon.svg" alt=""><div><strong>Sycord Cloud</strong><span>Private terminal workspace</span></div></div><h1>Sign in</h1><p>Access your terminal and runtime overview.</p><p class="error">\${message}</p><form method="post" action="/login"><label for="password">Terminal password</label><input id="password" type="password" name="password" autocomplete="current-password" required><button type="submit">Continue</button></form><small class="note">Stay signed in on this browser. Sign out when using a shared device.</small></main></body></html>\`;
+const loginPage = (message = "") => {
+  const escapedMessage = String(message).replace(/[&<>"]/g, ch => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"
+  }[ch]));
+  return [
+    '<!doctype html>',
+    '<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">',
+    '<meta name="color-scheme" content="dark"><meta name="theme-color" content="#131313">',
+    '<link rel="icon" type="image/png" href="/assets/favicon.png">',
+    '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
+    '<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap" rel="stylesheet">',
+    '<title>Sign in · Sycord Cloud</title>',
+    '<style>',
+    '*{box-sizing:border-box}body{font:14px Geist,system-ui,sans-serif;min-height:100vh;display:grid;place-items:center;margin:0;padding:20px;background:#131313;color:#f5f5f5}.login{width:min(100%,400px);padding:27px;border:1px solid #2e2e2e;border-radius:14px;background:#1b1b1b}.brand{display:flex;align-items:center;gap:10px;margin-bottom:29px}.brand img{width:34px;height:34px;display:block;background:#fff;border-radius:8px}.brand strong{display:block;font-weight:600;font-size:14px;letter-spacing:-.02em}.brand span{display:block;margin-top:3px;color:#949494;font-size:12px}.login h1{font-size:25px;letter-spacing:-.04em;margin:0 0 8px;font-weight:600}.login p{color:#b4b4b4;line-height:1.55;margin:0 0 22px;font-size:13px}.login .error:empty{display:none}.login .error{margin:0 0 14px;color:#f19b9b;font-size:12px}.login label{display:block;color:#d4d4d4;font-size:13px;margin-bottom:8px}.login input,.login button{font:inherit;width:100%;min-height:44px;padding:11px 13px;border-radius:8px}.login input{margin-bottom:14px;border:1px solid #424244;background:#101010;color:#fff}.login input:focus{outline:2px solid #f5f5f5;outline-offset:2px}.login button{border:1px solid #f3f3f3;background:#f3f3f3;color:#131313;font-weight:600;cursor:pointer}.login button:hover{background:#ddd}.login .note{display:block;margin-top:18px;padding-top:15px;border-top:1px solid #2e2e2e;color:#949494;font-size:12px;line-height:1.55}',
+    '</style></head><body><main class="login">',
+    '<div class="brand"><img src="/assets/favicon.svg" alt=""><div><strong>Sycord Cloud</strong><span>Private terminal workspace</span></div></div>',
+    '<h1>Sign in</h1><p>Access your terminal and runtime overview.</p><p class="error">' + escapedMessage + '</p>',
+    '<form method="post" action="/login"><label for="password">Terminal password</label>',
+    '<input id="password" type="password" name="password" autocomplete="current-password" required>',
+    '<button type="submit">Continue</button></form>',
+    '<small class="note">Stay signed in on this browser. Sign out when using a shared device.</small>',
+    '</main></body></html>'
+  ].join("\\n");
+};
 
 app.get("/", (_req, res) => {
   if (hasSession(_req)) return res.redirect("/dashboard");
@@ -60,14 +103,14 @@ app.post("/login", (req, res) => {
   const supplied = Buffer.from(String(req.body.password || "").trim());
   const expected = Buffer.from(password);
   if (supplied.length !== expected.length || !crypto.timingSafeEqual(supplied, expected)) {
-    return res.status(401).type("html").send(loginPage("Hibás jelszó."));
+    return res.status(401).type("html").send(loginPage("Incorrect password."));
   }
-  res.setHeader("Set-Cookie", `terminal_auth=${sessionToken}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=315360000`);
+  res.setHeader("Set-Cookie", "terminal_auth=" + createSessionToken() + "; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=" + SESSION_TTL_SECONDS);
   res.redirect(303, "/dashboard");
 });
 
 app.get("/dashboard", (req, res) => {
-  if (!hasSession(req)) return res.status(401).type("html").send(loginPage("Előbb jelentkezz be."));
+  if (!hasSession(req)) return res.status(401).type("html").send(loginPage("Sign in to continue."));
   res.setHeader("Cache-Control", "no-store");
   res.sendFile(path.join(__dirname, "views", "dashboard.html"));
 });
@@ -94,7 +137,7 @@ app.get("/api/stats", (req, res) => {
     pid: process.pid,
     access: {
       passwordProtected: Boolean(password),
-      sessionTtlSeconds: 315360000,
+      sessionTtlSeconds: SESSION_TTL_SECONDS,
       rememberedSession: true,
       secureCookie: true,
       webSocketProtected: true
