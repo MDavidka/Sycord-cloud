@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/app.css?v=profile-sheet-2">
+  <link rel="stylesheet" href="/assets/app.css?v=profile-sheet-3">
 
   <style>
     /* Match the reference: near-black translucent glass on the dark workspace. */
@@ -375,6 +375,84 @@
   
 
   <title>Airshell</title>
+  <style id="profile-sheet-cascade-fix">
+    /* The existing page has later inline menu rules; these final rules intentionally win. */
+    .airshell-home .home-topbar .home-profile-menu {
+      display: flex !important;
+      flex-direction: column !important;
+      padding: 0 !important;
+      overflow: hidden;
+      background: #1f1f20 !important;
+      border: 1px solid rgba(255,255,255,.035) !important;
+      border-radius: 42px !important;
+      box-shadow: 0 12px 38px rgba(0,0,0,.42) !important;
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
+    }
+    .profile-sheet-handle { height: 32px; flex: 0 0 32px; display:flex; align-items:center; justify-content:center; }
+    .profile-sheet-handle span { width:42px; height:5px; display:block; border-radius:99px; background:#49494b; }
+    .profile-sheet-account { display:flex; align-items:center; gap:14px; padding:8px 25px 32px; border-bottom:1px solid #2c2c2e; }
+    .profile-sheet-avatar { width:48px; height:48px; flex:0 0 48px; display:grid; place-items:center; border-radius:50%; background:#dedede; color:#171717; font-size:20px; font-weight:600; }
+    .profile-sheet-identity { min-width:0; }
+    .profile-sheet-name { display:flex; align-items:center; flex-wrap:wrap; gap:8px; color:#f1f1f2; font-size:16px; font-weight:550; }
+    .profile-plan { padding:3px 7px; border-radius:7px; background:#303032; color:#bcbcc0; font-size:12px; font-weight:500; }
+    .profile-sheet-email { margin-top:5px; color:#88888d; font-size:14px; overflow-wrap:anywhere; }
+    .profile-sheet-section { padding:18px 16px; border-bottom:1px solid #2c2c2e; }
+    .airshell-home .home-topbar .home-profile-menu .profile-menu-item {
+      display:flex !important; flex-direction:row !important; align-items:center !important; justify-content:flex-start !important;
+      width:100% !important; min-height:64px !important; height:64px !important; gap:16px !important;
+      margin:0 !important; padding:0 13px !important; border:0 !important; border-radius:10px !important;
+      color:#e4e4e6 !important; background:transparent !important; font:400 16px/1.2 inherit !important;
+      text-align:left !important; white-space:nowrap; cursor:pointer;
+    }
+    .airshell-home .home-topbar .home-profile-menu .profile-menu-item:hover { background:rgba(255,255,255,.045) !important; }
+    .airshell-home .home-topbar .home-profile-menu .profile-menu-item svg {
+      display:block !important; width:22px !important; height:22px !important; min-width:22px !important;
+      flex:0 0 22px !important; margin:0 !important; color:#9d9da2 !important; stroke-width:1.7 !important;
+    }
+    .profile-sheet-theme { min-height:104px; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 22px 14px 27px; border-bottom:1px solid #2c2c2e; }
+    .profile-theme-label { display:flex; align-items:center; gap:13px; color:#e4e4e6; font-size:16px; }
+    .profile-theme-label svg { width:22px; height:22px; color:#9d9da2; }
+    .profile-theme-options { display:flex; align-items:center; gap:2px; padding:4px; border-radius:11px; background:#29292b; }
+    .profile-theme-options button { display:grid; place-items:center; width:48px; height:44px; border:0; border-radius:8px; color:#77777c; background:transparent; }
+    .profile-theme-options button svg { width:19px; height:19px; }
+    .profile-theme-options button[aria-pressed="true"] { background:#414143; color:#e5e5e7; box-shadow:0 1px 2px #0004; }
+    .profile-sheet-footer { padding:18px 16px max(24px,env(safe-area-inset-bottom,0px)); }
+    .profile-sheet-footer form { margin:0; }
+    .profile-sheet-footer .profile-menu-item { width:100%; }
+    .profile-sheet-backdrop { position:fixed; z-index:19; inset:0; width:100%; height:100%; margin:0; padding:0; border:0; background:rgba(0,0,0,.12); cursor:default; }
+    .profile-sheet-backdrop[hidden] { display:none !important; }
+    @media(max-width:600px) {
+      .airshell-home .home-topbar .home-profile-menu {
+        position:fixed !important; z-index:2000 !important;
+        top:auto !important; right:max(8px,env(safe-area-inset-right,0px)) !important;
+        bottom:max(8px,calc(env(safe-area-inset-bottom,0px) - 8px)) !important;
+        left:max(8px,env(safe-area-inset-left,0px)) !important;
+        width:auto !important; max-width:none !important;
+        max-height:calc(100dvh - env(safe-area-inset-top,0px) - 16px) !important;
+        overflow-y:auto !important; overscroll-behavior:contain; border-radius:44px !important;
+      }
+      .profile-sheet-account { padding-bottom:32px; }
+      .profile-sheet-section { padding:18px 16px; }
+      .profile-sheet-theme { min-height:104px; }
+    }
+    @media(min-width:601px) {
+      .airshell-home .home-topbar .home-profile-menu {
+        position:absolute !important; top:calc(100% + 10px) !important; right:0 !important; left:auto !important;
+        width:320px !important; max-width:calc(100vw - 24px) !important;
+        max-height:calc(100vh - 100px); overflow-y:auto; border-radius:22px !important;
+      }
+    }
+    .airshell-light-theme .home-topbar .home-profile-menu { background:#f6f6f7 !important; border-color:#e2e2e5 !important; }
+    .airshell-light-theme .profile-sheet-name,
+    .airshell-light-theme .profile-theme-label,
+    .airshell-light-theme .home-topbar .home-profile-menu .profile-menu-item { color:#252529 !important; }
+    .airshell-light-theme .profile-sheet-email { color:#73737a !important; }
+    .airshell-light-theme .profile-plan,
+    .airshell-light-theme .profile-theme-options { background:#e8e8eb !important; }
+    .airshell-light-theme .profile-theme-options button[aria-pressed="true"] { background:#d4d4d9 !important; color:#252529 !important; }
+  </style>
+
 </head>
 <body class="airshell-home">
   <div class="home-shell">
@@ -495,6 +573,6 @@
       <p class="home-disclaimer" id="composerHint" hidden>Airshell workspace · terminal access available</p>
     </main>
   </div>
-  <script src="/assets/home.js?v=profile-sheet-2" defer></script>
+  <script src="/assets/home.js?v=profile-sheet-3" defer></script>
 </body>
 </html>
