@@ -18,19 +18,16 @@
       return;
     }
     term = new Terminal({
-      cursorBlink: true,
-      convertEol: true,
-      scrollback: 3000,
-      fontSize: 13,
+      cursorBlink: true, convertEol: true, scrollback: 3000, fontSize: 13,
       fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
-      theme: { background: "#0d0d0d", foreground: "#ededed", cursor: "#ededed", selectionBackground: "#444444" }
+      theme: { background: "#101010", foreground: "#ededed", cursor: "#ededed", selectionBackground: "#444444" }
     });
     fit = new FitAddon.FitAddon();
     term.loadAddon(fit);
     term.open(terminalNode);
     fit.fit();
     var protocol = location.protocol === "https:" ? "wss:" : "ws:";
-    status("Connecting…", false);
+    status("Connecting", false);
     socket = new WebSocket(protocol + "//" + location.host + "/ws");
     socket.addEventListener("open", function () {
       status("Connected", true);
@@ -61,9 +58,7 @@
     window.addEventListener("resize", function () {
       if (fit && term) {
         fit.fit();
-        if (socket && socket.readyState === WebSocket.OPEN) {
-          socket.send(JSON.stringify({ type: "resize", cols: term.cols, rows: term.rows }));
-        }
+        if (socket && socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: "resize", cols: term.cols, rows: term.rows }));
       }
     });
     window.addEventListener("beforeunload", function () {
