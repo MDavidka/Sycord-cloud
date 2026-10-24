@@ -142,10 +142,95 @@
     });
     const chatHistory = [];
     const conversation = $("conversation");
+    const appendInlineMarkdown = (parent, source) => {
+      const pattern = /(\\x60[^\\x60]+\\x60|\\*\\*[^*]+\\*\\*|__[^_]+__|\\*[^*]+\\*|_[^_]+_|\\[[^\\]]+\\]\\(https?:\\/\\/[^\\s)]+\\))/g;
+      let cursor = 0;
+      let match;
+      while ((match = pattern.exec(source))) {
+        if (match.index > cursor) parent.appendChild(document.createTextNode(source.slice(cursor, match.index)));
+        const token = match[0];
+        let node;
+        if (token.startsWith("\\x60")) {
+          node = document.createElement("code");
+          node.textContent = token.slice(1, -1);
+        } else if (token.startsWith("**") || token.startsWith("__")) {
+          node = document.createElement("strong");
+          node.textContent = token.slice(2, -2);
+        } else if (token.startsWith("*") || token.startsWith("_")) {
+          node = document.createElement("em");
+          node.textContent = token.slice(1, -1);
+        } else {
+          const linkMatch = token.match(/^\\[([^\\]]+)\\]\\((https?:\\/\\/[^\\s)]+)\\)$/);
+          node = document.createElement("a");
+          node.textContent = linkMatch[1];
+          node.href = linkMatch[2];
+          node.target = "_blank";
+          node.rel = "noopener noreferrer";
+        }
+        parent.appendChild(node);
+        cursor = pattern.lastIndex;
+      }
+      if (cursor < source.length) parent.appendChild(document.createTextNode(source.slice(cursor)));
+    };
+    const renderMarkdown = (container, source) => {
+      container.replaceChildren();
+      const lines = source.replace(/\\r\\n?/g, "\\n").split("\\n");
+      let paragraph = [];
+      let list = null;
+      let codeBlock = null;
+      const flushParagraph = () => {
+        if (!paragraph.length) return;
+        const p = document.createElement("p");
+        appendInlineMarkdown(p, paragraph.join(" "));
+        container.appendChild(p);
+        paragraph = [];
+      };
+      const closeList = () => { list = null; };
+      for (const line of lines) {
+        if (/^\\s*\\x60{3}/.test(line)) {
+          flushParagraph(); closeList();
+          if (codeBlock) { container.appendChild(codeBlock); codeBlock = null; }
+          else { codeBlock = document.createElement("pre"); codeBlock.appendChild(document.createElement("code")); }
+          continue;
+        }
+        if (codeBlock) {
+          codeBlock.firstChild.appendChild(document.createTextNode(line + "\\n"));
+          continue;
+        }
+        const heading = line.match(/^\\s{0,3}(#{1,3})\\s+(.+)$/);
+        if (heading) {
+          flushParagraph(); closeList();
+          const h = document.createElement("h" + heading[1].length);
+          appendInlineMarkdown(h, heading[2]);
+          container.appendChild(h);
+          continue;
+        }
+        const item = line.match(/^\\s*(?:(\\d+)\\.\\s+|[-*+]\\s+)(.+)$/);
+        if (item) {
+          flushParagraph();
+          const ordered = Boolean(item[1]);
+          if (!list || list.tagName.toLowerCase() !== (ordered ? "ol" : "ul")) {
+            closeList();
+            list = document.createElement(ordered ? "ol" : "ul");
+            container.appendChild(list);
+          }
+          const li = document.createElement("li");
+          appendInlineMarkdown(li, item[2]);
+          list.appendChild(li);
+          continue;
+        }
+        if (!line.trim()) { flushParagraph(); closeList(); continue; }
+        closeList();
+        paragraph.push(line.trim());
+      }
+      flushParagraph();
+      if (codeBlock) container.appendChild(codeBlock);
+    };
     const appendChatMessage = (role, content, extraClass = "") => {
       const node = document.createElement("div");
       node.className = "home-message " + (role === "user" ? "user" : "system") + (extraClass ? " " + extraClass : "");
-      node.textContent = content;
+      if (role === "assistant" && !extraClass.includes("loading")) renderMarkdown(node, content);
+      else node.textContent = content;
       conversation.appendChild(node);
       conversation.scrollTo({ top: conversation.scrollHeight, behavior: "smooth" });
       return node;
@@ -156,6 +241,8 @@
       const text = promptInput.value.trim();
       if (!text || sendButton.disabled) return;
 
+      const dashboard = document.querySelector(".home-main.home-dashboard");
+      if (dashboard) dashboard.classList.add("has-conversation");
       chatHistory.push({ role: "user", content: text });
       appendChatMessage("user", text);
       promptInput.value = "";
@@ -194,7 +281,8 @@
         }
         const answer = typeof data.answer === "string" ? data.answer.trim() : "";
         if (!answer) throw new Error("The AI returned an empty response.");
-        loading.textContent = answer;
+        renderMarkdown(loading, answer);
+        loading.classList.remove("home-message-loading");
         chatHistory.push({ role: "assistant", content: answer });
         if (chatHistory.length > 20) chatHistory.splice(0, chatHistory.length - 20);
         conversation.scrollTo({ top: conversation.scrollHeight, behavior: "smooth" });
