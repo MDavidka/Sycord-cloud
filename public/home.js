@@ -406,3 +406,32 @@
     window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
   }
 })();
+
+  
+  // Account menu theme controls.
+  const themeButtons = document.querySelectorAll("[data-theme-choice]");
+  const applyThemeChoice = (choice) => {
+    document.documentElement.dataset.theme = choice;
+    themeButtons.forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.themeChoice === choice)));
+    if (choice === "light") {
+      document.documentElement.style.colorScheme = "light";
+      document.body.classList.add("airshell-light-theme");
+    } else {
+      document.documentElement.style.colorScheme = "dark";
+      document.body.classList.remove("airshell-light-theme");
+    }
+    try { window.localStorage.setItem("airshell-theme-choice", choice); } catch (_) {}
+  };
+  themeButtons.forEach((button) => button.addEventListener("click", () => applyThemeChoice(button.dataset.themeChoice)));
+  try {
+    const savedTheme = window.localStorage.getItem("airshell-theme-choice");
+    if (savedTheme && ["light", "dark", "system"].includes(savedTheme)) applyThemeChoice(savedTheme);
+  } catch (_) {}
+  document.querySelectorAll("[data-profile-action]").forEach((button) => button.addEventListener("click", () => {
+    const action = button.dataset.profileAction;
+    if (action === "profile") showToolFeedback("Profile details are not available yet");
+    if (action === "settings") showToolFeedback("Settings are not available yet");
+    if (action === "billing") showToolFeedback("Billing is not available yet");
+    setHidden(profileMenu, true);
+    if (profileToggle) profileToggle.setAttribute("aria-expanded", "false");
+  }));
