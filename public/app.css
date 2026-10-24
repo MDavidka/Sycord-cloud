@@ -342,3 +342,63 @@ body.airshell-home { overflow:hidden; height:100vh; height:100dvh; background:#1
   .home-add-button { width:54px; height:54px; right:20px; bottom:125px; }
 }
 @media(prefers-reduced-motion:reduce) { .home-sidebar { transition:none; } }
+
+
+/* Airshell compact mobile pass: reduce the oversized hierarchy in the home screen. */
+@media (max-width: 600px) {
+  .home-topbar { height: 62px; padding-top: max(6px, env(safe-area-inset-top)); padding-left: 12px; padding-right: 12px; gap: 8px; }
+  .home-icon-button { width: 34px; height: 34px; flex-basis: 34px; border-radius: 8px; }
+  .home-icon-button svg { width: 21px; height: 21px; }
+  .home-brand { gap: 8px; font-size: 14px; }
+  .home-brand img { width: 28px; height: 28px; border-radius: 7px; }
+  .home-avatar { width: 30px; height: 30px; font-size: 12px; }
+  .home-main { inset: 62px 0 0; }
+  .home-status { top: 54px; left: 20px; }
+  .home-status h1 { font-size: 22px; line-height: 1.25; letter-spacing: -.025em; }
+  .home-status p { margin-top: 6px; font-size: 16px; line-height: 1.35; }
+  .home-conversation { inset: 142px 14px 92px; gap: 10px; padding: 8px 0; }
+  .home-message { max-width: 88%; padding: 10px 12px; border-radius: 13px; font-size: 13px; line-height: 1.45; }
+  .home-add-button { width: 46px; height: 46px; right: 18px; bottom: 104px; }
+  .home-add-button svg { width: 19px; height: 19px; }
+  .home-add-menu { right: 14px; bottom: 158px; width: 188px; }
+  .home-add-menu button, .home-add-menu a { padding: 10px; font-size: 13px; }
+  .home-composer { left: 12px; right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); min-height: 52px; gap: 4px; padding: 5px 6px 5px 8px; border-radius: 23px; }
+  .composer-icon { width: 28px; height: 30px; flex-basis: 28px; }
+  .composer-icon svg { width: 18px; height: 18px; }
+  .home-composer textarea { padding: 6px 1px; font-size: 13px; line-height: 1.3; }
+  .home-composer textarea::placeholder { font-size: 13px; }
+  .model-select { max-width: 122px; gap: 2px; padding: 6px 1px; font-size: 10px; }
+  .model-select svg { width: 12px; height: 12px; flex-basis: 12px; }
+  .composer-send { width: 34px; height: 34px; flex-basis: 34px; }
+  .composer-send svg { width: 18px; height: 18px; }
+  .home-model-menu { right: 54px; bottom: 78px; width: 196px; }
+  .home-model-menu button { padding: 9px; font-size: 12px; }
+  .home-disclaimer { display: none; }
+  .home-sidebar { width: min(270px, calc(100vw - 16px)); border-radius: 16px; }
+  .home-sidebar-head { gap: 9px; padding: 0 14px 18px; font-size: 15px; }
+  .home-sidebar-head img { width: 28px; height: 28px; }
+  .home-nav-label { margin: 0 16px 8px; font-size: 12px; }
+  .home-nav a { min-height: 42px; gap: 10px; padding: 0 16px; font-size: 14px; }
+  .home-nav a svg { width: 18px; height: 18px; flex-basis: 18px; }
+  .home-sidebar-bottom { padding: 12px 14px 0; }
+  .home-sidebar-bottom strong { font-size: 13px; }
+  .home-sidebar-bottom p { font-size: 12px; }
+}
+@media (max-width: 390px) {
+  .home-topbar { padding-left: 10px; padding-right: 10px; gap: 6px; }
+  .home-brand { font-size: 13px; }
+  .home-brand img { width: 26px; height: 26px; }
+  .home-status { left: 16px; top: 48px; }
+  .home-status h1 { font-size: 20px; }
+  .home-status p { font-size: 15px; }
+  .home-conversation { inset: 130px 12px 82px; }
+  .home-message { font-size: 12px; padding: 9px 11px; }
+  .home-composer { left: 8px; right: 8px; gap: 2px; padding-left: 6px; padding-right: 5px; }
+  .composer-add { display: grid; }
+  .composer-icon { width: 25px; flex-basis: 25px; }
+  .home-composer textarea { font-size: 12px; }
+  .home-composer textarea::placeholder { font-size: 12px; }
+  .model-select { max-width: 105px; font-size: 9px; }
+  .composer-send { width: 31px; height: 31px; flex-basis: 31px; }
+  .home-add-button { width: 42px; height: 42px; right: 16px; bottom: 96px; }
+}
