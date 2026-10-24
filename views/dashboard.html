@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/app.css">
+  <link rel="stylesheet" href="/assets/app.css?v=profile-menu-fix-2">
 
   <style>
     /* Match the reference: near-black translucent glass on the dark workspace. */
@@ -106,6 +106,126 @@
       .home-composer .model-select { max-width: 102px; font-size: 11px; }
     }
   </style>
+  <style id="profile-menu-and-composer-fix">
+    /* Keep the profile menu faithful to the reference even if older CSS is cached. */
+    .airshell-home .home-topbar .home-profile-menu {
+      display: block;
+      position: absolute;
+      z-index: 999;
+      top: calc(100% + 8px);
+      right: 12px;
+      width: min(320px, calc(100vw - 24px));
+      box-sizing: border-box;
+      padding: 8px;
+      border: 1px solid #303033 !important;
+      border-radius: 27px !important;
+      background: #1f1f20 !important;
+      box-shadow: 0 16px 44px rgba(0,0,0,.4) !important;
+      -webkit-backdrop-filter: blur(24px);
+      backdrop-filter: blur(24px);
+    }
+    .airshell-home .home-topbar .home-profile-menu[hidden] { display: none !important; }
+    .airshell-home .home-topbar .home-profile-menu .profile-menu-item {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: flex-start !important;
+      gap: 18px !important;
+      width: 100% !important;
+      min-height: 62px !important;
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0 16px !important;
+      border: 0 !important;
+      border-radius: 0 !important;
+      color: #f0f0f2 !important;
+      background: transparent !important;
+      font-family: inherit !important;
+      font-size: 19px !important;
+      font-weight: 400 !important;
+      line-height: 1.2 !important;
+      text-align: left !important;
+      text-decoration: none !important;
+      cursor: pointer;
+    }
+    .airshell-home .home-topbar .home-profile-menu .profile-menu-item:hover {
+      background: rgba(255,255,255,.045) !important;
+    }
+    .airshell-home .home-topbar .home-profile-menu .profile-menu-item svg {
+      display: block !important;
+      width: 24px !important;
+      height: 24px !important;
+      min-width: 24px;
+      flex: 0 0 24px !important;
+      margin: 0 !important;
+      color: #c4c4c7 !important;
+      stroke-width: 1.8;
+    }
+    .airshell-home .home-topbar .home-profile-menu .profile-menu-item span {
+      display: block;
+      margin: 0;
+      padding: 0;
+      line-height: 1.2;
+    }
+    .airshell-home .home-topbar .home-profile-menu form { display: block; margin: 0 !important; padding: 0; }
+    .airshell-home .home-topbar .home-profile-menu .profile-menu-separator {
+      display: block;
+      height: 1px;
+      margin: 7px 2px;
+      background: #303033;
+    }
+
+    /* Vertically center the prompt text inside the pill; avoid iOS textarea baseline quirks. */
+    .home-main.home-dashboard > .home-composer {
+      display: flex !important;
+      align-items: center !important;
+      box-sizing: border-box;
+      min-height: 56px;
+    }
+    .home-main.home-dashboard > .home-composer > #promptInput {
+      display: block !important;
+      position: static !important;
+      align-self: center !important;
+      flex: 1 1 0 !important;
+      width: 0 !important;
+      height: 34px !important;
+      min-height: 34px !important;
+      max-height: 100px !important;
+      box-sizing: border-box !important;
+      margin: 0 !important;
+      padding: 6px 1px !important;
+      border: 0 !important;
+      outline: 0;
+      transform: none !important;
+      translate: none !important;
+      line-height: 22px !important;
+      vertical-align: middle !important;
+      resize: none;
+      overflow-y: auto;
+      background: transparent !important;
+    }
+    .home-main.home-dashboard > .home-composer > #promptInput::placeholder {
+      line-height: 22px !important;
+      opacity: 1;
+    }
+    @media (max-width: 600px) {
+      .airshell-home .home-topbar .home-profile-menu {
+        top: calc(100% + 7px);
+        right: 12px;
+        width: min(320px, calc(100vw - 24px));
+      }
+      .home-main.home-dashboard > .home-composer {
+        align-items: center !important;
+      }
+      .home-main.home-dashboard > .home-composer > #promptInput {
+        height: 34px !important;
+        min-height: 34px !important;
+        padding-top: 6px !important;
+        padding-bottom: 6px !important;
+        font-size: 16px !important;
+      }
+    }
+  </style>
+
 
   <title>Airshell</title>
 </head>
