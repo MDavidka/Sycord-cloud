@@ -1728,3 +1728,46 @@ body.airshell-home .home-main.home-dashboard {
     .airshell-home .home-topbar .home-profile-menu { width: 320px !important; top: calc(100% + 10px) !important; right: 0 !important; border-radius: 22px !important; }
   }
 
+
+
+/* Respect the account sheet's light theme selection across the main workspace. */
+.airshell-home.airshell-light-theme,
+.airshell-light-theme .home-shell,
+.airshell-light-theme .home-main.home-dashboard {
+  background: #f5f5f6 !important;
+  color: #171719 !important;
+}
+.airshell-light-theme .home-topbar {
+  background: rgba(250,250,251,.96) !important;
+  border-bottom-color: #e4e4e7 !important;
+  color: #171719 !important;
+}
+.airshell-light-theme .home-brand,
+.airshell-light-theme .home-icon-button,
+.airshell-light-theme .home-avatar { color: #171719 !important; }
+.airshell-light-theme .home-dashboard .account-card {
+  background: #fff !important;
+  border-color: #e5e5e8 !important;
+}
+.airshell-light-theme .home-dashboard .account-card-label,
+.airshell-light-theme .home-dashboard .account-value-row > strong { color: #26262a !important; }
+.airshell-light-theme .home-dashboard .home-composer {
+  background: rgba(255,255,255,.96) !important;
+  border-color: #e2e2e5 !important;
+  box-shadow: 0 2px 12px rgba(0,0,0,.06) !important;
+}
+.airshell-light-theme .home-dashboard .home-composer textarea { color: #171719 !important; }
+.airshell-light-theme .home-dashboard .home-composer textarea::placeholder { color: #77777e !important; }
+.airshell-light-theme .home-message.user { color: #171719 !important; }
+.airshell-light-theme .home-message.system { color: #343439 !important; }
+.airshell-light-theme .profile-sheet-theme,
+.airshell-light-theme .profile-sheet-account,
+.airshell-light-theme .profile-sheet-section { border-color: #dedee2 !important; }
+.airshell-light-theme .home-profile-menu { background: #f6f6f7 !important; border-color: #e2e2e5 !important; }
+.airshell-light-theme .profile-sheet-name,
+.airshell-light-theme .profile-theme-label,
+.airshell-light-theme .home-topbar .home-profile-menu .profile-menu-item { color: #252529 !important; }
+.airshell-light-theme .profile-sheet-email { color: #73737a !important; }
+.airshell-light-theme .profile-plan,
+.airshell-light-theme .profile-theme-options { background: #e8e8eb !important; }
+.airshell-light-theme .profile-theme-options button[aria-pressed="true"] { background: #d4d4d9 !important; color: #252529 !important; }
