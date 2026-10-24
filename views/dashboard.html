@@ -134,6 +134,43 @@
     </aside>
     <button class="home-backdrop" id="sidebarBackdrop" aria-label="Close sidebar" hidden></button>
     <main class="home-main">
+      <section class="watcher-page" aria-live="polite">
+        <header class="watcher-heading">
+          <div>
+            <p class="eyebrow"><span class="live-dot"></span>Live server watcher</p>
+            <h1>Server performance</h1>
+            <p class="server-address"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4c2.1 2.2 3.1 4.8 3.1 8s-1 5.8-3.1 8c-2.1-2.2-3.1-4.8-3.1-8S9.9 6.2 12 4Z"/></svg><span id="watcherAddress">Authenticated local runtime</span></p>
+          </div>
+          <a class="watcher-terminal-button" href="/terminal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 6 6 6-6 6M12 18h8"/></svg><span>Open terminal</span></a>
+        </header>
+        <section class="watcher-summary" aria-label="Server status">
+          <div class="watcher-summary-head">
+            <div class="watcher-summary-title"><span class="server-glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 8h8M8 12h8M8 16h4"/></svg></span><span>Server overview</span></div>
+            <span class="status-badge"><span class="live-dot"></span><strong id="watcherStatus">Checking</strong></span>
+          </div>
+          <div class="watcher-details">
+            <div><span>Uptime</span><strong id="watcherUptime">Checking…</strong></div>
+            <div><span>Runtime</span><strong id="watcherPlatform">Checking…</strong><small id="watcherNode">—</small></div>
+            <div><span>SSH terminals</span><strong id="watcherTerminals">—</strong></div>
+          </div>
+        </section>
+        <section class="performance-grid" aria-label="Performance metrics">
+          <article class="performance-card performance-card-cpu">
+            <div class="performance-card-top"><div><span class="card-kicker">Server performance 1</span><h2>CPU load</h2></div><strong class="performance-value" id="watcherCpuValue">—</strong></div>
+            <svg class="performance-chart" viewBox="0 0 300 80" preserveAspectRatio="none" aria-label="CPU load history"><defs><linearGradient id="watcherCpuFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#45c9ad" stop-opacity=".28"/><stop offset="1" stop-color="#45c9ad" stop-opacity="0"/></linearGradient></defs><path id="watcherCpuFillPath" class="chart-fill" fill="url(#watcherCpuFill)"/><path id="watcherCpuLinePath" class="chart-line"/></svg>
+            <div class="performance-card-foot"><span>Last 2 minutes</span><span id="watcherCpuLabel">Waiting for metrics</span></div>
+          </article>
+          <article class="performance-card performance-card-memory">
+            <div class="performance-card-top"><div><span class="card-kicker">Server performance 2</span><h2>Memory usage</h2></div><strong class="performance-value" id="watcherMemoryValue">—</strong></div>
+            <svg class="performance-chart" viewBox="0 0 300 80" preserveAspectRatio="none" aria-label="Memory usage history"><defs><linearGradient id="watcherRamFill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#4d9ee8" stop-opacity=".28"/><stop offset="1" stop-color="#4d9ee8" stop-opacity="0"/></linearGradient></defs><path id="watcherMemoryFillPath" class="chart-fill ram" fill="url(#watcherRamFill)"/><path id="watcherMemoryLinePath" class="chart-line ram"/></svg>
+            <div class="performance-card-foot"><span>Heap allocation</span><span id="watcherMemoryLabel">Waiting for metrics</span></div>
+          </article>
+        </section>
+        <section class="watcher-actions" aria-label="Server actions">
+          <a href="/terminal" class="watcher-action watcher-action-primary"><span class="action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 6 6 6-6 6M12 18h8"/></svg></span><span><strong>Connect to terminal</strong><small>Run commands over SSH</small></span><svg class="action-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
+          <a href="/access" class="watcher-action"><span class="action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></span><span><strong>Access &amp; security</strong><small>Review session protection</small></span><svg class="action-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a>
+        </section>
+      </section>
       <section class="home-status" aria-live="polite">
         <div class="server-heading">
           <div class="server-title">
