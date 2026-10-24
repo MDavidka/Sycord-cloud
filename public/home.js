@@ -174,6 +174,8 @@
       if (memoryHistory.length > 24) memoryHistory.shift();
       updateChart("cpuLinePath", "cpuFillPath", cpuHistory);
       updateChart("memoryLinePath", "memoryFillPath", memoryHistory);
+      updateChart("watcherCpuLinePath", "watcherCpuFillPath", cpuHistory);
+      updateChart("watcherMemoryLinePath", "watcherMemoryFillPath", memoryHistory);
       setRuntimeText("runtimeStatus", "• RUNNING");
       setRuntimeText("runtimeUptime", uptime);
       setRuntimeText("runtimeAddress", window.location.host || "Authenticated local runtime");
@@ -182,11 +184,24 @@
       setRuntimeText("runtimeTerminals", String(data.activeTerminals ?? 0));
       setRuntimeText("cpuChartLabel", "CPU usage · " + cpu.toFixed(1) + "%");
       setRuntimeText("memoryChartLabel", "Heap usage · " + formatBytes(memory.heapUsedBytes) + " / " + formatBytes(memory.heapTotalBytes));
+      setRuntimeText("watcherStatus", "Online");
+      setRuntimeText("watcherUptime", uptime);
+      setRuntimeText("watcherAddress", window.location.host || "Authenticated local runtime");
+      setRuntimeText("watcherPlatform", data.platform || "Unknown platform");
+      setRuntimeText("watcherNode", data.nodeVersion || "Node.js");
+      setRuntimeText("watcherTerminals", String(data.activeTerminals ?? 0));
+      setRuntimeText("watcherCpuValue", cpu.toFixed(1) + "%");
+      setRuntimeText("watcherMemoryValue", heapPercent.toFixed(1) + "%");
+      setRuntimeText("watcherCpuLabel", cpu.toFixed(1) + "% now");
+      setRuntimeText("watcherMemoryLabel", formatBytes(memory.heapUsedBytes) + " used");
       if ($("sidebarUptime")) $("sidebarUptime").textContent = "Uptime · " + uptime;
     } catch (_) {
       if ($("runtimeUptime")) $("runtimeUptime").textContent = "Runtime status unavailable";
       setRuntimeText("runtimeStatus", "• UNAVAILABLE");
       setRuntimeText("runtimeAddress", "Runtime metrics unavailable");
+      setRuntimeText("watcherStatus", "Unavailable");
+      setRuntimeText("watcherUptime", "Unavailable");
+      setRuntimeText("watcherAddress", "Runtime metrics unavailable");
       if ($("sidebarUptime")) $("sidebarUptime").textContent = "Waiting for connection";
     }
   }
