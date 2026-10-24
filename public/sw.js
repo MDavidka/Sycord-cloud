@@ -1,7 +1,7 @@
 "use strict";
 
 // Bump this whenever the app shell changes so installed PWAs fetch current styles.
-const CACHE_NAME = "airshell-static-v2";
+const CACHE_NAME = "airshell-static-v3";
 const STATIC_ASSETS = [
   "/assets/app.css",
   "/assets/app.js",
