@@ -11,6 +11,19 @@ app.disable("x-powered-by");
 app.use(express.urlencoded({ extended: false, limit: "8kb" }));
 app.use("/assets", express.static(path.join(__dirname, "public"), { index: false, maxAge: "1h" }));
 
+app.get("/manifest.webmanifest", (_req, res) => {
+  res.setHeader("Content-Type", "application/manifest+json; charset=utf-8");
+  res.setHeader("Cache-Control", "public, max-age=3600");
+  res.sendFile(path.join(__dirname, "public", "manifest.webmanifest"));
+});
+
+app.get("/sw.js", (_req, res) => {
+  res.setHeader("Content-Type", "application/javascript; charset=utf-8");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Service-Worker-Allowed", "/");
+  res.sendFile(path.join(__dirname, "public", "sw.js"));
+});
+
 const password = (process.env.TERMINAL_PASSWORD || "").trim();
 if (!password || password.length < 20) {
   console.error("Set TERMINAL_PASSWORD to a random value of at least 20 characters.");
@@ -77,14 +90,14 @@ const loginPage = (message = "") => {
     '<!doctype html>',
     '<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">',
     '<meta name="color-scheme" content="dark"><meta name="theme-color" content="#131313">',
-    '<link rel="icon" type="image/png" href="/assets/favicon.png">',
+    '<link rel="icon" type="image/png" href="/assets/favicon.png">\n    '<link rel="manifest" href="/manifest.webmanifest">',\n    '<meta name="apple-mobile-web-app-capable" content="yes">',\n    '<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">',\n    '<meta name="apple-mobile-web-app-title" content="Airshell">',',
     '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
     '<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap" rel="stylesheet">',
-    '<title>Sign in · Sycord Cloud</title>',
+    '<title>Sign in · Airshell</title>',
     '<style>',
     '*{box-sizing:border-box}body{font:14px Geist,system-ui,sans-serif;min-height:100vh;display:grid;place-items:center;margin:0;padding:20px;background:#131313;color:#f5f5f5}.login{width:min(100%,400px);padding:27px;border:1px solid #2e2e2e;border-radius:14px;background:#1b1b1b}.brand{display:flex;align-items:center;gap:10px;margin-bottom:29px}.brand img{width:34px;height:34px;display:block;background:#fff;border-radius:8px}.brand strong{display:block;font-weight:600;font-size:14px;letter-spacing:-.02em}.brand span{display:block;margin-top:3px;color:#949494;font-size:12px}.login h1{font-size:25px;letter-spacing:-.04em;margin:0 0 8px;font-weight:600}.login p{color:#b4b4b4;line-height:1.55;margin:0 0 22px;font-size:13px}.login .error:empty{display:none}.login .error{margin:0 0 14px;color:#f19b9b;font-size:12px}.login label{display:block;color:#d4d4d4;font-size:13px;margin-bottom:8px}.login input,.login button{font:inherit;width:100%;min-height:44px;padding:11px 13px;border-radius:8px}.login input{margin-bottom:14px;border:1px solid #424244;background:#101010;color:#fff}.login input:focus{outline:2px solid #f5f5f5;outline-offset:2px}.login button{border:1px solid #f3f3f3;background:#f3f3f3;color:#131313;font-weight:600;cursor:pointer}.login button:hover{background:#ddd}.login .note{display:block;margin-top:18px;padding-top:15px;border-top:1px solid #2e2e2e;color:#949494;font-size:12px;line-height:1.55}',
     '</style></head><body><main class="login">',
-    '<div class="brand"><img src="/assets/favicon.svg" alt=""><div><strong>Sycord Cloud</strong><span>Private terminal workspace</span></div></div>',
+    '<div class="brand"><img src="/assets/favicon.svg" alt=""><div><strong>Airshell</strong><span>Private terminal workspace</span></div></div>',
     '<h1>Sign in</h1><p>Access your terminal and runtime overview.</p><p class="error">' + escapedMessage + '</p>',
     '<form method="post" action="/login"><label for="password">Terminal password</label>',
     '<input id="password" type="password" name="password" autocomplete="current-password" required>',
