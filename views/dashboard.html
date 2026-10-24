@@ -359,6 +359,21 @@
     }
   </style>
 
+
+  <style id="profile-avatar-fallback-fix">
+    .airshell-home .home-topbar .home-profile-wrap > .home-avatar {
+      overflow: hidden !important;
+      border-radius: 50% !important;
+      background: #f2f2f2 !important;
+    }
+    .airshell-home .home-topbar .home-profile-wrap > .home-avatar .avatar-fallback {
+      display: block !important;
+      width: 100% !important;
+      height: 100% !important;
+      border-radius: 50%;
+    }
+  </style>
+
   <title>Airshell</title>
 </head>
 <body class="airshell-home">
@@ -369,7 +384,13 @@
       </button>
       <a class="home-brand" href="/dashboard" aria-label="Airshell home"><img src="/assets/favicon.svg" alt=""><span>Airshell</span></a>
       <div class="home-profile-wrap">
-      <button class="home-avatar" id="profileToggle" aria-label="Open account menu"><img src="data:image/webp;base64,UklGRggEAABXRUJQVlA4WAoAAAAQAAAAPwAAQUxQSLoBAAABCkm2bat2cu57SfB4mkNKuLXJHTrjULO2uLs8ubfw9N/NoLzPORHBwG0jRc3M0jHP3BM4h1AKyUOrO+evXVWl+s6qCckySBbCkpCrRy+//PQ5DaC/tKOrQi7laJTk6vEnX1JHU/dw7fjy5PgqWS7cCrJ54X1S1SqSw4JklVT1/QWXYIuOnv2QNDakTkI6VT+cXWyw4NHH3fJpNt3idlSK2VtTOdOkSF0IUv2MFGHeqC7dTW2tC2PUu17oLC/vp0az4GplofO8Spmo5lgYeFbjxL3uPc9q7qPmvNt5XrtLH71dz3ae2yg29OJwbTG3aObFwIxPU63ZMeWgMp5LjQJwPdezIJs/Y4sQ40+XIFy287FKECq6LUvgyvsUMaK+Xwk02f3bJBDOXTHb90Jx0hf7jMt/NKJE9WXhkV8NTm5HJNxJvaVBCyfj6iuNOFFf+cHPWH227U9Y+faFWCsQ44UbipXeuIbWtf+/8LPgV4S/b/HPDf65xb838O8t/HsT/97Gfzfw3y34dxP/3YbHDfC4BR83weM2eNyIj1vhcTM8bofnDfC8BZ43ofM2eN4Iz1vRefO/l7fD/xsQVlA4ICgCAAAQDACdASpAAEAAPp1AnEsloyKhphVdiLATiWdneybA/QfxqcB3wC9ctpFstxONpi7f2S9QS2/5CbHtnPUfX4NFaEmir2UTPhsGkU9Dw4r+gmnbtZUBAF3f5MKZVUcDy+Pl8G6/ORZlBkAA/vr39WfZZNvjdWPfHdOXyyYTrIRlF+d/t/q2jDuuJe/galEftefu/g2099lGLLz9koOKqYSQrYOHCE/ItiQsmEM5gRk5truRNLKFQFlsBHYfClitt5pU/O2HenxkH1/izeqvA0ZLCsutpHKs47wsMppVlKuYjdFS3yj9F8s8yl1/co+JY4qg1g9rOndn+98T5k6+Gm0fEtpCBIlJiomlTQrZsddx7TZCfKHHTT8s27mqCWDKNEO++LBkbvNGpCQZPfVqNTvsKcwGjviKSEPRMijvxVWyRVRNoAMIel1pi0qtIksYpJGdsrj5QwIMyMe+0hQ6SxVWIKr4pu6etj6Br0F7c1oRvzpjQjUCwTKldS/ZIDsTybw5TMuCBjT4MEF/yem2DlbI1Zc+EuMJty7mKsbaABZvvdRcE0wiNayYvbRvpbkLwwet+4RyNtQtjqbSQ0L5EbKApYKq+s0nzIc/NF/bTn2Jq2AE2R+fC/PxSCLbUYSbkFWfzmjxzqPiBiJiudjIuCctmwofN44aBPO6RvL3KR/Tt+MQBlvr9JzMDfrtgX1Lg5ygrFH49jjotyv+smS0e9av676YUHSAAAAA==" alt=""></button>
+      <button class="home-avatar" id="profileToggle" aria-label="Open account menu">
+        <svg class="avatar-fallback" viewBox="0 0 40 40" role="img" aria-label="Profile">
+          <circle cx="20" cy="20" r="20" fill="#f2f2f2"/>
+          <circle cx="20" cy="13.5" r="6.2" fill="#292929"/>
+          <path d="M7.5 36c1.5-8 6.2-12.3 12.5-12.3S31 28 32.5 36" fill="#292929"/>
+        </svg>
+      </button>
 <div class="home-profile-menu" id="profileMenu" role="menu" hidden>
         <a class="profile-menu-item" role="menuitem" href="/account">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
