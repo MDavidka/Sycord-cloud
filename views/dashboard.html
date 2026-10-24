@@ -18,19 +18,19 @@
   <link rel="stylesheet" href="/assets/app.css">
 
   <style>
-    /* Match the reference widget: charcoal frosted pill, with the plus and text inset. */
+    /* Match the reference: near-black translucent glass on the dark workspace. */
     .home-composer {
       display: flex;
       align-items: center;
       gap: 10px;
       min-height: 62px;
       padding: 7px 9px 7px 17px;
-      border: 1px solid rgba(255,255,255,.17) !important;
+      border: 1px solid rgba(255,255,255,.12) !important;
       border-radius: 999px;
-      background: rgba(42,42,44,.94) !important;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 5px 18px rgb(0 0 0 / 18%) !important;
-      -webkit-backdrop-filter: blur(18px);
-      backdrop-filter: blur(18px);
+      background: rgba(31,31,33,.82) !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 5px 18px rgb(0 0 0 / 16%) !important;
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
     }
     .home-composer .composer-add {
       display: inline-flex;
@@ -46,14 +46,10 @@
       color: #d0d0d3 !important;
     }
     .home-composer .composer-add:hover {
-      background: rgba(255,255,255,.09);
+      background: rgba(255,255,255,.08);
       color: #fff !important;
     }
-    .home-composer .composer-add svg {
-      width: 22px;
-      height: 22px;
-      stroke-width: 1.9;
-    }
+    .home-composer .composer-add svg { width: 22px; height: 22px; stroke-width: 1.9; }
     .home-composer textarea {
       flex: 1 1 auto;
       min-width: 0;
@@ -65,10 +61,7 @@
       line-height: 1.35;
       background: transparent;
     }
-    .home-composer textarea::placeholder {
-      color: #a5a5aa !important;
-      opacity: 1;
-    }
+    .home-composer textarea::placeholder { color: #a6a6ad !important; opacity: 1; }
     .home-composer .model-select {
       flex: 0 1 auto;
       max-width: 180px;
@@ -87,11 +80,11 @@
       height: 40px;
       border: 0;
       border-radius: 50%;
-      background: rgba(235,235,238,.13) !important;
-      color: #d1d1d5 !important;
+      background: rgba(230,230,235,.14) !important;
+      color: #c9c9cf !important;
     }
     .home-composer .composer-send.ready {
-      background: #f0f0f2 !important;
+      background: #ededf0 !important;
       color: #202124 !important;
     }
     .home-composer .mic-button { display: none !important; }
@@ -104,19 +97,9 @@
         gap: 8px;
         padding: 6px 7px 6px 12px;
       }
-      .home-composer .composer-add {
-        flex-basis: 30px;
-        width: 30px;
-      }
-      .home-composer .model-select {
-        max-width: 126px;
-        font-size: 12px;
-      }
-      .home-composer .composer-send {
-        flex-basis: 36px;
-        width: 36px;
-        height: 36px;
-      }
+      .home-composer .composer-add { flex-basis: 30px; width: 30px; }
+      .home-composer .model-select { max-width: 126px; font-size: 12px; }
+      .home-composer .composer-send { flex-basis: 36px; width: 36px; height: 36px; }
     }
     @media (max-width: 390px) {
       .home-composer { left: 9px; right: 9px; gap: 6px; padding-left: 10px; }
