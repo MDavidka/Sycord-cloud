@@ -227,3 +227,23 @@ h1 { margin: 0; font-size: 24px; letter-spacing: -.045em; line-height: 1.22; fon
   .detail strong { text-align: left; }
   .brand-mark { width: 30px; height: 30px; flex-basis: 30px; }
 }
+
+
+/* Airshell navigation: flush sidebar, larger readable labels. */
+.sidebar { padding: 22px 0 16px; }
+.sidebar .brand { margin: 0 14px; padding: 0; }
+.sidebar .nav-label { margin: 30px 18px 12px; font-size: 13px; }
+.sidebar .nav { gap: 5px; padding: 0; }
+.sidebar .nav a { margin: 0; padding: 0 18px; min-height: 44px; border-radius: 0; font-size: 15px; gap: 12px; }
+.sidebar .nav a.active { background: #202020; border-color: transparent; box-shadow: inset 2px 0 #f5f5f5; }
+.sidebar .sidebar-bottom { padding: 16px 18px 0; }
+.sidebar .sidebar-status strong { font-size: 13px; }
+.sidebar .sidebar-status p { font-size: 12px; }
+.sidebar .sidebar-foot { font-size: 12px; }
+@media (max-width: 960px) {
+  .sidebar.open { padding: 22px 0 16px; }
+  .sidebar.open .brand { margin: 0 18px; }
+  .sidebar.open .nav-label { margin-left: 18px; margin-right: 18px; }
+  .sidebar.open .nav a { padding-left: 18px; padding-right: 18px; }
+  .sidebar.open .sidebar-bottom { padding-left: 18px; padding-right: 18px; }
+}
