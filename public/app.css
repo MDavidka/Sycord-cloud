@@ -2104,3 +2104,20 @@ body.airshell-home .home-main.home-dashboard {
 @media (prefers-reduced-motion: reduce) {
   .airshell-home .home-sidebar { transition: none !important; }
 }
+
+
+/* Final sidebar palette and border treatment. */
+.airshell-home .home-sidebar {
+  background: #131313 !important;
+  border: 0 !important;
+  box-shadow: 12px 0 36px rgba(0,0,0,.16), inset -1px 0 rgba(255,255,255,.025) !important;
+}
+.airshell-home .home-sidebar .sidebar-item svg,
+.airshell-home .home-sidebar .home-sidebar-brand svg {
+  stroke: currentColor;
+}
+.airshell-home .home-sidebar-brand img {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+}
