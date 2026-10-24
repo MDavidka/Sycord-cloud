@@ -2128,7 +2128,7 @@ body.airshell-home .home-main.home-dashboard {
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
-  filter: invert(1) !important;
+  filter: none !important;
   mix-blend-mode: normal !important;
   object-fit: contain !important;
   background: transparent !important;
