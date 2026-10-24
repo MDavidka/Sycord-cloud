@@ -8,7 +8,7 @@ const app = express();
 app.disable("x-powered-by");
 app.use(express.urlencoded({ extended: false, limit: "8kb" }));
 
-const password = process.env.TERMINAL_PASSWORD;
+const password = (process.env.TERMINAL_PASSWORD || "").trim();
 if (!password || password.length < 20) {
   console.error("Set TERMINAL_PASSWORD to a random value of at least 20 characters.");
   process.exit(1);
@@ -36,7 +36,7 @@ app.get("/", (_req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  const supplied = Buffer.from(String(req.body.password || ""));
+  const supplied = Buffer.from(String(req.body.password || "").trim());
   const expected = Buffer.from(password);
   if (supplied.length !== expected.length || !crypto.timingSafeEqual(supplied, expected)) {
     return res.status(401).type("html").send(loginPage("Hibás jelszó."));
