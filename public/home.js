@@ -18,6 +18,8 @@
   const fileInput = $("fileInput");
   const hint = $("composerHint");
   const composer = $("composer");
+  const cpuHistory = [];
+  const memoryHistory = [];
 
   function setHidden(el, hidden) {
     if (el) el.hidden = hidden;
@@ -134,16 +136,57 @@
     if (minutes) return minutes + "m " + remaining + "s";
     return remaining + "s";
   }
+  function formatBytes(value) {
+    if (!Number.isFinite(value) || value < 0) return "—";
+    if (value < 1024 * 1024) return Math.round(value / 1024) + " KB";
+    return (value / (1024 * 1024)).toFixed(value < 10 * 1024 * 1024 ? 1 : 0) + " MB";
+  }
+  function setRuntimeText(id, value) {
+    const node = $(id);
+    if (node) node.textContent = value;
+  }
+  function updateChart(lineId, fillId, values) {
+    const line = $(lineId);
+    const fill = $(fillId);
+    if (!line || !fill || !values.length) return;
+    const width = 300;
+    const height = 64;
+    const points = values.map((value, index) => {
+      const x = values.length === 1 ? width : index * width / (values.length - 1);
+      const y = height - 7 - (Math.max(0, Math.min(100, value)) / 100) * (height - 14);
+      return x.toFixed(1) + " " + y.toFixed(1);
+    }).join(" L");
+    line.setAttribute("d", "M" + points);
+    fill.setAttribute("d", "M" + points + " L" + width + " " + height + " L0 " + height + " Z");
+  }
   async function updateRuntime() {
     try {
       const response = await fetch("/api/stats", { cache: "no-store", credentials: "same-origin" });
       if (!response.ok) throw new Error("Runtime unavailable");
       const data = await response.json();
       const uptime = formatUptime(data.uptimeSeconds);
-      if ($("runtimeUptime")) $("runtimeUptime").textContent = uptime;
+      const memory = data.memory || {};
+      const cpu = Math.max(0, Number(data.cpuPercent) || 0);
+      const heapPercent = memory.heapTotalBytes > 0 ? (memory.heapUsedBytes / memory.heapTotalBytes) * 100 : 0;
+      cpuHistory.push(cpu);
+      memoryHistory.push(heapPercent);
+      if (cpuHistory.length > 24) cpuHistory.shift();
+      if (memoryHistory.length > 24) memoryHistory.shift();
+      updateChart("cpuLinePath", "cpuFillPath", cpuHistory);
+      updateChart("memoryLinePath", "memoryFillPath", memoryHistory);
+      setRuntimeText("runtimeStatus", "• RUNNING");
+      setRuntimeText("runtimeUptime", uptime);
+      setRuntimeText("runtimeAddress", window.location.host || "Authenticated local runtime");
+      setRuntimeText("runtimePlatform", data.platform || "Unknown platform");
+      setRuntimeText("runtimeNode", data.nodeVersion || "Node.js");
+      setRuntimeText("runtimeTerminals", String(data.activeTerminals ?? 0));
+      setRuntimeText("cpuChartLabel", "CPU usage · " + cpu.toFixed(1) + "%");
+      setRuntimeText("memoryChartLabel", "Heap usage · " + formatBytes(memory.heapUsedBytes) + " / " + formatBytes(memory.heapTotalBytes));
       if ($("sidebarUptime")) $("sidebarUptime").textContent = "Uptime · " + uptime;
     } catch (_) {
       if ($("runtimeUptime")) $("runtimeUptime").textContent = "Runtime status unavailable";
+      setRuntimeText("runtimeStatus", "• UNAVAILABLE");
+      setRuntimeText("runtimeAddress", "Runtime metrics unavailable");
       if ($("sidebarUptime")) $("sidebarUptime").textContent = "Waiting for connection";
     }
   }
