@@ -2,23 +2,31 @@
   "use strict";
   var sidebar = document.getElementById("sidebar");
   var menuToggle = document.getElementById("menuToggle");
+  function closeNav() {
+    if (sidebar) sidebar.classList.remove("open");
+    document.body.classList.remove("nav-open");
+    if (menuToggle) {
+      menuToggle.setAttribute("aria-expanded", "false");
+      menuToggle.setAttribute("aria-label", "Open navigation");
+    }
+  }
   if (menuToggle && sidebar) {
     menuToggle.addEventListener("click", function () {
       var open = sidebar.classList.toggle("open");
+      document.body.classList.toggle("nav-open", open);
       menuToggle.setAttribute("aria-expanded", String(open));
+      menuToggle.setAttribute("aria-label", open ? "Close navigation" : "Open navigation");
     });
     document.addEventListener("click", function (event) {
-      if (window.innerWidth <= 760 && sidebar.classList.contains("open") &&
-          !sidebar.contains(event.target) && !menuToggle.contains(event.target)) {
-        sidebar.classList.remove("open");
-        menuToggle.setAttribute("aria-expanded", "false");
-      }
+      if (window.innerWidth <= 960 && sidebar.classList.contains("open") &&
+          !sidebar.contains(event.target) && !menuToggle.contains(event.target)) closeNav();
     });
+    document.addEventListener("keydown", function (event) { if (event.key === "Escape") closeNav(); });
+    window.addEventListener("resize", function () { if (window.innerWidth > 960) closeNav(); });
   }
 
   var cpuValue = document.getElementById("cpuValue");
   if (!cpuValue) return;
-
   function text(id, value) {
     var node = document.getElementById(id);
     if (node) node.textContent = value;
@@ -38,7 +46,7 @@
     return minutes + "m " + (seconds % 60) + "s";
   }
   function clock(value) {
-    try { return new Date(value).toLocaleString(); } catch (error) { return String(value || "—"); }
+    try { return new Date(value).toLocaleString(); } catch (error) { return "—"; }
   }
   function meter(id, value) {
     var node = document.getElementById(id);
@@ -60,16 +68,17 @@
     text("platformValue", data.platform || "—");
     text("pidValue", String(data.pid || "—"));
     text("startedValue", clock(data.startedAt));
-    text("startedSub", "Runtime process start time");
-    text("passwordGate", data.access && data.access.passwordProtected ? "Enabled" : "Not configured");
-    text("sessionLength", Math.round((data.access && data.access.sessionTtlSeconds || 3600) / 60) + " minutes");
     text("topStatus", "Online");
     text("sidebarStatus", "Runtime online");
-    text("updatedAt", "Last updated " + clock(data.measuredAt) + " · refresh every 5 sec");
+    text("sidebarSub", "Metrics updated every 5 seconds.");
+    text("updatedAt", "Updated " + clock(data.measuredAt));
+    text("accessSummary", data.access && data.access.rememberedSession ? "Saved browser session · sign out when finished on a shared device." : "Password-protected terminal.");
+    var dot = document.getElementById("topDot");
+    if (dot) dot.style.background = "#84d6a0";
+    var sideDot = document.getElementById("sidebarDot");
+    if (sideDot) sideDot.style.background = "#84d6a0";
     meter("cpuMeter", cpu);
     meter("heapMeter", heapRatio);
-    var healthPill = document.getElementById("healthPill");
-    if (healthPill) healthPill.innerHTML = '<span class="status-dot"></span>' + (cpu > 85 || heapRatio > 90 ? "High process usage" : "Healthy process");
   }
   async function refresh() {
     try {
@@ -79,7 +88,8 @@
     } catch (error) {
       text("topStatus", "Metrics unavailable");
       text("sidebarStatus", "Metrics unavailable");
-      text("updatedAt", "Could not retrieve runtime metrics. Refresh after reconnecting.");
+      text("sidebarSub", "Reconnect to refresh.");
+      text("updatedAt", "Metrics unavailable · retrying");
     }
   }
   refresh();
