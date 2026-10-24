@@ -2121,3 +2121,31 @@ body.airshell-home .home-main.home-dashboard {
   border: 0 !important;
   border-radius: 0 !important;
 }
+
+
+/* Make the known-good Airshell mark and inline Lucide SVG icons reliably visible. */
+.airshell-home .home-sidebar-brand img {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  filter: invert(1) !important;
+  mix-blend-mode: normal !important;
+  object-fit: contain !important;
+  background: transparent !important;
+}
+.airshell-home .home-sidebar .sidebar-item svg {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: 21px !important;
+  height: 21px !important;
+  min-width: 21px !important;
+  flex: 0 0 21px !important;
+  overflow: visible !important;
+  stroke: currentColor !important;
+  fill: none !important;
+}
+.airshell-home .home-sidebar .sidebar-item svg path,
+.airshell-home .home-sidebar .sidebar-item svg circle {
+  vector-effect: non-scaling-stroke;
+}
