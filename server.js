@@ -58,18 +58,27 @@ app.get("/terminal", (req, res) => {
 <script>
 (() => {
   const state = document.getElementById('state');
-  const term = new Terminal({cursorBlink:true,convertEol:true,scrollback:3000,fontSize:13,fontFamily:'ui-monospace,SFMono-Regular,Menlo,monospace',theme:{background:'#08090b',foreground:'#e7e9ee',cursor:'#e7e9ee'}});
-  const fit = new FitAddon.FitAddon();
-  term.loadAddon(fit); term.open(document.getElementById('terminal')); fit.fit();
-  const scheme = location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const socket = new WebSocket(scheme + '//' + location.host + '/ws');
-  socket.addEventListener('open', () => { state.textContent = 'Csatlakoztatva'; fit.fit(); socket.send(JSON.stringify({type:'resize',cols:term.cols,rows:term.rows})); });
-  socket.addEventListener('message', event => { try { const msg=JSON.parse(event.data); if(msg.type==='output') term.write(msg.data); else if(msg.type==='error') term.writeln('\r\n\x1b[31m'+msg.message+'\x1b[0m'); } catch {} });
-  socket.addEventListener('close', () => { state.textContent = 'Kapcsolat megszakadt — frissítsd az oldalt'; });
-  socket.addEventListener('error', () => { state.textContent = 'Kapcsolódási hiba'; });
-  term.onData(data => { if(socket.readyState===WebSocket.OPEN) socket.send(JSON.stringify({type:'input',data})); });
-  document.getElementById('clear').addEventListener('click', () => term.clear());
-  window.addEventListener('resize', () => { fit.fit(); if(socket.readyState===WebSocket.OPEN) socket.send(JSON.stringify({type:'resize',cols:term.cols,rows:term.rows})); });
+  try {
+    if (typeof Terminal === 'undefined' || typeof FitAddon === 'undefined') {
+      state.textContent = 'A terminál felülete nem töltődött be. Frissítsd az oldalt.';
+      return;
+    }
+    const term = new Terminal({cursorBlink:true,convertEol:true,scrollback:3000,fontSize:13,fontFamily:'ui-monospace,SFMono-Regular,Menlo,monospace',theme:{background:'#08090b',foreground:'#e7e9ee',cursor:'#e7e9ee'}});
+    const fit = new FitAddon.FitAddon();
+    term.loadAddon(fit); term.open(document.getElementById('terminal')); fit.fit();
+    const scheme = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    state.textContent = 'WebSocket kapcsolat indítása…';
+    const socket = new WebSocket(scheme + '//' + location.host + '/ws');
+    socket.addEventListener('open', () => { state.textContent = 'Csatlakoztatva'; fit.fit(); socket.send(JSON.stringify({type:'resize',cols:term.cols,rows:term.rows})); });
+    socket.addEventListener('message', event => { try { const msg=JSON.parse(event.data); if(msg.type==='output') term.write(msg.data); else if(msg.type==='error') { term.writeln('\\r\\n\\x1b[31m'+msg.message+'\\x1b[0m'); state.textContent = 'Terminálhiba'; } } catch {} });
+    socket.addEventListener('close', event => { state.textContent = 'Kapcsolat lezárva (' + event.code + '). Frissítsd az oldalt.'; });
+    socket.addEventListener('error', () => { state.textContent = 'WebSocket kapcsolódási hiba'; });
+    term.onData(data => { if(socket.readyState===WebSocket.OPEN) socket.send(JSON.stringify({type:'input',data})); });
+    document.getElementById('clear').addEventListener('click', () => term.clear());
+    window.addEventListener('resize', () => { fit.fit(); if(socket.readyState===WebSocket.OPEN) socket.send(JSON.stringify({type:'resize',cols:term.cols,rows:term.rows})); });
+  } catch (error) {
+    state.textContent = 'Felületi hiba: ' + String(error && error.message || error).slice(0,120);
+  }
 })();
 </script></body></html>`);
 });
