@@ -1368,13 +1368,13 @@ body.airshell-home .home-main.home-dashboard {
 @media (max-width: 600px) {
   .airshell-home .home-topbar {
     box-sizing: border-box;
-    height: calc(82px + env(safe-area-inset-top, 0px));
-    min-height: calc(82px + env(safe-area-inset-top, 0px));
-    padding: calc(env(safe-area-inset-top, 0px) + 18px) 18px 0;
+    height: calc(76px + env(safe-area-inset-top, 0px));
+    min-height: calc(76px + env(safe-area-inset-top, 0px));
+    padding: calc(env(safe-area-inset-top, 0px) + 12px) 18px 0;
     gap: 12px;
   }
   .airshell-home .home-main.home-dashboard {
-    inset: calc(82px + env(safe-area-inset-top, 0px)) 0 0 !important;
+    inset: calc(76px + env(safe-area-inset-top, 0px)) 0 0 !important;
   }
   .airshell-home .home-icon-button { width: 38px; height: 38px; flex-basis: 38px; }
   .airshell-home .home-brand { font-size: 20px; }
