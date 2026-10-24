@@ -2,93 +2,69 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#131313">
-  <meta name="description" content="Airshell runtime overview">
-  <link rel="icon" type="image/png" href="/assets/favicon.png">\n  <link rel="manifest" href="/manifest.webmanifest">\n  <meta name="apple-mobile-web-app-capable" content="yes">\n  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">\n  <meta name="apple-mobile-web-app-title" content="Airshell">
+  <meta name="description" content="Airshell — your private AI workspace and terminal.">
+  <link rel="icon" type="image/png" href="/assets/favicon.png">
   <link rel="apple-touch-icon" href="/assets/favicon.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Airshell">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/assets/app.css">
-  <title>Overview · Airshell</title>
+  <title>Airshell</title>
 </head>
-<body>
-<div class="shell">
-  <aside class="sidebar" id="sidebar" aria-label="Main navigation">
-    <a class="brand" href="/dashboard" aria-label="Airshell overview">
-      <span class="brand-mark"><img src="/assets/favicon.svg" alt=""></span>
-      <span class="brand-title"><strong>Airshell</strong><span>Runtime workspace</span></span>
-    </a>
-    <div class="nav-label">Workspace</div>
-    <nav class="nav" aria-label="Workspace">
-      <a class="active" href="/dashboard" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>Overview</a>
-      <a href="/terminal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m4 6 6 6-6 6"/><path d="M12 18h8"/></svg>Web terminal</a>
-      <a href="/access"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg>Access &amp; security</a>
-    </nav>
-    <div class="sidebar-bottom">
-      <div class="sidebar-status"><span class="status-dot" id="sidebarDot"></span><div><strong id="sidebarStatus">Checking runtime</strong><p id="sidebarSub">Waiting for process metrics.</p></div></div>
-      <div class="sidebar-foot"><span>Airshell</span><span>v0.2</span></div>
-    </div>
-  </aside>
-  <main class="main-area">
-    <header class="topbar">
-      <div class="topbar-left">
-        <button class="button button-quiet mobile-menu" id="menuToggle" aria-label="Open navigation" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
-        <a class="mobile-brand" href="/dashboard"><img src="/assets/favicon.svg" alt=""><span>Airshell</span></a>
-      </div>
-      <div class="top-actions">
-        <span class="pill"><span class="status-dot" id="topDot"></span><span id="topStatus">Connecting</span></span>
-        <form method="post" action="/logout"><button class="button button-quiet" type="submit">Sign out</button></form>
+<body class="airshell-home">
+  <div class="home-shell">
+    <header class="home-topbar">
+      <button class="home-icon-button" id="menuToggle" aria-label="Open sidebar" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3.5" y="4" width="17" height="16" rx="2"/><path d="M10 4v16"/></svg>
+      </button>
+      <a class="home-brand" href="/dashboard" aria-label="Airshell home"><img src="/assets/favicon.svg" alt=""><span>Airshell</span></a>
+      <button class="home-avatar" id="profileToggle" aria-label="Open account menu">A</button>
+      <div class="home-profile-menu" id="profileMenu" hidden>
+        <a href="/access">Access &amp; security</a><a href="/terminal">Web terminal</a>
+        <form method="post" action="/logout"><button type="submit">Sign out</button></form>
       </div>
     </header>
-    <section class="page">
-      <header class="page-heading">
-        <div class="heading-copy"><h1>Runtime overview</h1><p class="subtitle">Your terminal and process health, at a glance.</p></div>
-        <div class="page-actions"><a class="button button-primary" href="/terminal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 6 6 6-6 6"/><path d="M12 18h8"/></svg>Open terminal</a></div>
-      </header>
-
-      <section class="metrics-strip" aria-label="Current runtime metrics">
-        <article class="metric"><div class="metric-label">Process CPU</div><div class="metric-value" id="cpuValue"><span class="skeleton" aria-hidden="true"></span></div><div class="metric-note">Recent · one-core scale</div></article>
-        <article class="metric"><div class="metric-label">Memory (RSS)</div><div class="metric-value" id="rssValue"><span class="skeleton" aria-hidden="true"></span></div><div class="metric-note">Node.js process memory</div></article>
-        <article class="metric"><div class="metric-label">Uptime</div><div class="metric-value" id="uptimeValue"><span class="skeleton" aria-hidden="true"></span></div><div class="metric-note">This process</div></article>
-        <article class="metric"><div class="metric-label">Open terminals</div><div class="metric-value" id="activeValue"><span class="skeleton" aria-hidden="true"></span></div><div class="metric-note">Authenticated sessions</div></article>
-      </section>
-
-      <div class="columns">
-        <section class="panel" id="server">
-          <div class="panel-header"><div><h2>Resource use</h2><p>CPU and memory in this process.</p></div><span class="panel-meta" id="updatedAt">Waiting for first sample</span></div>
-          <div class="panel-body">
-            <div class="resource-row"><span class="resource-label">CPU usage</span><div class="track"><span id="cpuMeter"></span></div><strong class="resource-value" id="cpuInline">—</strong></div>
-            <div class="resource-row"><span class="resource-label">V8 heap</span><div class="track"><span id="heapMeter"></span></div><strong class="resource-value" id="heapInline">—</strong></div>
-            <div class="detail-grid">
-              <div class="detail"><span>Heap allocated</span><strong id="heapTotalValue">—</strong></div>
-              <div class="detail"><span>External memory</span><strong id="externalValue">—</strong></div>
-            </div>
-            <p class="footnote" id="metricsNote">Metrics cover the Node.js process, not total dyno or host capacity.</p>
-          </div>
-        </section>
-        <section class="panel" id="runtime-details">
-          <div class="panel-header"><div><h2>Runtime details</h2><p>Current process environment.</p></div></div>
-          <div class="panel-body">
-            <div class="detail-grid">
-              <div class="detail"><span>Node.js</span><strong id="nodeValue">—</strong></div>
-              <div class="detail"><span>Platform</span><strong id="platformValue">—</strong></div>
-              <div class="detail"><span>Process ID</span><strong id="pidValue">—</strong></div>
-              <div class="detail"><span>Started</span><strong id="startedValue">—</strong></div>
-            </div>
-          </div>
-        </section>
+    <aside class="home-sidebar" id="sidebar" aria-label="Main navigation">
+      <div class="home-sidebar-head"><img src="/assets/favicon.svg" alt=""><span>Airshell</span><button class="home-icon-button home-sidebar-close" id="sidebarClose" aria-label="Close sidebar">×</button></div>
+      <div class="home-nav-label">Workspace</div>
+      <nav class="home-nav" aria-label="Workspace">
+        <a class="active" href="/dashboard" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5V21H3z"/><path d="M9 21v-7h6v7"/></svg>Home</a>
+        <a href="/terminal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 6 6 6-6 6M12 18h8"/></svg>Terminal</a>
+        <a href="/access"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Access &amp; security</a>
+      </nav>
+      <div class="home-sidebar-bottom"><span class="home-online-dot"></span><div><strong>Airshell running</strong><p id="sidebarUptime">Checking runtime…</p></div></div>
+    </aside>
+    <button class="home-backdrop" id="sidebarBackdrop" aria-label="Close sidebar" hidden></button>
+    <main class="home-main">
+      <section class="home-status" aria-live="polite"><h1>Airshell running</h1><p id="runtimeUptime">Checking runtime…</p></section>
+      <section class="home-conversation" id="conversation" aria-label="Conversation" aria-live="polite"></section>
+      <button class="home-add-button" id="addButton" aria-label="More options" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 5v14M5 12h14"/></svg></button>
+      <div class="home-add-menu" id="addMenu" hidden>
+        <button type="button" id="attachAction"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m21 11.5-8.6 8.6a5 5 0 0 1-7.1-7.1l9.2-9.2a3.5 3.5 0 0 1 5 5l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"/></svg>Attach a file</button>
+        <a href="/terminal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 6 6 6-6 6M12 18h8"/></svg>Open terminal</a>
       </div>
-
-      <section class="panel section access-preview">
-        <div><h2>Access &amp; security</h2><p id="accessSummary">Password-protected terminal with a remembered browser session.</p></div>
-        <a class="button" href="/access">View access</a>
-      </section>
-    </section>
-  </main>
-</div>
-<script src="/assets/app.js" defer></script>
+      <input id="fileInput" type="file" hidden>
+      <form class="home-composer" id="composer">
+        <button class="composer-icon composer-add" id="composerAdd" type="button" aria-label="More options"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg></button>
+        <textarea id="promptInput" rows="1" placeholder="Write a message…" aria-label="Write a message"></textarea>
+        <button class="model-select" id="modelButton" type="button" aria-haspopup="listbox" aria-expanded="false"><span id="modelName">DeepSeek V4 Pro</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m7 10 5 5 5-5"/></svg></button>
+        <button class="composer-icon mic-button" id="voiceButton" type="button" aria-label="Voice input unavailable" title="Voice input is not available yet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3m-4 0h8"/></svg></button>
+        <button class="composer-send" type="submit" aria-label="Send message"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+      </form>
+      <div class="home-model-menu" id="modelMenu" role="listbox" aria-label="Choose mode" hidden>
+        <button type="button" role="option" data-model="DeepSeek V4 Pro" aria-selected="true">DeepSeek V4 Pro <span>Selected</span></button>
+        <button type="button" role="option" data-model="Antigravity CLI">Antigravity CLI</button>
+      </div>
+      <p class="home-disclaimer" id="composerHint">Airshell workspace · terminal access available</p>
+    </main>
+  </div>
+  <script src="/assets/home.js" defer></script>
 </body>
 </html>
