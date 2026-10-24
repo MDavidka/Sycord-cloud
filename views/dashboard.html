@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/app.css?v=profile-sheet-1">
+  <link rel="stylesheet" href="/assets/app.css?v=profile-sheet-2">
 
   <style>
     /* Match the reference: near-black translucent glass on the dark workspace. */
@@ -384,14 +384,14 @@
       </button>
       <a class="home-brand" href="/dashboard" aria-label="Airshell home"><img src="/assets/favicon.svg" alt=""><span>Airshell</span></a>
       <div class="home-profile-wrap">
-        <button class="home-avatar" id="profileToggle" type="button" aria-label="Open project menu" aria-haspopup="menu" aria-expanded="false">A</button>
-        <div class="home-profile-menu" id="profileMenu" role="dialog" aria-label="Account menu" hidden>
+        <button class="home-avatar" id="profileToggle" type="button" aria-label="Open project menu" aria-haspopup="dialog" aria-controls="profileMenu" aria-expanded="false">A</button>
+        <div class="home-profile-menu" id="profileMenu" role="dialog" aria-modal="true" aria-label="Account menu" hidden>
           <div class="profile-sheet-handle" aria-hidden="true"><span></span></div>
           <div class="profile-sheet-account">
             <div class="profile-sheet-avatar" aria-hidden="true">A</div>
             <div class="profile-sheet-identity">
-              <div class="profile-sheet-name">Airshell account <span class="profile-plan">Workspace</span></div>
-              <div class="profile-sheet-email">Signed in to your workspace</div>
+              <div class="profile-sheet-name">Emma Collins <span class="profile-plan">Pro</span></div>
+              <div class="profile-sheet-email">emma@example.com</div>
             </div>
           </div>
           <div class="profile-sheet-section">
@@ -416,9 +416,10 @@
           <div class="profile-sheet-footer">
             <form method="post" action="/logout"><button class="profile-menu-item profile-menu-logout" type="submit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 17l5-5-5-5M15 12H3"/><path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/></svg><span>Sign out</span></button></form>
           </div>
-        </div></div>
+        </div>
       </div>
     </header>
+    <button class="profile-sheet-backdrop" id="profileSheetBackdrop" type="button" aria-label="Close account menu" hidden></button>
     <aside class="home-sidebar" id="sidebar" aria-label="Main navigation">
       <div class="home-sidebar-head"><img src="/assets/favicon.svg" alt=""><span>Airshell</span><button class="home-icon-button home-sidebar-close" id="sidebarClose" aria-label="Close sidebar">×</button></div>
       <div class="home-nav-label">Workspace</div>
@@ -494,6 +495,6 @@
       <p class="home-disclaimer" id="composerHint" hidden>Airshell workspace · terminal access available</p>
     </main>
   </div>
-  <script src="/assets/home.js?v=profile-bottom-sheet-1" defer></script>
+  <script src="/assets/home.js?v=profile-sheet-2" defer></script>
 </body>
 </html>
