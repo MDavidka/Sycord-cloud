@@ -1409,3 +1409,12 @@ body.airshell-home .home-main.home-dashboard {
   .home-dashboard .account-value-row { gap: 5px; }
   .home-dashboard .home-composer { left: 14px; right: 14px; }
 }
+
+
+/* Ensure the recreated home composer overrides legacy hidden selectors. */
+.home-main.home-dashboard > .home-composer {
+  display: flex !important;
+}
+.home-main.home-dashboard > .home-conversation {
+  display: flex !important;
+}
