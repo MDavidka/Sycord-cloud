@@ -1,5 +1,10 @@
 (function () {
   "use strict";
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("/sw.js").catch(function () {});
+    });
+  }
   var sidebar = document.getElementById("sidebar");
   var menuToggle = document.getElementById("menuToggle");
   function closeNav() {
