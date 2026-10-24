@@ -90,6 +90,7 @@
   });
 
   if (promptInput && sendButton) {
+    // iOS Safari zooms into focused inputs smaller than 16px; preserve viewport scale.\n
     const updateComposer = () => {
       sendButton.classList.toggle("ready", promptInput.value.trim().length > 0);
       promptInput.style.height = "auto";
