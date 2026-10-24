@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#131313">
+  <link rel="icon" type="image/png" href="/assets/favicon.png">
+  <link rel="apple-touch-icon" href="/assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/app.css">
+  <title>Access &amp; security · Sycord Cloud</title>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+    <a class="brand" href="/dashboard" aria-label="Sycord Cloud overview">
+      <span class="brand-mark"><img src="/assets/favicon.svg" alt=""></span>
+      <span class="brand-title"><strong>Sycord Cloud</strong><span>Runtime workspace</span></span>
+    </a>
+    <div class="nav-label">Workspace</div>
+    <nav class="nav" aria-label="Workspace">
+      <a href="/dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>Overview</a>
+      <a href="/terminal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m4 6 6 6-6 6"/><path d="M12 18h8"/></svg>Web terminal</a>
+      <a class="active" href="/access" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg>Access &amp; security</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="sidebar-status"><span class="status-dot" id="accessDot"></span><div><strong id="accessSidebarStatus">Protected</strong><p>Saved browser session.</p></div></div>
+      <div class="sidebar-foot"><span>Sycord Cloud</span><span>v0.2</span></div>
+    </div>
+  </aside>
+  <main class="main-area">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="button button-quiet mobile-menu" id="menuToggle" aria-label="Open navigation" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+        <a class="mobile-brand" href="/dashboard"><img src="/assets/favicon.svg" alt=""><span>Sycord Cloud</span></a>
+      </div>
+      <div class="top-actions"><form method="post" action="/logout"><button class="button button-quiet" type="submit">Sign out</button></form></div>
+    </header>
+    <section class="page access-page">
+      <header class="page-heading"><div class="heading-copy"><h1>Access &amp; security</h1><p class="subtitle">Manage the session for this browser.</p></div></header>
+      <section class="panel">
+        <div class="panel-header"><div><h2>Sign-in protection</h2><p>How this terminal session is protected.</p></div><span class="pill"><span class="status-dot" id="passwordDot"></span><span id="passwordPill">Checking</span></span></div>
+        <div class="access-rows">
+          <div class="access-row"><div><h3>Password gate</h3><p>Password is required for a new browser or after you sign out.</p></div><strong class="access-value" id="passwordGate">Checking</strong></div>
+          <div class="access-row"><div><h3>Remember this browser</h3><p>You stay signed in after restarts, until you sign out or clear site data. Cookie lifetime is up to 10 years.</p></div><strong class="access-value" id="rememberedSession">Checking</strong></div>
+          <div class="access-row"><div><h3>Session cookie</h3><p>HttpOnly, Secure, SameSite=Strict.</p></div><strong class="access-value" id="cookieProtection">Checking</strong></div>
+          <div class="access-row"><div><h3>Terminal connection</h3><p>The WebSocket route also checks the authenticated session and origin.</p></div><strong class="access-value" id="socketProtection">Checking</strong></div>
+          <div class="access-note" id="accessNote">Checking current server settings…</div>
+          <div class="access-actions"><p>This signs out this browser. You will need the password to sign in again.</p><form method="post" action="/logout"><button class="button button-primary" type="submit">Sign out this browser</button></form></div>
+        </div>
+      </section>
+    </section>
+  </main>
+</div>
+<script src="/assets/app.js" defer></script>
+<script src="/assets/access.js" defer></script>
+</body>
+</html>
