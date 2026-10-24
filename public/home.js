@@ -7,6 +7,7 @@
   const menuToggle = $("menuToggle");
   const profileToggle = $("profileToggle");
   const profileMenu = $("profileMenu");
+  const profileSheetBackdrop = $("profileSheetBackdrop");
   const addButton = $("addButton");
   const composerAdd = $("composerAdd");
   const addMenu = $("addMenu");
@@ -27,10 +28,17 @@
   function setHidden(el, hidden) {
     if (el) el.hidden = hidden;
   }
+  function closeProfileSheet() {
+    setHidden(profileMenu, true);
+    setHidden(profileSheetBackdrop, true);
+    if (profileToggle) profileToggle.setAttribute("aria-expanded", "false");
+    document.body.classList.remove("profile-sheet-open");
+  }
   function closeFloatingMenus(except) {
     [[profileMenu, profileToggle], [addMenu, addButton], [modelMenu, modelButton], [pageToolsMenu, pageToolsMenuButton]].forEach(([menu, trigger]) => {
       if (menu !== except) {
-        setHidden(menu, true);
+        if (menu === profileMenu) closeProfileSheet();
+        else setHidden(menu, true);
         if (trigger) trigger.setAttribute("aria-expanded", "false");
       }
     });
@@ -81,12 +89,15 @@
     pageToolsMenuButton.setAttribute("aria-expanded", String(open));
   });
 
-  if (profileToggle) profileToggle.addEventListener("click", () => {
+  if (profileToggle && profileMenu) profileToggle.addEventListener("click", () => {
     const open = profileMenu.hidden;
     closeFloatingMenus(profileMenu);
     setHidden(profileMenu, !open);
+    setHidden(profileSheetBackdrop, !open);
+    document.body.classList.toggle("profile-sheet-open", open);
     profileToggle.setAttribute("aria-expanded", String(open));
   });
+  if (profileSheetBackdrop) profileSheetBackdrop.addEventListener("click", closeProfileSheet);
   function toggleAddMenu() {
     const open = addMenu.hidden;
     closeFloatingMenus(addMenu);
@@ -383,8 +394,7 @@
 
   document.addEventListener("click", (event) => {
     if (!event.target.closest(".home-profile-menu") && !event.target.closest("#profileToggle") && profileMenu) {
-      setHidden(profileMenu, true);
-      if (profileToggle) profileToggle.setAttribute("aria-expanded", "false");
+      closeProfileSheet();
     }
     if (!event.target.closest(".home-add-menu") && !event.target.closest("#addButton") && !event.target.closest("#composerAdd") && addMenu) {
       setHidden(addMenu, true);
@@ -408,29 +418,32 @@
 
   // Account menu theme controls.
   const themeButtons = document.querySelectorAll("[data-theme-choice]");
-  const applyThemeChoice = (choice) => {
+  const systemThemeQuery = window.matchMedia ? window.matchMedia("(prefers-color-scheme: light)") : null;
+  const applyThemeChoice = (choice, persist = true) => {
+    const effectiveChoice = choice === "system" ? (systemThemeQuery && systemThemeQuery.matches ? "light" : "dark") : choice;
     document.documentElement.dataset.theme = choice;
     themeButtons.forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.themeChoice === choice)));
-    if (choice === "light") {
-      document.documentElement.style.colorScheme = "light";
-      document.body.classList.add("airshell-light-theme");
-    } else {
-      document.documentElement.style.colorScheme = "dark";
-      document.body.classList.remove("airshell-light-theme");
+    document.documentElement.style.colorScheme = effectiveChoice;
+    document.body.classList.toggle("airshell-light-theme", effectiveChoice === "light");
+    if (persist) {
+      try { window.localStorage.setItem("airshell-theme-choice", choice); } catch (_) {}
     }
-    try { window.localStorage.setItem("airshell-theme-choice", choice); } catch (_) {}
   };
   themeButtons.forEach((button) => button.addEventListener("click", () => applyThemeChoice(button.dataset.themeChoice)));
   try {
     const savedTheme = window.localStorage.getItem("airshell-theme-choice");
     if (savedTheme && ["light", "dark", "system"].includes(savedTheme)) applyThemeChoice(savedTheme);
   } catch (_) {}
+  if (systemThemeQuery) systemThemeQuery.addEventListener("change", () => {
+    let savedTheme = "dark";
+    try { savedTheme = window.localStorage.getItem("airshell-theme-choice") || "dark"; } catch (_) {}
+    if (savedTheme === "system") applyThemeChoice("system", false);
+  });
   document.querySelectorAll("[data-profile-action]").forEach((button) => button.addEventListener("click", () => {
     const action = button.dataset.profileAction;
     if (action === "profile") showToolFeedback("Profile details are not available yet");
     if (action === "settings") showToolFeedback("Settings are not available yet");
     if (action === "billing") showToolFeedback("Billing is not available yet");
-    setHidden(profileMenu, true);
-    if (profileToggle) profileToggle.setAttribute("aria-expanded", "false");
+    closeProfileSheet();
   }));
 })();
