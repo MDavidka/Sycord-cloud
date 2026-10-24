@@ -463,8 +463,8 @@
       box-sizing: border-box !important;
       position: absolute !important;
       inset: 0 0 auto !important;
-      height: calc(76px + env(safe-area-inset-top, 0px)) !important;
-      min-height: calc(76px + env(safe-area-inset-top, 0px)) !important;
+      height: calc(64px + env(safe-area-inset-top, 0px)) !important;
+      min-height: calc(64px + env(safe-area-inset-top, 0px)) !important;
       padding: calc(env(safe-area-inset-top, 0px) + 8px) 20px 0 !important;
       display: flex !important;
       align-items: center !important;
@@ -525,7 +525,7 @@
     }
     body.airshell-home .home-main.home-dashboard {
       position: absolute !important;
-      inset: calc(76px + env(safe-area-inset-top, 0px)) 0 0 !important;
+      inset: calc(64px + env(safe-area-inset-top, 0px)) 0 0 !important;
       overflow: hidden !important;
       background: linear-gradient(180deg, #121212 0%, #121212 62%, #1A1B1C 100%) !important;
     }
@@ -780,7 +780,7 @@
       </button>
       <a class="home-brand" href="/dashboard" aria-label="Airshell home"><img src="/assets/airshell-cloud-mark.svg" alt=""><span>Airshell</span></a>
       <div class="home-profile-wrap">
-        <div class="home-avatar" id="profileToggle" role="img" aria-label="Profile photo"><img class="profile-photo" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBAUEBAYFBQUGBgYHCQ4JCQgICRINDQoOFRIWFhUSFBQXGiEcFxgfGRQUHScdHyIjJSUlFhwpLCgkKyEkJST/2wBDAQYGBgkICREJCREkGBQYJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCT/wAARCABAAEADASIAAhEBAxEB/8QAHAAAAgIDAQEAAAAAAAAAAAAABggCBwABBAUJ/8QANBAAAQMDAQUGBAUFAAAAAAAAAQIDBAAFEQYHEiExQQgTFCJRYTJxkbFCYoGhwYKSwuHx/8QAGQEBAAMBAQAAAAAAAAAAAAAAAAIDBAEF/8QAHxEAAgIBBAMAAAAAAAAAAAAAAAIBEQMEEiEiMUFR/9oADAMBAAIRAxEAPwBbqyspnez12emHI0bWGsIYdU4A7AtzycpSnmHXEnmTzCTwxxNAVNoLYLrfaC03LhW9MC3L4pmzyW0KHqkY3lD3AxRPrjs92bZ9AaN31uV3J5G+3Fbg+VWDx82/nH9PPh1pzEpSgAJAAAwAKXLtJaIuOqtY2x22JZT3NuUp51at3GHFY4+tRaagkkXNCyyoMJt1SWJbikpJGVtgfY1K16duN9W81ao6przKC4WGuLqkjmUp5qx1xmi87HNWPAeFbhyFKSVFLclOU+3/ACvLGmNU6BuLF0fjvQ5cV5txndV5ivPDBHWoxkWfZNsTRzQJEFJKSCCDggjBBrKbvatsOY2m6aY1dZYAtmqHIyX3o26EJlqxkoUOi/RXXkaUZ5lyO8tl5tbbraihaFjCkqBwQR0IqwqLF2AaBb1/tFhxZbXeW6AkzZaTyWlJG6g/NRSD7Zp8EpCEhIAAHICln7F0Vvw2q5RSC4XIrYV1Aw4SPrj6UzNAZVO6ptLvf3eK/wB+yl+Qvu3CSd9vmMZ6ZJq4qrXafcgJrcdpSS4hnPPrk8Ppis+ojrZq0k9q+lUaf0hMsLd3mxZgLwaKGnDklskjj6fpXvbPbDclawgRtQNv3VDDinmt9QWGlDOHSTxwOWPU8KFF3WabkthalpaJSHS24UhfoN3HH60xOidOGzQPFSgTcJaQp4njuDogfz71ViiWazRnZUWgk6YpQO1noFuwari6ohNBEa8hSZASOAkIxlXtvJIPuQo04FU52rrcibskffUAVQprD6T6ZJR/nW080DOxc8kwdVs5G8l6KrHsUuj+KYDUGq7FpWKZN7ukWC3xx3rgClHGcAcyfYUjmxzac9sxvF1mITvomW15lKDy78DeaP8AcAPko0J3G/3K7yVyp8x+U+58brqypSj6kmgGa1v2sIgEiJpOIrCEkCdJTxUfyI/lX0oA0HrOZfIsyJdXXJEjvVvh1ZJUSvzHJ581VSq1ghRA6ftR9sIYnSNWyEIIVFUwXJBUOufL+uc/vVWZbQv07U8Hfr26TLHAW0mS4FyFYGfwj1+dFuyHtSStL26NY9Wx37lBaCUMTGiC+yjGAlQPxgdDnIHrVVbVNVp1RqR1EQjwUVXdNFPJeDxX+p5ewFCmP9UxLtXkZn3NwfRvSWvdN65ieK0/do8xIA32wd11vPRSDxB+YoA7VE5ETY/PaUQDKlR2U+539/7INJhbbrNtMluXBlPRZDZyh1lZQpPyI4ii/We13UGutI2qwXqU5KVAkuPqfXjLwKQEA45lPn4/mq0oAWtggAio1lAbJ8qvlXZaNQXKwtyjb31NeKYLDuOqD9jzwema4iMgj1FQ3VBBT7YpMWdia8EUp3fuannjWkpVk5qQT60BnxZqVardDh//2Q==" alt=""></div>
+        <div class="home-avatar" id="profileToggle" role="img" aria-label="Profile photo"><img class="profile-photo" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAwICQsJCAwLCgsODQwOEh4UEhEREiUbHBYeLCcuLisnKyoxN0Y7MTRCNCorPVM+QkhKTk9OLztWXFVMW0ZNTkv/2wBDAQ0ODhIQEiQUFCRLMisyS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0v/wgARCABAAEADASIAAhEBAxEB/8QAGwAAAQUBAQAAAAAAAAAAAAAAAAEDBAUGBwL/xAAWAQEBAQAAAAAAAAAAAAAAAAAAAQL/2gAMAwEAAhADEAAAAc0ABdyjNDkghioF9Q78n1NtBlzti1fZ1n8v0nm+8G8wT5qauklSyLfMtnR+c+27AAEUEUAAP//EAB8QAAICAgMAAwAAAAAAAAAAAAIDAQQABRAREhMwQP/aAAgBAQABBQL6quuN0XK6KoT1ikS4OdXVhpZciGTC1+aFcYZtasdcUB81Ms9RgHJGpcLFo+1cVWCNN+zAcVYJzLBksq+0ic+UCXxLCleVZEXMOWHgmQ/i/8QAGREAAgMBAAAAAAAAAAAAAAAAAAECECAx/9oACAEDAQE/Acx6StD1/8QAFxEBAQEBAAAAAAAAAAAAAAAAAQAgEP/aAAgBAgEBPwHLHWNf/8QAKRAAAQMDAgQGAwAAAAAAAAAAAQACEQMQEjFBEyEiUSAwQFJhcYKRof/aAAgBAQAGPwLysn9Df6m9BcXbkrRE0+bm6t8HEeOlunybQWziiX0dOyNVpgaALjs/K9P6mw7rGN1H7TmncXpOc4AYqKYyPdOy5yhBIOqisIPuCL2uBEXbT2bbJxgBFxsYOog+i//EACIQAQACAQQCAgMAAAAAAAAAAAEAESEQMUFRcYFhkTBA4f/aAAgBAQABPyH8Qx7dsZQaLlm4iyqkWXccidk231Q3HwdCmqmw7uJrGwExwAH9MBQp4nPzqRzm7y6MFWUCG3SUBu5XcMtY5rVwQtZ7NDBLY2y8QdvOUOPrh9QJppsYt50UjmU9y4YpBfM52tvjTI49wfpf/9oADAMBAAIAAwAAABDzjzTjkdAixYzzyzz/xAAZEQACAwEAAAAAAAAAAAAAAAABEQAQIDH/2gAIAQMBAT8QynUQCyRhM6//xAAZEQEAAwEBAAAAAAAAAAAAAAABABEgEDH/2gAIAQIBAT8Qz5l16LIKNf/EACQQAQABAwQBBAMAAAAAAAAAAAERACExEEFRYYEwcZHBIKGx/9oACAEBAAE/EPSY2eQyHkNj3+KanAMAji36pqhGwLUKDSSOQ7+2aRSBEYRMai+IBWyX6LedAE9nOQj6q8kAgVq40tLs5fpTkIIAtKx79nUZYi7LjoQBE33Qq6CWQmWMT5oCAtAIlRSEEeykSzktodKoEElkpRdijh8ZakvLEONrGxQxRAGEjEUs4CEZXbkeKRHpExAt+KkPJX50VTH/AHCf4/LUqkQjdoxWRl2cNiijAakTkyfhN62Zo9T/2Q==" alt=""></div>
         
       </div>
     </header>
@@ -897,6 +897,6 @@
       <p class="home-disclaimer" id="composerHint" hidden>Airshell workspace · terminal access available</p>
     </main>
   </div>
-  <script src="/assets/home.js?v=main-screen-exact-2" defer></script>
+  <script src="/assets/home.js?v=main-screen-exact-3" defer></script>
 </body>
 </html>
