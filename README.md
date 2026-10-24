@@ -1,6 +1,6 @@
-# Sycord Cloud
+# Airshell
 
-Sycord Cloud is a password-protected browser terminal with a compact runtime dashboard.
+Airshell is an installable, password-protected web app for a browser terminal and runtime dashboard.
 
 ## Pages
 
@@ -42,3 +42,8 @@ Optional: set TERMINAL_SESSION_SECRET to a unique random value if you want sessi
 - [Antigravity CLI getting started](https://antigravity.google/docs/cli-getting-started)
 - [Antigravity CLI authentication](https://www.antigravity.google/docs/cli/install/)
 - [Heroku Container Registry](https://devcenter.heroku.com/articles/container-registry-and-runtime)
+
+
+## Install as an app
+
+Airshell is configured as a standalone Progressive Web App (PWA). Open it in Safari on iPhone, tap **Share → Add to Home Screen**, keep **Open as Web App** enabled if shown, then tap **Add**. Launching the home-screen icon opens the app without Safari's usual browser toolbar. The service worker caches only static UI assets; it deliberately does not cache authenticated pages, terminal traffic, or private API responses. A network connection is still required for login and terminal use.
