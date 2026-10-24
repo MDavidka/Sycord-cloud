@@ -1492,3 +1492,51 @@ body.airshell-home .home-main.home-dashboard {
     flex-basis: 24px;
   }
 }
+
+
+/* Airshell chat: transparent AI replies and a blurred, fading upper safe zone. */
+.airshell-home .home-conversation {
+  background: transparent !important;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0,0,0,.08) 12%,
+    rgba(0,0,0,.42) 26%,
+    #000 42%,
+    #000 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0,0,0,.08) 12%,
+    rgba(0,0,0,.42) 26%,
+    #000 42%,
+    #000 100%
+  );
+}
+.airshell-home .home-conversation::before {
+  content: "";
+  position: absolute;
+  z-index: 5;
+  pointer-events: none;
+  top: 0;
+  left: -2px;
+  right: -2px;
+  height: 34%;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  background: linear-gradient(
+    to bottom,
+    rgba(18,18,18,.98) 0%,
+    rgba(18,18,18,.82) 42%,
+    rgba(18,18,18,.38) 72%,
+    rgba(18,18,18,0) 100%
+  );
+}
+.airshell-home .home-message.system {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
