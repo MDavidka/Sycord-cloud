@@ -1,0 +1,28 @@
+{
+  "id": "/",
+  "name": "Airshell",
+  "short_name": "Airshell",
+  "description": "A private browser terminal and runtime workspace.",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#131313",
+  "theme_color": "#131313",
+  "categories": ["developer", "utilities"],
+  "icons": [
+    {
+      "src": "/assets/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/favicon.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
