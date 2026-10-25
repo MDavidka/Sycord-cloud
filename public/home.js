@@ -108,12 +108,13 @@
         '<div class="sidebar-server-row" data-server-row="' + escapeHtml(server.id) + '">' +
         '<button class="sidebar-server-item' + (selectedId === server.id ? " current" : "") + '" type="button" data-server-open="' + escapeHtml(server.id) + '" data-sidebar-search="servers ' + escapeHtml(server.name) + ' ' + escapeHtml(server.host) + '">' +
         '<svg class="server-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="7" rx="2"/><rect x="3" y="14" width="18" height="7" rx="2"/><path d="M7 6.5h.01M7 17.5h.01M11 6.5h6M11 17.5h6"/></svg>' +
-        '<span class="sidebar-server-label"><span class="sidebar-server-name">' + escapeHtml(server.name) + '</span><span class="sidebar-server-host">' + escapeHtml(server.username) + '@' + escapeHtml(server.host) + '</span></span></button>' +
+        '<span class="sidebar-server-label"><span class="sidebar-server-name">' + escapeHtml(server.name) + '<span class="server-status-dot status-checking" data-server-status="' + escapeHtml(server.id) + '" role="status" aria-label="Checking server status" title="Checking connection"></span></span><span class="sidebar-server-host">' + escapeHtml(server.username) + '@' + escapeHtml(server.host) + '</span></span></button>' +
         '<button class="sidebar-server-remove" type="button" data-server-remove="' + escapeHtml(server.id) + '" aria-label="Remove ' + escapeHtml(server.name) + '" title="Remove server">×</button></div>'
       ).join("") : '<p class="servers-empty" id="serversEmpty">No servers added yet</p>';
       list.querySelectorAll("[data-server-open]").forEach((button) => button.addEventListener("click", () => {
         location.href = "/terminal?server=" + encodeURIComponent(button.dataset.serverOpen);
       }));
+      updateServerStatuses(servers);
       list.querySelectorAll("[data-server-remove]").forEach((button) => button.addEventListener("click", async () => {
         const id = button.dataset.serverRemove;
         if (!window.confirm("Remove this saved server and its stored SSH key?")) return;
@@ -131,6 +132,36 @@
       list.innerHTML = '<p class="servers-empty">' + escapeHtml(error.message || "Could not load servers") + '</p>';
     }
   }
+  async function updateServerStatuses(servers) {
+    const queue = Array.isArray(servers) ? servers.slice() : [];
+    const checkNext = async () => {
+      const server = queue.shift();
+      if (!server) return;
+      const dot = document.querySelector('[data-server-status="' + CSS.escape(server.id) + '"]');
+      if (dot) {
+        try {
+          const response = await fetch("/api/servers/" + encodeURIComponent(server.id) + "/status", { credentials: "same-origin", cache: "no-store" });
+          if (!response.ok) throw new Error("Status unavailable");
+          const data = await response.json();
+          const status = ["online", "offline", "unknown"].includes(data.status) ? data.status : "unknown";
+          dot.className = "server-status-dot status-" + status;
+          const label = status === "online" ? "Online" : status === "offline" ? "Offline" : "Status unavailable";
+          dot.setAttribute("aria-label", label);
+          dot.title = label;
+        } catch (_) {
+          dot.className = "server-status-dot status-unknown";
+          dot.setAttribute("aria-label", "Status unavailable");
+          dot.title = "Status unavailable";
+        }
+      }
+      await checkNext();
+    };
+    await Promise.all(Array.from({ length: Math.min(3, queue.length) }, () => checkNext()));
+  }
+  window.setInterval(() => {
+    const servers = Array.from(document.querySelectorAll("[data-server-status]")).map((dot) => ({ id: dot.dataset.serverStatus }));
+    if (servers.length) updateServerStatuses(servers);
+  }, 60000);
   function openServerDialog() {
     if (!serverDialog) return;
     if (serverFormError) { serverFormError.hidden = true; serverFormError.textContent = ""; }
