@@ -210,6 +210,10 @@
               term.writeln("\x1b[90m[Reconnected. Earlier output was trimmed.]\x1b[0m\r\n");
             }
             if (message.resumed) status("Session resumed", true);
+          } else if (message.type === "saved-log") {
+            term.clear();
+            (message.chunks || []).forEach(function (chunk) { if (chunk && typeof chunk.data === "string") term.write(chunk.data); });
+            term.writeln("\r\n\x1b[90m[Restored saved terminal output]\x1b[0m");
           } else if (message.type === "output") {
             term.write(message.data);
             if (Number.isSafeInteger(message.seq)) lastOutputSeq = Math.max(lastOutputSeq, message.seq);
