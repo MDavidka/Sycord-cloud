@@ -2560,3 +2560,41 @@ body.airshell-home .home-main.home-dashboard {
   padding:0 !important;
   box-shadow:none !important;
 }
+
+
+/* Tighten the marked mobile drawer edges: no oversized top, left or bottom gutters. */
+@media (max-width: 600px) {
+  .airshell-home .home-sidebar {
+    inset: max(4px, env(safe-area-inset-top, 0px))
+           max(4px, env(safe-area-inset-right, 0px))
+           max(4px, env(safe-area-inset-bottom, 0px))
+           max(4px, env(safe-area-inset-left, 0px)) !important;
+    padding-top: 2px !important;
+    padding-bottom: max(4px, env(safe-area-inset-bottom, 0px)) !important;
+    border-radius: 30px !important;
+  }
+  .airshell-home .home-sidebar-head {
+    padding: 0 12px 4px !important;
+    min-height: 42px !important;
+  }
+  .airshell-home .home-sidebar-search-wrap {
+    margin: 4px 10px 8px !important;
+  }
+  .airshell-home .home-sidebar-scroll {
+    padding-left: 4px !important;
+    padding-right: 8px !important;
+    padding-bottom: max(8px, env(safe-area-inset-bottom, 0px)) !important;
+  }
+  .airshell-home .home-sidebar .home-nav-label {
+    margin-left: 8px !important;
+    margin-right: 8px !important;
+  }
+  .airshell-home .home-sidebar .sidebar-item {
+    padding-left: 7px !important;
+    padding-right: 7px !important;
+  }
+  .airshell-home .home-sidebar .sidebar-server-item {
+    padding-left: 5px !important;
+    padding-right: 5px !important;
+  }
+}
