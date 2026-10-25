@@ -58,24 +58,45 @@
     .terminal-main > .terminal-command-composer input[type="text"] { min-width:0; flex:1; height:40px; padding:8px 2px; border:0; outline:0; background:transparent; color:#f5f5f5; font:400 15px/1.35 Geist,ui-sans-serif,system-ui,sans-serif; }
     .terminal-main > .terminal-command-composer input[type="text"]::placeholder { color:#737373; opacity:1; }
     .terminal-main > .terminal-command-composer input[type="text"]:disabled { opacity:.55; }
-    /* Minimal terminal canvas: no panel, toolbar, or extra surface. */
+    /* Minimal terminal canvas with the same dark composer treatment as Home. */
+    html { color-scheme: dark; }
     body.airshell-home { background:#121212; }
-    .terminal-main { inset:92px 0 0 !important; overflow:hidden !important; background:linear-gradient(180deg,#121212 0%,#121212 58%,#171919 100%) !important; }
-    .terminal-main #terminal { position:absolute; inset:16px 20px 88px; min-height:0; height:auto; }
+    .terminal-main { top:calc(76px + env(safe-area-inset-top, 0px)) !important; inset-inline:0 !important; bottom:0 !important; overflow:hidden !important; background:linear-gradient(180deg,#121212 0%,#121212 58%,#171919 100%) !important; }
+    .terminal-main #terminal { position:absolute; inset:16px 20px 100px; min-height:0; height:auto; }
     .terminal-main .xterm { height:100%; padding:0; }
     .terminal-main .xterm-viewport, .terminal-main .xterm-screen, .terminal-main .xterm canvas { background:transparent !important; }
     .terminal-main .terminal-internal-status { display:none; }
-    
-    
-    .terminal-main > .terminal-command-composer { display:flex !important; position:absolute !important; z-index:15; left:20px; right:20px; bottom:max(16px,env(safe-area-inset-bottom)); width:auto; margin:0; }
-    .terminal-main > .home-model-menu { position:absolute; z-index:16; right:20px; bottom:calc(max(16px,env(safe-area-inset-bottom)) + 68px); }
+    .terminal-main > .terminal-command-composer {
+      display:flex !important; position:absolute !important; z-index:15;
+      left:clamp(16px,3.2vw,32px); right:clamp(16px,3.2vw,32px);
+      bottom:max(24px,env(safe-area-inset-bottom)); width:auto; margin:0;
+      min-height:68px; align-items:center; gap:9px; padding:8px 9px 8px 13px;
+      border:1px solid #101010; border-radius:28px; background:#050505 !important;
+      box-shadow:0 0 0 1px #222; box-sizing:border-box;
+      -webkit-backdrop-filter:none; backdrop-filter:none;
+    }
+    .terminal-main > .terminal-command-composer input[type="text"] {
+      display:block; min-width:0; flex:1; width:100%; height:40px; min-height:40px;
+      margin:0; padding:8px 2px; border:0; border-radius:0; outline:0;
+      appearance:none; -webkit-appearance:none; box-shadow:none;
+      background:transparent !important; color:#f5f5f5 !important;
+      font:400 16px/1.35 Geist,ui-sans-serif,system-ui,sans-serif;
+      transform:none; touch-action:manipulation; -webkit-text-size-adjust:100%;
+    }
+    .terminal-main > .terminal-command-composer input[type="text"]::placeholder { color:#737373 !important; opacity:1; }
+    .terminal-main > .terminal-command-composer input[type="text"]:focus { background:transparent !important; outline:none; box-shadow:none; }
+    .terminal-main > .terminal-command-composer .composer-send { flex:0 0 40px; width:40px; height:40px; border-radius:50%; background:#242424 !important; color:#7b7b7b; }
+    .terminal-main > .terminal-command-composer .composer-send.ready { color:#151515; background:#f1f1f1 !important; }
+    .terminal-main > .terminal-command-composer .composer-send:disabled { opacity:.5; }
     .terminal-main > .home-disclaimer { display:none !important; }
     @media(max-width:600px) {
-      .terminal-main { inset:92px 0 0 !important; }
-      .terminal-main #terminal { inset:16px 12px 82px; }
-      .terminal-main > .home-composer.terminal-command-composer { left:12px; right:12px; bottom:max(12px,env(safe-area-inset-bottom)); }
-
-
+      .terminal-main { top:calc(76px + env(safe-area-inset-top, 0px)) !important; }
+      .terminal-main #terminal { inset:16px 12px 100px; }
+      .terminal-main > .terminal-command-composer {
+        left:16px; right:16px; bottom:max(24px,env(safe-area-inset-bottom));
+        min-height:62px; gap:5px; padding:7px 7px 7px 10px;
+      }
+      .terminal-main > .terminal-command-composer input[type="text"] { font-size:16px; height:40px; }
     }
 </style>
 </head>
@@ -211,6 +232,6 @@
   <script src="/assets/home.js?v=sidebar-servers-stats-2" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/lib/xterm.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.10.0/lib/addon-fit.min.js"></script>
-  <script src="/assets/terminal.js?v=command-input-1" defer></script>
+  <script src="/assets/terminal.js?v=autoconnect-safe-input-2" defer></script>
 </body>
 </html>
