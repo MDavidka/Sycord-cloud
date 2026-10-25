@@ -271,6 +271,51 @@ app.delete("/api/servers/:id", (req, res) => {
   }
 });
 
+
+app.get("/api/servers/:id/files", async (req, res) => {
+  if (!hasSession(req)) return res.status(401).json({ error: "Authentication required" });
+  const workspaceId = getWorkspaceId(req);
+  if (!workspaceId) return res.status(400).json({ error: "Workspace cookie missing." });
+  const id = req.params.id;
+  if (!/^[a-f0-9]{24}$/.test(id || "")) return res.status(400).json({ error: "Invalid server ID." });
+  const remotePath = typeof req.query.path === "string" ? req.query.path : ".";
+  if (!remotePath || remotePath.length > 1024 || remotePath.includes("\0")) return res.status(400).json({ error: "Invalid path." });
+  const remote = findWorkspaceServer(workspaceId, id);
+  if (!remote) return res.status(404).json({ error: "Server not found." });
+  try {
+    const command = "find " + shellQuote(remotePath) + " -maxdepth 1 -mindepth 1 -printf '%f\\t%y\\t%s\\t%T@\\n' 2>/dev/null";
+    const result = await execFileAsync("ssh", [...sshBaseArgs(workspaceId, remote), command], { timeout: 15000, maxBuffer: 256 * 1024, windowsHide: true });
+    const entries = String(result.stdout || "").split("\n").filter(Boolean).map(line => {
+      const parts = line.split("\t");
+      return { name: parts[0] || "", type: parts[1] === "d" ? "directory" : "file", size: Number(parts[2]) || 0, modified: Number(parts[3]) || 0 };
+    }).filter(entry => entry.name && entry.name !== "." && entry.name !== "..").sort((a,b) => a.type === b.type ? a.name.localeCompare(b.name) : a.type === "directory" ? -1 : 1);
+    res.setHeader("Cache-Control", "no-store");
+    return res.json({ server: publicServer(remote), path: remotePath, entries });
+  } catch (error) {
+    console.error("Remote file listing failed:", error && (error.code || error.message) || "unknown");
+    return res.status(502).json({ error: error && error.killed ? "File listing timed out." : "Could not list this directory. Check the SSH connection and path." });
+  }
+});
+
+app.get("/api/servers/:id/file", async (req, res) => {
+  if (!hasSession(req)) return res.status(401).json({ error: "Authentication required" });
+  const workspaceId = getWorkspaceId(req);
+  if (!workspaceId) return res.status(400).json({ error: "Workspace cookie missing." });
+  const id = req.params.id;
+  const remotePath = typeof req.query.path === "string" ? req.query.path : "";
+  if (!/^[a-f0-9]{24}$/.test(id || "") || !remotePath || remotePath.length > 1024 || remotePath.includes("\0")) return res.status(400).json({ error: "Invalid file path." });
+  const remote = findWorkspaceServer(workspaceId, id);
+  if (!remote) return res.status(404).json({ error: "Server not found." });
+  try {
+    const command = "if [ -f " + shellQuote(remotePath) + " ]; then head -c 131072 -- " + shellQuote(remotePath) + "; else exit 3; fi";
+    const result = await execFileAsync("ssh", [...sshBaseArgs(workspaceId, remote), command], { timeout: 15000, maxBuffer: 140 * 1024, encoding: "utf8", windowsHide: true });
+    res.setHeader("Cache-Control", "no-store");
+    return res.json({ path: remotePath, content: String(result.stdout || ""), truncated: Buffer.byteLength(String(result.stdout || "")) >= 131072 });
+  } catch (error) {
+    return res.status(422).json({ error: "Could not read this file as text. It may be binary, too large, or inaccessible." });
+  }
+});
+
 app.post("/api/chat", async (req, res) => {
   if (!hasSession(req)) return res.status(401).json({ error: "Authentication required" });
 
@@ -409,17 +454,29 @@ server.on("upgrade", (req, socket, head) => {
   wss.handleUpgrade(req, socket, head, ws => wss.emit("connection", ws, req));
 });
 
-function spawnTerminalSession(workspaceId) {
-  const shell = process.env.SHELL || "/bin/bash";
-  const terminal = pty.spawn(shell, ["--login"], {
+function spawnTerminalSession(workspaceId, serverId) {
+  const sessionKey = workspaceId + ":" + (serverId || "local");
+  let command = process.env.SHELL || "/bin/bash";
+  let args = ["--login"];
+  let cwd = process.env.HOME || "/app";
+  if (serverId) {
+    const remote = findWorkspaceServer(workspaceId, serverId);
+    if (!remote) throw new Error("This server is not saved in your workspace.");
+    command = "ssh";
+    args = sshBaseArgs(workspaceId, remote);
+    args.splice(args.length - 1, 0, "-tt");
+  }
+  const terminal = pty.spawn(command, args, {
     name: "xterm-256color",
     cols: 100,
     rows: 30,
-    cwd: process.env.HOME || "/app",
+    cwd,
     env: { ...process.env, TERM: "xterm-256color", COLORTERM: "truecolor" }
   });
   const session = {
-    id: workspaceId,
+    id: sessionKey,
+    sessionKey,
+    serverId: serverId || null,
     terminal,
     socket: null,
     outputSeq: 0,
@@ -428,7 +485,7 @@ function spawnTerminalSession(workspaceId) {
     createdAt: Date.now(),
     exited: false
   };
-  terminalSessions.set(workspaceId, session);
+  terminalSessions.set(sessionKey, session);
   activeTerminals = terminalSessions.size;
 
   terminal.onData(data => {
@@ -447,7 +504,7 @@ function spawnTerminalSession(workspaceId) {
 
   terminal.onExit(({ exitCode }) => {
     session.exited = true;
-    if (terminalSessions.get(workspaceId) === session) terminalSessions.delete(workspaceId);
+    if (terminalSessions.get(sessionKey) === session) terminalSessions.delete(sessionKey);
     activeTerminals = terminalSessions.size;
     if (session.socket && session.socket.readyState === WebSocket.OPEN) {
       try { session.socket.send(JSON.stringify({ type: "session-ended", exitCode })); } catch {}
@@ -465,11 +522,23 @@ wss.on("connection", (ws, req) => {
     return;
   }
 
-  let session = terminalSessions.get(workspaceId);
+  let parsedConnectionUrl;
+  try { parsedConnectionUrl = new URL(req.url, "http://localhost"); } catch {
+    ws.send(JSON.stringify({ type: "error", message: "Invalid terminal URL." })); ws.close(); return;
+  }
+  const serverId = parsedConnectionUrl.searchParams.get("server") || "";
+  if (serverId && !/^[a-f0-9]{24}$/.test(serverId)) {
+    ws.send(JSON.stringify({ type: "error", message: "Invalid server ID." })); ws.close(); return;
+  }
+  if (serverId && !findWorkspaceServer(workspaceId, serverId)) {
+    ws.send(JSON.stringify({ type: "error", message: "This server is not saved in your workspace. Add it again from Servers." })); ws.close(); return;
+  }
+  const sessionKey = workspaceId + ":" + (serverId || "local");
+  let session = terminalSessions.get(sessionKey);
   const resumed = Boolean(session && !session.exited);
   if (!resumed) {
     try {
-      session = spawnTerminalSession(workspaceId);
+      session = spawnTerminalSession(workspaceId, serverId);
     } catch (error) {
       ws.send(JSON.stringify({ type: "error", message: "Could not start terminal: " + error.message }));
       ws.close();
