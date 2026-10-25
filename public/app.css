@@ -2470,3 +2470,81 @@ body.airshell-home .home-main.home-dashboard {
 .airshell-home .server-status-dot.status-offline { background:#f06464; box-shadow:0 0 0 2px rgba(240,100,100,.12); }
 .airshell-home .server-status-dot.status-unknown { background:#e5b65c; box-shadow:0 0 0 2px rgba(229,182,92,.12); }
 
+
+
+/* Mobile sidebar: keep the complete drawer inside iOS safe areas and round every corner. */
+@media (max-width: 600px) {
+  .airshell-home .home-sidebar {
+    position: fixed !important;
+    inset: max(8px, calc(env(safe-area-inset-top, 0px) + 8px))
+           max(8px, env(safe-area-inset-right, 0px))
+           max(8px, env(safe-area-inset-bottom, 0px))
+           max(8px, env(safe-area-inset-left, 0px)) !important;
+    width: auto !important;
+    max-width: none !important;
+    height: auto !important;
+    max-height: none !important;
+    box-sizing: border-box !important;
+    padding: 12px 0 max(10px, env(safe-area-inset-bottom, 0px)) !important;
+    border: 1px solid #303033 !important;
+    border-radius: 32px !important;
+    overflow: hidden !important;
+    background: #131313 !important;
+    box-shadow: 0 18px 56px rgba(0,0,0,.48), inset 0 1px 0 rgba(255,255,255,.025) !important;
+  }
+  .airshell-home .home-sidebar:not(.open) {
+    transform: translateX(calc(-100% - 20px)) !important;
+  }
+  .airshell-home .home-sidebar.open { transform: translateX(0) !important; }
+  .airshell-home .home-sidebar-head {
+    flex: 0 0 auto !important;
+    min-width: 0 !important;
+    padding: 4px 16px 10px !important;
+    gap: 10px !important;
+  }
+  .airshell-home .home-sidebar-brand { min-width: 0 !important; gap: 10px !important; }
+  .airshell-home .home-sidebar-brand img { width: 32px !important; height: 32px !important; flex-basis: 32px !important; }
+  .airshell-home .home-sidebar-brand span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .airshell-home .home-sidebar-close {
+    flex: 0 0 36px !important;
+    width: 36px !important;
+    height: 36px !important;
+    margin-left: auto !important;
+  }
+  .airshell-home .home-sidebar-search-wrap {
+    flex: 0 0 auto !important;
+    margin: 8px 14px 12px !important;
+    min-width: 0 !important;
+  }
+  .airshell-home .home-sidebar-search {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 40px !important;
+    border-radius: 14px !important;
+  }
+  .airshell-home .home-sidebar-scroll {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    padding: 0 12px max(16px, env(safe-area-inset-bottom, 0px)) !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .airshell-home .home-sidebar .sidebar-item,
+  .airshell-home .home-sidebar .sidebar-server-item {
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+  .airshell-home .home-sidebar .sidebar-item { min-height: 42px !important; padding-inline: 9px !important; gap: 10px !important; }
+  .airshell-home .home-sidebar-section { min-width: 0 !important; }
+  .airshell-home .home-sidebar-servers { min-width: 0 !important; }
+  .airshell-home .sidebar-server-row { min-width: 0 !important; gap: 2px !important; }
+  .airshell-home .home-sidebar .sidebar-server-item { gap: 8px !important; padding-inline: 8px !important; }
+  .airshell-home .home-sidebar .sidebar-server-label { flex: 1 1 auto !important; min-width: 0 !important; }
+  .airshell-home .home-sidebar .sidebar-server-host { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .airshell-home .home-sidebar .sidebar-server-sparkline { flex: 0 1 74px !important; width: 74px !important; min-width: 28px !important; max-width: 24% !important; }
+  .airshell-home .sidebar-server-remove { flex: 0 0 28px !important; width: 28px !important; min-width: 28px !important; }
+}
