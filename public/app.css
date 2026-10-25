@@ -2791,3 +2791,145 @@ body.airshell-home .home-main.home-dashboard {
     margin-top: 24px !important;
   }
 }
+/* ==============================
+   UI Final Adjustments – No Gradients / Shadows
+   ============================== */
+/* Top Bar */
+.home-topbar {
+  background: var(--background) !important; /* solid #131313 */
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
+.home-brand {
+  font-size: 20px !important;
+  text-transform: lowercase !important;
+}
+.home-icon-button svg {
+  width: 22px !important;
+  height: 22px !important;
+}
+/* Nav icons */
+.nav a svg {
+  width: 22px !important;
+  height: 22px !important;
+  stroke-width: 1.7 !important;
+}
+/* Page Tools Bar */
+.home-dashboard .page-tools {
+  background: #202022 !important;
+  border: 1px solid #2e2e2e !important;
+  box-shadow: none !important;
+}
+.home-dashboard .page-tool {
+  width: 32px !important;
+  height: 32px !important;
+}
+.home-dashboard .page-tool svg {
+  width: 22px !important;
+  height: 22px !important;
+}
+/* Tab Pill Container */
+.home-nav-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #202022;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 13px;
+  color: #a8a8ad;
+}
+.home-nav-label .tab {
+  padding: 4px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.home-nav-label .tab.active {
+  background: #29292a;
+  color: #fff;
+}
+/* Server Cards – Light Theme */
+.server-card {
+  background: #f5f5f5 !important;
+  border: 1px solid #c0c0c0 !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  color: #111 !important;
+}
+.server-card .summary-title,
+.server-card .summary-row {
+  color: #111 !important;
+}
+.server-card svg {
+  width: 22px !important;
+  height: 22px !important;
+}
+/* Add Server (+) Button – always visible */
+.home-add-button {
+  display: flex !important;
+  width: 44px !important;
+  height: 44px !important;
+  background: #202022 !important;
+  border-radius: 999px !important;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  right: 18px;
+  bottom: calc(env(safe-area-inset-bottom,0) + 12px);
+  z-index: 1000;
+}
+.home-add-button svg {
+  width: 22px !important;
+  height: 22px !important;
+}
+/* Bottom Composer – Solid Background, No Shadow */
+.home-composer {
+  background: rgba(31,31,33,.82) !important;
+  border: 1px solid rgba(255,255,255,.14) !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+.home-composer .composer-add svg,
+.home-composer .composer-send svg {
+  width: 22px !important;
+  height: 22px !important;
+}
+/* Account Grid & Cards */
+.home-dashboard .account-card {
+  background: #202022 !important;
+  border: 1px solid #383838 !important;
+  color: #a8a8ad !important;
+}
+.home-dashboard .account-card .metric-value {
+  color: #f0f0f2 !important;
+}
+/* Remove residual gradients and shadows from various components */
+.home-main {
+  background: var(--background) !important;
+}
+.home-main .home-status {
+  box-shadow: none !important;
+}
+
+/* Ensure text scaling where needed */
+.home-topbar .home-brand {
+  font-size: 20px !important;
+}
+.home-main .server-title h1 {
+  font-size: 27px !important;
+}
+.home-main .server-address {
+  font-size: 19px !important;
+}
+
+/* Media query adjustments for mobile to keep design consistent */
+@media (max-width: 600px) {
+  .home-topbar {
+    padding: 0 14px !important;
+  }
+  .home-nav-label {
+    padding: 3px 8px;
+    font-size: 12px;
+  }
+}
