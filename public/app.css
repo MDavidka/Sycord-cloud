@@ -2457,3 +2457,14 @@ body.airshell-home .home-main.home-dashboard {
 @media(prefers-reduced-motion:reduce) {
   .airshell-home .ai-thinking-ellipsis { animation:none !important; width:1.15em; }
 }
+
+
+/* Live SSH connectivity indicator in the server sidebar. */
+.airshell-home .sidebar-server-name { display:inline-flex; align-items:center; gap:8px; min-width:0; }
+.airshell-home .server-status-dot { display:inline-block; flex:0 0 7px; width:7px; height:7px; border-radius:50%; background:#77777d; box-shadow:0 0 0 2px rgba(140,140,148,.08); vertical-align:middle; }
+.airshell-home .server-status-dot.status-checking { background:#8a8a92; animation:server-status-pulse 1.25s ease-in-out infinite; }
+.airshell-home .server-status-dot.status-online { background:#25c777; box-shadow:0 0 0 2px rgba(37,199,119,.12); }
+.airshell-home .server-status-dot.status-offline { background:#f06464; box-shadow:0 0 0 2px rgba(240,100,100,.12); }
+.airshell-home .server-status-dot.status-unknown { background:#e5b65c; box-shadow:0 0 0 2px rgba(229,182,92,.12); }
+@keyframes server-status-pulse { 50% { opacity:.45; } }
+@media (prefers-reduced-motion:reduce) { .airshell-home .server-status-dot.status-checking { animation:none; } }
