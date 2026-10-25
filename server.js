@@ -409,7 +409,7 @@ app.get("/api/servers/:id/status", async (req, res) => {
   try {
     const command = "printf 'AIRSHELL_METRICS '; awk '{printf \"%s \", $1}' /proc/loadavg; awk '/MemTotal:/ {t=$2} /MemAvailable:/ {a=$2} END {if(t>0) printf \"%.0f\", 100*(t-a)/t}' /proc/meminfo";
     const result = await execFileAsync("ssh", [...sshBaseArgs(workspaceId, server), command], { timeout: 10000, maxBuffer: 1024, windowsHide: true });
-    const match = String(result.stdout || "").match(/AIRSHELL_METRICS\\s+([\\d.]+)\\s+([\\d.]+)\\s+([\\d.]+)\\s+(\\d{1,3})/);
+    const match = String(result.stdout || "").match(/AIRSHELL_METRICS\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+(\d{1,3})/);
     const metrics = match ? { load1: Number(match[1]), load5: Number(match[2]), load15: Number(match[3]), memoryPercent: Math.min(100, Number(match[4])) } : null;
     return res.json({ id, status: "online", metrics, checkedAt: new Date().toISOString() });
   } catch (error) {
