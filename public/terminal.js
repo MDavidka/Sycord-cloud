@@ -11,6 +11,7 @@
   var reconnectAttempt = 0;
   var maxReconnectDelay = 15000;
   var lastOutputSeq = 0;
+  var serverId = new URLSearchParams(location.search).get("server") || "";
   function status(message, connected) {
     state.textContent = message;
     var dot = document.getElementById("terminalDot");
@@ -36,13 +37,168 @@
     var runButton = document.getElementById("terminalRunButton");
     var commandHistory = [];
     var historyIndex = 0;
+    var terminalTab = document.getElementById("terminalTab");
+    var filesTab = document.getElementById("filesTab");
+    var filesPanel = document.getElementById("serverFilesPanel");
+    var workspaceServerName = document.getElementById("workspaceServerName");
+    var workspaceServerMeta = document.getElementById("workspaceServerMeta");
+    var filesPathInput = document.getElementById("filesPath");
+    var filesList = document.getElementById("filesList");
+    var filesStatus = document.getElementById("filesStatus");
+    var filesPreviewWrap = document.getElementById("filePreviewWrap");
+    var filesPreview = document.getElementById("filePreview");
+    var filesPreviewName = document.getElementById("filePreviewName");
+    var currentRemotePath = ".";
+    if (filesTab) filesTab.disabled = !serverId;
+
+    function setWorkspaceTab(name) {
+      var showFiles = name === "files" && Boolean(serverId);
+      if (terminalTab) { terminalTab.classList.toggle("active", !showFiles); terminalTab.setAttribute("aria-selected", String(!showFiles)); }
+      if (filesTab) { filesTab.classList.toggle("active", showFiles); filesTab.setAttribute("aria-selected", String(showFiles)); }
+      if (filesPanel) filesPanel.hidden = !showFiles;
+      terminalNode.style.display = showFiles ? "none" : "";
+      if (!showFiles && fit && term) {
+        window.requestAnimationFrame(function () {
+          fit.fit();
+          if (socket && socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: "resize", cols: term.cols, rows: term.rows }));
+        });
+      }
+      if (showFiles && filesList && !filesList.dataset.loaded) loadRemoteFiles(currentRemotePath);
+    }
+    if (terminalTab) terminalTab.addEventListener("click", function () { setWorkspaceTab("terminal"); });
+    if (filesTab) filesTab.addEventListener("click", function () { if (!filesTab.disabled) setWorkspaceTab("files"); });
+
+    function formatBytes(bytes) {
+      if (!Number.isFinite(bytes) || bytes < 0) return "";
+      if (bytes < 1024) return bytes + " B";
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+      if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+      return (bytes / (1024 * 1024 * 1024)).toFixed(1) + " GB";
+    }
+    function remoteChildPath(name) {
+      if (currentRemotePath === ".") return name;
+      if (currentRemotePath === "/") return "/" + name;
+      return currentRemotePath.replace(/\/+$/, "") + "/" + name;
+    }
+    function parentRemotePath(value) {
+      var clean = value.replace(/\/+$/, "");
+      if (!clean || clean === "/") return "/";
+      var index = clean.lastIndexOf("/");
+      if (index < 0) return ".";
+      if (index === 0) return "/";
+      return clean.slice(0, index);
+    }
+    function renderRemoteEntries(entries) {
+      if (!filesList) return;
+      filesList.replaceChildren();
+      filesList.dataset.loaded = "1";
+      if (!entries.length) {
+        var empty = document.createElement("div");
+        empty.className = "server-files-empty";
+        empty.textContent = "This directory is empty.";
+        filesList.appendChild(empty);
+        return;
+      }
+      entries.forEach(function (entry) {
+        var button = document.createElement("button");
+        button.type = "button";
+        button.className = "server-file-row";
+        button.setAttribute("role", "listitem");
+        var icon = document.createElement("span");
+        icon.className = "file-type-icon";
+        icon.textContent = entry.type === "directory" ? "▰" : "▤";
+        var name = document.createElement("span");
+        name.className = "file-name";
+        name.textContent = entry.name;
+        var meta = document.createElement("span");
+        meta.className = "file-meta";
+        meta.textContent = entry.type === "directory" ? "Folder" : formatBytes(entry.size);
+        button.append(icon, name, meta);
+        button.addEventListener("click", function () {
+          if (entry.type === "directory") loadRemoteFiles(remoteChildPath(entry.name));
+          else loadRemoteFile(remoteChildPath(entry.name));
+        });
+        filesList.appendChild(button);
+      });
+    }
+    async function loadRemoteFiles(pathValue) {
+      if (!serverId || !filesList) return;
+      currentRemotePath = pathValue || ".";
+      if (filesPathInput) filesPathInput.value = currentRemotePath;
+      if (filesStatus) filesStatus.textContent = "Loading directory…";
+      if (filesList) { filesList.replaceChildren(); delete filesList.dataset.loaded; }
+      if (filesPreviewWrap) filesPreviewWrap.hidden = true;
+      try {
+        var response = await fetch("/api/servers/" + encodeURIComponent(serverId) + "/files?path=" + encodeURIComponent(currentRemotePath), { credentials: "same-origin", cache: "no-store" });
+        var data = await response.json().catch(function () { return {}; });
+        if (!response.ok) throw new Error(data.error || "Could not load directory.");
+        currentRemotePath = data.path || currentRemotePath;
+        if (filesPathInput) filesPathInput.value = currentRemotePath;
+        if (filesStatus) filesStatus.textContent = (data.entries || []).length + " items · " + currentRemotePath;
+        renderRemoteEntries(Array.isArray(data.entries) ? data.entries : []);
+      } catch (error) {
+        if (filesStatus) filesStatus.textContent = error.message || "Could not load directory.";
+        if (filesList) {
+          filesList.replaceChildren();
+          var retry = document.createElement("button");
+          retry.type = "button"; retry.className = "server-file-row"; retry.textContent = "Retry directory listing";
+          retry.addEventListener("click", function () { loadRemoteFiles(currentRemotePath); });
+          filesList.appendChild(retry);
+        }
+      }
+    }
+    async function loadRemoteFile(filePath) {
+      if (!serverId) return;
+      if (filesStatus) filesStatus.textContent = "Opening file…";
+      try {
+        var response = await fetch("/api/servers/" + encodeURIComponent(serverId) + "/file?path=" + encodeURIComponent(filePath), { credentials: "same-origin", cache: "no-store" });
+        var data = await response.json().catch(function () { return {}; });
+        if (!response.ok) throw new Error(data.error || "Could not open file.");
+        if (filesPreviewName) filesPreviewName.textContent = filePath + (data.truncated ? " · first 128 KB" : "");
+        if (filesPreview) filesPreview.textContent = data.content || "";
+        if (filesPreviewWrap) filesPreviewWrap.hidden = false;
+        if (filesStatus) filesStatus.textContent = "Text preview · " + filePath;
+      } catch (error) {
+        if (filesStatus) filesStatus.textContent = error.message || "Could not open file.";
+        if (filesPreviewWrap) filesPreviewWrap.hidden = true;
+      }
+    }
+    var filesGo = document.getElementById("filesGo");
+    var filesRefresh = document.getElementById("filesRefresh");
+    var filesUp = document.getElementById("filesUp");
+    var closeFilePreview = document.getElementById("closeFilePreview");
+    if (filesGo) filesGo.addEventListener("click", function () { loadRemoteFiles(filesPathInput ? filesPathInput.value.trim() || "." : "."); });
+    if (filesPathInput) filesPathInput.addEventListener("keydown", function (event) { if (event.key === "Enter") { event.preventDefault(); loadRemoteFiles(filesPathInput.value.trim() || "."); } });
+    if (filesRefresh) filesRefresh.addEventListener("click", function () { loadRemoteFiles(currentRemotePath); });
+    if (filesUp) filesUp.addEventListener("click", function () { loadRemoteFiles(parentRemotePath(currentRemotePath)); });
+    if (closeFilePreview) closeFilePreview.addEventListener("click", function () { if (filesPreviewWrap) filesPreviewWrap.hidden = true; });
+
+    async function loadWorkspaceIdentity() {
+      if (!serverId) {
+        if (workspaceServerName) workspaceServerName.textContent = "Local runtime";
+        if (workspaceServerMeta) workspaceServerMeta.textContent = "Airshell host";
+        return;
+      }
+      try {
+        var response = await fetch("/api/servers", { credentials: "same-origin", cache: "no-store" });
+        var data = await response.json().catch(function () { return {}; });
+        var server = (data.servers || []).find(function (item) { return item.id === serverId; });
+        if (!server) throw new Error("Saved server not found");
+        if (workspaceServerName) workspaceServerName.textContent = server.name;
+        if (workspaceServerMeta) workspaceServerMeta.textContent = server.username + "@" + server.host + ":" + server.port;
+      } catch (_) {
+        if (workspaceServerName) workspaceServerName.textContent = "Server unavailable";
+        if (workspaceServerMeta) workspaceServerMeta.textContent = "Check Servers in the sidebar";
+      }
+    }
+    loadWorkspaceIdentity();
     if (runButton) runButton.disabled = true;
 
     function connect() {
       if (disposed) return;
       if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) return;
       status(reconnectAttempt ? "Reconnecting…" : "Connecting", false);
-      socket = new WebSocket(protocol + "//" + location.host + "/ws?since=" + lastOutputSeq);
+      socket = new WebSocket(protocol + "//" + location.host + "/ws?since=" + lastOutputSeq + (serverId ? "&server=" + encodeURIComponent(serverId) : ""));
       var activeSocket = socket;
       activeSocket.addEventListener("message", function (event) {
         if (socket !== activeSocket || disposed) return;
