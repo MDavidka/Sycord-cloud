@@ -230,6 +230,51 @@
     profileToggle.setAttribute("aria-expanded", String(open));
   });
   if (profileSheetBackdrop) profileSheetBackdrop.addEventListener("click", closeProfileSheet);
+
+  const profileName = document.querySelector(".profile-sheet-name");
+  const profileEmail = document.querySelector(".profile-sheet-email");
+  let savedProfile = { displayName: "Airshell User", email: "", theme: "dark" };
+  function applyProfile(profile) {
+    savedProfile = { ...savedProfile, ...(profile || {}) };
+    if (profileName) {
+      profileName.replaceChildren(document.createTextNode(savedProfile.displayName || "Airshell User"));
+      const plan = document.createElement("span"); plan.className = "profile-plan"; plan.textContent = "Pro";
+      profileName.appendChild(document.createTextNode(" ")); profileName.appendChild(plan);
+    }
+    if (profileEmail) profileEmail.textContent = savedProfile.email || "No email set";
+    const systemLight = savedProfile.theme === "system" && window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+    document.body.classList.toggle("airshell-light-theme", savedProfile.theme === "light" || systemLight);
+    document.querySelectorAll("[data-theme-choice]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.themeChoice === savedProfile.theme)));
+  }
+  async function saveProfile(patch) {
+    const response = await fetch("/api/profile", { method: "PUT", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...savedProfile, ...patch }) });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || "Could not save profile.");
+    applyProfile(data.profile); return data;
+  }
+  async function loadProfile() {
+    try {
+      const response = await fetch("/api/profile", { credentials: "same-origin", cache: "no-store" });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Could not load profile.");
+      applyProfile(data.profile);
+    } catch (error) { showToolFeedback(error.message || "Could not load saved profile."); }
+  }
+  document.querySelectorAll("[data-theme-choice]").forEach(button => button.addEventListener("click", async () => {
+    try { await saveProfile({ theme: button.dataset.themeChoice }); showToolFeedback("Profile theme saved."); }
+    catch (error) { showToolFeedback(error.message || "Could not save theme."); }
+  }));
+  document.querySelectorAll("[data-profile-action]").forEach(button => button.addEventListener("click", async () => {
+    const action = button.dataset.profileAction; closeProfileSheet();
+    if (action !== "profile") { showToolFeedback(action === "settings" ? "Settings are saved through your profile preferences." : "Billing is not connected yet."); return; }
+    const displayName = window.prompt("Profile display name", savedProfile.displayName || "");
+    if (displayName === null) return;
+    const email = window.prompt("Profile email (optional)", savedProfile.email || "");
+    if (email === null) return;
+    try { await saveProfile({ displayName, email }); showToolFeedback("Profile saved."); }
+    catch (error) { showToolFeedback(error.message || "Could not save profile."); }
+  }));
+  loadProfile();
   function toggleAddMenu() {
     const open = addMenu.hidden;
     closeFloatingMenus(addMenu);
