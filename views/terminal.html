@@ -54,6 +54,20 @@
       .terminal-main .terminal-footer { flex-direction:column;gap:3px;padding:9px 11px; }
     }
   
+    .terminal-main > .terminal-keypad {
+      position:absolute; z-index:14; left:clamp(16px,3.2vw,32px); right:clamp(16px,3.2vw,32px);
+      bottom:calc(max(24px,env(safe-area-inset-bottom)) + 76px);
+      display:flex; align-items:center; gap:7px; overflow-x:auto; padding:0 2px 2px;
+      scrollbar-width:none; -webkit-overflow-scrolling:touch;
+    }
+    .terminal-main > .terminal-keypad::-webkit-scrollbar { display:none; }
+    .terminal-main > .terminal-keypad button {
+      flex:0 0 auto; min-height:30px; padding:5px 10px; border:1px solid #303034;
+      border-radius:10px; background:#1b1b1d; color:#b7b7bd;
+      font:500 12px/1 Geist,ui-sans-serif,system-ui,sans-serif; cursor:pointer;
+      touch-action:manipulation; -webkit-tap-highlight-color:transparent;
+    }
+    .terminal-main > .terminal-keypad button:active { background:#343438; color:#fff; transform:scale(.97); }
     .terminal-main > .terminal-command-composer { display:flex !important; }
     .terminal-main > .terminal-command-composer input[type="text"] { min-width:0; flex:1; height:40px; padding:8px 2px; border:0; outline:0; background:transparent; color:#f5f5f5; font:400 15px/1.35 Geist,ui-sans-serif,system-ui,sans-serif; }
     .terminal-main > .terminal-command-composer input[type="text"]::placeholder { color:#737373; opacity:1; }
@@ -83,9 +97,9 @@
       font:400 16px/1.35 Geist,ui-sans-serif,system-ui,sans-serif;
       transform:none; touch-action:manipulation; -webkit-text-size-adjust:100%;
     }
-    .terminal-main > .terminal-command-composer input[type="text"]::placeholder { color:#737373 !important; opacity:1; }
+    .terminal-main > .terminal-command-composer input[type="text"]::placeholder { color:#a0a0a5 !important; opacity:1; }
     .terminal-main > .terminal-command-composer input[type="text"]:focus { background:transparent !important; outline:none; box-shadow:none; }
-    .terminal-main > .terminal-command-composer .composer-send { flex:0 0 40px; width:40px; height:40px; border-radius:50%; background:#242424 !important; color:#7b7b7b; }
+    .terminal-main > .terminal-command-composer .composer-send { flex:0 0 40px; width:40px; height:40px; border-radius:50%; background:#252527 !important; color:#a0a0a5; }
     .terminal-main > .terminal-command-composer .composer-send.ready { color:#151515; background:#f1f1f1 !important; }
     .terminal-main > .terminal-command-composer .composer-send:disabled { opacity:.5; }
     .terminal-main > .home-disclaimer { display:none !important; }
@@ -221,6 +235,15 @@
     <main class="home-main terminal-main">
       <div id="terminal" aria-label="Interactive server terminal"></div>
       <div class="terminal-internal-status" aria-hidden="true"><span id="terminalDot"></span><span id="state">Connecting</span></div>
+      <div class="terminal-keypad" role="group" aria-label="Terminal special keys">
+        <button type="button" data-terminal-key="\\x03" aria-label="Control C">Ctrl+C</button>
+        <button type="button" data-terminal-key="\\t">Tab</button>
+        <button type="button" data-terminal-key="\\x1b">Esc</button>
+        <button type="button" data-terminal-key="\\x1b[A" aria-label="Arrow up">↑</button>
+        <button type="button" data-terminal-key="\\x1b[B" aria-label="Arrow down">↓</button>
+        <button type="button" data-terminal-key="\\x04" aria-label="Control D">Ctrl+D</button>
+        <button type="button" data-terminal-key="\\r" aria-label="Enter">Enter ↵</button>
+      </div>
       <form class="home-composer terminal-command-composer" id="terminalCommandForm" autocomplete="off">
         <input id="terminalCommand" name="command" type="text" inputmode="text" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Enter a command..." aria-label="Enter a terminal command">
         <button class="composer-send" id="terminalRunButton" type="submit" aria-label="Run command">
@@ -232,6 +255,6 @@
   <script src="/assets/home.js?v=sidebar-servers-stats-2" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/lib/xterm.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.10.0/lib/addon-fit.min.js"></script>
-  <script src="/assets/terminal.js?v=autoconnect-safe-input-2" defer></script>
+  <script src="/assets/terminal.js?v=terminal-keypad-3" defer></script>
 </body>
 </html>
