@@ -2077,29 +2077,62 @@ body.airshell-home .home-main.home-dashboard {
 .airshell-home .home-sidebar-close { display: none; }
 @media (max-width: 600px) {
   .airshell-home .home-sidebar {
-    top: 4px;
-    bottom: 4px;
-    left: 3px;
-    width: min(400px, calc(100vw - 66px));
-    max-width: calc(100vw - 12px);
-    border-radius: 44px;
-    padding-top: max(62px, calc(env(safe-area-inset-top, 0px) + 12px));
-    padding-bottom: 20px;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: min(320px, 86vw);
+    max-width: calc(100vw - 44px);
+    border-radius: 0 24px 24px 0;
+    padding-top: max(16px, env(safe-area-inset-top, 0px));
+    padding-bottom: max(16px, env(safe-area-inset-bottom, 0px));
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 16px 0 48px rgba(0, 0, 0, 0.7);
+    -webkit-overflow-scrolling: touch;
   }
-  .airshell-home .home-sidebar-head { min-height: 42px; padding: 0 27px; gap: 14px; }
-  .airshell-home .home-sidebar-brand { gap: 16px; }
-  .airshell-home .home-sidebar-brand img { width: 40px; height: 40px; flex-basis: 40px; }
-  .airshell-home .home-sidebar-brand span { font-size: 19px; }
-  .airshell-home .home-sidebar-search-wrap { margin: 42px 25px 24px; }
-  .airshell-home .home-sidebar-search { height: 43px; border-radius: 18px; font-size: 14px; }
-  .airshell-home .home-sidebar-scroll { padding: 0 16px 24px; }
-  .airshell-home .home-sidebar .sidebar-item { min-height: 46px; gap: 13px; padding: 0 10px; font-size: 15.5px; }
-  .airshell-home .home-sidebar .sidebar-item svg { width: 21px; height: 21px; flex-basis: 21px; }
-  .airshell-home .home-sidebar .home-nav-label { margin: 0 10px 7px; font-size: 13px; }
-  .airshell-home .home-sidebar-section { margin-top: 18px; }
-  .airshell-home .home-sidebar-projects { padding-left: 26px; padding-bottom: 5px; }
-  .airshell-home .home-sidebar .sidebar-project-item { min-height: 44px; padding-left: 10px; font-size: 15px; }
-  .airshell-home .home-sidebar-pinned { margin-top: 17px; }
+  .airshell-home .home-sidebar-head {
+    min-height: 48px;
+    padding: 6px 18px 12px;
+    gap: 12px;
+  }
+  .airshell-home .home-sidebar-brand { gap: 12px; }
+  .airshell-home .home-sidebar-brand img { width: 32px; height: 32px; flex-basis: 32px; }
+  .airshell-home .home-sidebar-brand span { font-size: 17px; }
+  .airshell-home .home-sidebar-close {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    opacity: 1 !important;
+    width: 36px;
+    height: 36px;
+    font-size: 22px;
+    border-radius: 50%;
+    color: #9c9ca3;
+    background: rgba(255, 255, 255, 0.06);
+    cursor: pointer;
+  }
+  .airshell-home .home-sidebar-close:active {
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+  }
+  .airshell-home .home-sidebar-search-wrap { margin: 10px 16px 14px; }
+  .airshell-home .home-sidebar-search { height: 38px; border-radius: 12px; font-size: 14px; padding: 0 12px; }
+  .airshell-home .home-sidebar-scroll {
+    padding: 0 12px max(24px, env(safe-area-inset-bottom, 0px));
+    -webkit-overflow-scrolling: touch;
+  }
+  .airshell-home .home-sidebar .sidebar-item {
+    min-height: 44px;
+    gap: 12px;
+    padding: 0 10px;
+    font-size: 14.5px;
+    border-radius: 8px;
+  }
+  .airshell-home .home-sidebar .sidebar-item svg { width: 19px; height: 19px; flex-basis: 19px; }
+  .airshell-home .home-sidebar .home-nav-label { margin: 0 10px 6px; font-size: 12px; }
+  .airshell-home .home-sidebar-section { margin-top: 14px; }
+  .airshell-home .home-sidebar-projects { padding-left: 20px; padding-bottom: 4px; }
+  .airshell-home .home-sidebar .sidebar-project-item { min-height: 40px; padding-left: 8px; font-size: 14px; }
+  .airshell-home .home-sidebar-pinned { margin-top: 14px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .airshell-home .home-sidebar { transition: none !important; }
