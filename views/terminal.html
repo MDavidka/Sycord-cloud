@@ -132,7 +132,13 @@
         <div class="home-profile-menu" id="profileMenu" role="dialog" aria-modal="true" aria-label="Account menu" hidden>
           <div class="profile-sheet-handle" aria-hidden="true"><span></span></div>
           <div class="profile-sheet-account">
-            <div class="profile-sheet-avatar" aria-hidden="true">A</div>
+            <div class="profile-sheet-avatar-wrap">
+              <button class="profile-sheet-avatar" type="button" aria-label="Change profile picture">A</button>
+              <button class="profile-avatar-remove" id="profileAvatarRemove" type="button" aria-label="Remove profile picture" title="Remove picture" hidden>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg>
+              </button>
+              <input id="profileAvatarInput" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+            </div>
             <div class="profile-sheet-identity">
               <div class="profile-sheet-name">Emma Collins <span class="profile-plan">Pro</span></div>
               <div class="profile-sheet-email">emma@example.com</div>
