@@ -53,7 +53,27 @@
       .terminal-main #terminal { min-height:calc(100dvh - 270px); }
       .terminal-main .terminal-footer { flex-direction:column;gap:3px;padding:9px 11px; }
     }
-  </style>
+  
+    /* Minimal terminal canvas: no panel, toolbar, or extra surface. */
+    body.airshell-home { background:#121212; }
+    .terminal-main { inset:92px 0 0 !important; overflow:hidden !important; background:linear-gradient(180deg,#121212 0%,#121212 58%,#171919 100%) !important; }
+    .terminal-main #terminal { position:absolute; inset:16px 20px 88px; min-height:0; height:auto; }
+    .terminal-main .xterm { height:100%; padding:0; }
+    .terminal-main .xterm-viewport, .terminal-main .xterm-screen, .terminal-main .xterm canvas { background:transparent !important; }
+    .terminal-main .terminal-internal-status { display:none; }
+    .terminal-main > .home-conversation.terminal-ai-conversation { position:absolute; z-index:5; inset:auto 20px 100px; max-height:44%; overflow:auto; display:flex; flex-direction:column; gap:10px; padding:0; pointer-events:auto; }
+    .terminal-main > .terminal-ai-conversation:empty { display:none; }
+    .terminal-main > .terminal-ai-composer { display:flex !important; position:absolute !important; z-index:15; left:20px; right:20px; bottom:max(16px,env(safe-area-inset-bottom)); width:auto; margin:0; }
+    .terminal-main > .home-model-menu { position:absolute; z-index:16; right:20px; bottom:calc(max(16px,env(safe-area-inset-bottom)) + 68px); }
+    .terminal-main > .home-disclaimer { display:none !important; }
+    @media(max-width:600px) {
+      .terminal-main { inset:92px 0 0 !important; }
+      .terminal-main #terminal { inset:16px 12px 82px; }
+      .terminal-main > .home-composer.terminal-ai-composer { left:12px; right:12px; bottom:max(12px,env(safe-area-inset-bottom)); }
+      .terminal-main > .home-conversation.terminal-ai-conversation { left:12px; right:12px; bottom:calc(max(12px,env(safe-area-inset-bottom)) + 70px); }
+      .terminal-main > .home-model-menu { right:12px; bottom:calc(max(12px,env(safe-area-inset-bottom)) + 66px); }
+    }
+</style>
 </head>
 <body class="airshell-home">
   <div class="home-shell">
@@ -174,22 +194,23 @@
     </aside>
     <button class="home-backdrop" id="sidebarBackdrop" aria-label="Close sidebar" hidden></button>
     <main class="home-main terminal-main">
-      <section class="terminal-layout">
-        <div class="terminal-meta">
-          <div><h1>Terminal</h1><p>Live shell session in the Airshell server environment.</p></div>
-          <div class="terminal-actions">
-            <a class="terminal-action" href="/dashboard" aria-label="Back to home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/><path d="M9 12h11"/></svg><span class="back-label">Home</span></a>
-          </div>
-        </div>
-        <section class="terminal-card" aria-label="Interactive server terminal">
-          <div class="terminal-bar">
-            <div class="terminal-host"><span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>shell — airshell</span></div>
-            <div style="display:flex;align-items:center;gap:12px"><span class="term-state"><span class="status-dot" id="terminalDot"></span><span id="state">Connecting</span></span><button class="terminal-clear" id="clear" type="button">Clear</button></div>
-          </div>
-          <div class="term-content"><div id="terminal"></div></div>
-          <div class="terminal-footer"><span>PTY · xterm-256color</span><span>Commands run with the Heroku dyno's permissions.</span></div>
-        </section>
-      </section>
+      <div id="terminal" aria-label="Interactive server terminal"></div>
+      <div class="terminal-internal-status" aria-hidden="true"><span id="terminalDot"></span><span id="state">Connecting</span></div>
+      <section class="home-conversation terminal-ai-conversation" id="conversation" aria-label="AI conversation" aria-live="polite"></section>
+      <form class="home-composer terminal-ai-composer" id="composer">
+        <button class="composer-icon composer-add" id="composerAdd" type="button" aria-label="More options" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg></button>
+        <textarea id="promptInput" rows="1" placeholder="Ask about this page" aria-label="Ask about this page"></textarea>
+        <button class="model-select" id="modelButton" type="button" aria-haspopup="listbox" aria-expanded="false" hidden><span id="modelName">DeepSeek V4 Pro</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m7 10 5 5 5-5"/></svg></button>
+        <button class="composer-icon mic-button" id="voiceButton" type="button" aria-label="Voice input unavailable" title="Voice input is not available yet" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3m-4 0h8"/></svg></button>
+        <button class="composer-send" type="submit" aria-label="Send message"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+      </form>
+      <div class="home-model-menu" id="modelMenu" role="listbox" aria-label="Choose mode" hidden>
+        <button type="button" role="option" data-model="DeepSeek V4 Pro" aria-selected="true">DeepSeek V4 Pro <span>Selected</span></button>
+        <button type="button" role="option" data-model="Antigravity CLI">Antigravity CLI</button>
+      </div>
+      <p class="home-disclaimer" id="composerHint" hidden>Airshell workspace · terminal access available</p>
+      <div id="addMenu" class="home-add-menu" hidden><a href="/terminal">Open terminal</a></div>
+      <input id="fileInput" type="file" hidden>
     </main>
   </div>
   <script src="/assets/home.js?v=sidebar-servers-stats-2" defer></script>
