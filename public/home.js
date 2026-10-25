@@ -498,40 +498,79 @@
       sendButton.classList.add("send-bounce");
       promptInput.disabled = true;
 
-      const loading = appendChatMessage("assistant", "Thinking", "home-message-loading");
-      const dots = document.createElement("span");
-      dots.className = "thinking-dots";
-      dots.setAttribute("aria-hidden", "true");
-      dots.textContent = " …";
-      loading.appendChild(dots);
+      const loading = appendChatMessage("assistant", "", "home-message-loading");
+      const thinking = document.createElement("span");
+      thinking.className = "ai-thinking-label";
+      thinking.innerHTML = '<span class="ai-thinking-orb" aria-hidden="true"></span><span>Thinking<span class="ai-thinking-ellipsis" aria-hidden="true">...</span></span>';
+      loading.appendChild(thinking);
 
       try {
         const response = await fetch("/api/chat", {
           method: "POST",
           credentials: "same-origin",
-          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          headers: { "Content-Type": "application/json", "Accept": "text/event-stream" },
           body: JSON.stringify({ messages: chatHistory.slice(-20) })
         });
-        const responseText = await response.text();
-        let data = {};
-        try { data = responseText ? JSON.parse(responseText) : {}; } catch (_) {
-          data = { error: responseText.trim().slice(0, 240) };
-        }
         if (!response.ok) {
+          const responseText = await response.text();
+          let data = {};
+          try { data = responseText ? JSON.parse(responseText) : {}; } catch (_) { data = { error: responseText.trim().slice(0, 240) }; }
           const fallback = response.status === 503
             ? "Chat service returned HTTP 503. Check that the latest server deployment is running and N_API is configured."
             : "The AI request failed (HTTP " + response.status + ").";
           throw new Error(data.error || fallback);
         }
-        const answer = typeof data.answer === "string" ? data.answer.trim() : "";
-        if (!answer) throw new Error("The AI returned an empty response.");
-        renderMarkdown(loading, answer);
-        loading.classList.remove("home-message-loading");
-        chatHistory.push({ role: "assistant", content: answer });
+        if (!response.body || typeof response.body.getReader !== "function") throw new Error("Streaming is not supported by this browser response.");
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+        let answer = "";
+        let firstToken = false;
+        let streamText = null;
+        let streamCursor = null;
+        const consumeEvent = (rawEvent) => {
+          const dataLine = rawEvent.split(/\r?\n/).find(line => line.startsWith("data:"));
+          if (!dataLine) return;
+          let packet;
+          try { packet = JSON.parse(dataLine.slice(5).trim()); } catch { return; }
+          if (packet.error) throw new Error(packet.error);
+          if (typeof packet.token === "string" && packet.token) {
+            if (!firstToken) {
+              firstToken = true;
+              loading.classList.remove("home-message-loading");
+              loading.classList.add("home-message-streaming");
+              loading.replaceChildren();
+              streamText = document.createElement("span");
+              streamText.className = "ai-stream-text";
+              streamCursor = document.createElement("span");
+              streamCursor.className = "ai-stream-cursor";
+              streamCursor.setAttribute("aria-hidden", "true");
+              loading.append(streamText, streamCursor);
+            }
+            answer += packet.token;
+            streamText.textContent = answer;
+            conversation.scrollTo({ top: conversation.scrollHeight, behavior: "auto" });
+          }
+        };
+        while (true) {
+          const part = await reader.read();
+          if (part.done) break;
+          buffer += decoder.decode(part.value, { stream: true });
+          const events = buffer.split(/\r?\n\r?\n/);
+          buffer = events.pop() || "";
+          for (const eventText of events) consumeEvent(eventText);
+        }
+        buffer += decoder.decode();
+        if (buffer.trim()) consumeEvent(buffer);
+        if (!answer.trim()) throw new Error("The AI returned an empty response.");
+        renderMarkdown(loading, answer.trim());
+        loading.classList.remove("home-message-loading", "home-message-streaming");
+        chatHistory.push({ role: "assistant", content: answer.trim() });
         if (chatHistory.length > 20) chatHistory.splice(0, chatHistory.length - 20);
         conversation.scrollTo({ top: conversation.scrollHeight, behavior: "smooth" });
       } catch (error) {
         loading.textContent = error && error.message ? error.message : "Could not get an AI response. Please try again.";
+        loading.classList.remove("home-message-loading", "home-message-streaming");
         loading.classList.add("home-message-error");
       } finally {
         sendButton.disabled = false;
