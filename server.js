@@ -397,6 +397,23 @@ app.post("/api/servers", async (req, res) => {
   }
 });
 
+app.get("/api/servers/:id/status", async (req, res) => {
+  if (!hasSession(req)) return res.status(401).json({ error: "Authentication required" });
+  const workspaceId = getWorkspaceId(req);
+  if (!workspaceId) return res.status(400).json({ error: "Workspace cookie missing." });
+  const id = req.params.id;
+  if (!/^[a-f0-9]{24}$/.test(id || "")) return res.status(400).json({ error: "Invalid server ID." });
+  const server = findWorkspaceServer(workspaceId, id);
+  if (!server) return res.status(404).json({ error: "Server not found." });
+  res.setHeader("Cache-Control", "no-store");
+  try {
+    await execFileAsync("ssh", [...sshBaseArgs(workspaceId, server), "printf AIRSHELL_STATUS_OK"], { timeout: 10000, maxBuffer: 1024, windowsHide: true });
+    return res.json({ id, status: "online", checkedAt: new Date().toISOString() });
+  } catch (error) {
+    return res.json({ id, status: error && error.code === "ENOENT" ? "unknown" : "offline", checkedAt: new Date().toISOString() });
+  }
+});
+
 app.delete("/api/servers/:id", async (req, res) => {
   if (!hasSession(req)) return res.status(401).json({ error: "Authentication required" });
   const workspaceId = getWorkspaceId(req);
