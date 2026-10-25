@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/app.css?v=mobile-sidebar-opt-1">
+  <link rel="stylesheet" href="/assets/app.css?v=server-registry-1">
 
   <style>
     /* Match the reference: near-black translucent glass on the dark workspace. */
@@ -529,23 +529,8 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="7" rx="2"/><rect x="3" y="14" width="18" height="7" rx="2"/><path d="M7 6.5h.01M7 17.5h.01M11 6.5h6M11 17.5h6"/></svg>
             <span>Servers</span>
           </button>
-          <div class="home-sidebar-servers" id="sidebarServers">
-            <button class="sidebar-server-item current" type="button" data-sidebar-action="Discord bot" data-sidebar-search="servers discord bot online">
-              <svg class="server-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="7" rx="2"/><rect x="3" y="14" width="18" height="7" rx="2"/><path d="M7 6.5h.01M7 17.5h.01M11 6.5h6M11 17.5h6"/></svg>
-              <span class="sidebar-server-name">Discord bot</span>
-              <svg class="sidebar-server-sparkline" viewBox="0 0 100 22" preserveAspectRatio="none" aria-label="Recent activity: variable"><path d="M1 15 C7 15 8 7 14 9 S23 18 29 12 S39 7 44 10 S51 16 57 8 S65 5 70 12 S79 16 84 11 S94 12 99 7"/></svg>
-            </button>
-            <button class="sidebar-server-item" type="button" data-sidebar-action="API server" data-sidebar-search="servers api server online">
-              <svg class="server-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="7" rx="2"/><rect x="3" y="14" width="18" height="7" rx="2"/><path d="M7 6.5h.01M7 17.5h.01M11 6.5h6M11 17.5h6"/></svg>
-              <span class="sidebar-server-name">API server</span>
-              <svg class="sidebar-server-sparkline" viewBox="0 0 100 22" preserveAspectRatio="none" aria-label="Recent activity: steady"><path d="M1 16 C9 16 10 5 16 8 S23 17 29 14 S39 11 44 13 S54 7 60 9 S66 17 71 11 S82 9 88 12 S95 14 99 10"/></svg>
-            </button>
-            <button class="sidebar-server-item" type="button" data-sidebar-action="Ubuntu VPS" data-sidebar-search="servers ubuntu vps linux">
-              <svg class="server-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="7" rx="2"/><rect x="3" y="14" width="18" height="7" rx="2"/><path d="M7 6.5h.01M7 17.5h.01M11 6.5h6M11 17.5h6"/></svg>
-              <span class="sidebar-server-name">Ubuntu VPS</span>
-              <svg class="sidebar-server-sparkline" viewBox="0 0 100 22" preserveAspectRatio="none" aria-label="Recent activity: increasing"><path d="M1 18 C8 17 10 13 16 14 S24 17 29 12 S39 11 45 13 S53 9 58 10 S65 15 70 9 S82 7 87 5 S94 6 99 2"/></svg>
-            </button>
-          </div>
+          <div class="home-sidebar-servers" id="sidebarServers"><p class="servers-empty" id="serversEmpty">No servers added yet</p></div>
+          <button class="sidebar-item server-add-trigger" id="addServerButton" type="button" aria-label="Add server"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span>Add server</span></button>
           <button class="sidebar-item" type="button" data-sidebar-action="Roadmap" data-sidebar-search="roadmap">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="5" r="3"/><path d="M6 8v8a3 3 0 0 0 3 3h6"/><circle cx="18" cy="19" r="3"/><circle cx="18" cy="5" r="3"/><path d="M9 5h6"/></svg>
             <span>Roadmap</span>
@@ -569,6 +554,19 @@
         </section>
       </div>
     </aside>
+
+    <dialog class="server-dialog" id="addServerDialog" aria-labelledby="addServerTitle">
+      <form id="addServerForm" class="server-dialog-form" autocomplete="off">
+        <div class="server-dialog-head"><div><p class="server-dialog-eyebrow">SSH CONNECTION</p><h2 id="addServerTitle">Add a server</h2><p>Only servers that pass an SSH connection check will be saved.</p></div><button type="button" class="server-dialog-close" id="closeServerDialog" aria-label="Close">×</button></div>
+        <label>Server name<input name="name" maxlength="48" required placeholder="My Ubuntu VPS"></label>
+        <div class="server-dialog-grid"><label>Host or IP<input name="host" required autocapitalize="off" spellcheck="false" placeholder="203.0.113.10"></label><label>SSH port<input name="port" type="number" min="1" max="65535" value="22" required></label></div>
+        <label>Linux username<input name="username" required autocapitalize="off" spellcheck="false" placeholder="ubuntu"></label>
+        <label>SSH private key<textarea name="privateKey" required rows="5" spellcheck="false" autocapitalize="off" placeholder="-----BEGIN OPENSSH PRIVATE KEY-----"></textarea></label>
+        <p class="server-dialog-note">The private key is stored on the Airshell host with restricted file permissions and is never sent back to the browser. Passphrase-protected keys are not supported yet.</p>
+        <p class="server-dialog-error" id="serverFormError" role="alert" hidden></p>
+        <div class="server-dialog-actions"><button type="button" class="server-dialog-cancel" id="cancelServerDialog">Cancel</button><button type="submit" class="server-dialog-submit" id="saveServerButton">Test and add server</button></div>
+      </form>
+    </dialog>
     <button class="home-backdrop" id="sidebarBackdrop" aria-label="Close sidebar" hidden></button>
     <main class="home-main home-dashboard">
       <div class="page-tools" role="toolbar" aria-label="Page actions">
@@ -634,6 +632,6 @@
       <p class="home-disclaimer" id="composerHint" hidden>Airshell workspace · terminal access available</p>
     </main>
   </div>
-  <script src="/assets/home.js?v=sidebar-servers-stats-2" defer></script>
+  <script src="/assets/home.js?v=server-registry-1" defer></script>
 </body>
 </html>
