@@ -113,10 +113,14 @@ function writeWorkspaceServers(workspaceId, servers) {
   fs.renameSync(temp, target);
 }
 function publicServer(server) {
-  return { id: server.id, name: server.name, host: server.host, username: server.username, port: server.port, addedAt: server.addedAt, type: "ssh" };
+  return { id: server.id, name: server.name, host: server.host, username: server.provider === "instabox" ? "Instabox" : server.username, port: server.port, addedAt: server.addedAt, provider: server.provider || "ssh", type: "ssh" };
 }
 function sshBaseArgs(workspaceId, server) {
-  return ["-i", serverKeyPath(workspaceId, server.id), "-p", String(server.port), "-o", "BatchMode=yes", "-o", "IdentitiesOnly=yes", "-o", "ConnectTimeout=8", "-o", "ServerAliveInterval=30", "-o", "ServerAliveCountMax=3", "-o", "UserKnownHostsFile=" + path.join(workspaceDataDir(workspaceId), "known_hosts"), "-o", "StrictHostKeyChecking=accept-new", server.username + "@" + server.host];
+  const args = [];
+  if (server.provider !== "instabox") args.push("-i", serverKeyPath(workspaceId, server.id), "-o", "IdentitiesOnly=yes");
+  else args.push("-o", "PubkeyAuthentication=no", "-o", "PasswordAuthentication=no", "-o", "KbdInteractiveAuthentication=no");
+  args.push("-p", String(server.port), "-o", "BatchMode=yes", "-o", "ConnectTimeout=8", "-o", "ServerAliveInterval=30", "-o", "ServerAliveCountMax=3", "-o", "UserKnownHostsFile=" + path.join(workspaceDataDir(workspaceId), "known_hosts"), "-o", "StrictHostKeyChecking=accept-new", server.username + "@" + server.host);
+  return args;
 }
 function shellQuote(value) { return "'" + String(value).replace(/'/g, "'\\''") + "'"; }
 function findWorkspaceServer(workspaceId, id) { return readWorkspaceServers(workspaceId).find(server => server.id === id) || null; }
@@ -224,23 +228,42 @@ app.post("/api/servers", async (req, res) => {
   if (!workspaceId) return res.status(400).json({ error: "Workspace cookie missing. Reload the page and try again." });
   const body = req.body || {};
   const name = typeof body.name === "string" ? body.name.trim().slice(0, 48) : "";
-  const host = typeof body.host === "string" ? body.host.trim().toLowerCase() : "";
-  const username = typeof body.username === "string" ? body.username.trim() : "";
-  const port = body.port === undefined || body.port === "" ? 22 : Number(body.port);
+  const provider = body.provider === "instabox" ? "instabox" : "ssh";
+  let host = typeof body.host === "string" ? body.host.trim().toLowerCase() : "";
+  let username = typeof body.username === "string" ? body.username.trim() : "";
+  let port = body.port === undefined || body.port === "" ? 22 : Number(body.port);
   const privateKey = typeof body.privateKey === "string" ? body.privateKey.trim() + "\n" : "";
-  if (!name || !/^[a-zA-Z0-9.-]{1,253}$/.test(host) || !/^[a-z_][a-z0-9_-]{0,31}$/.test(username) || !Number.isInteger(port) || port < 1 || port > 65535) {
-    return res.status(400).json({ error: "Enter a server name, valid hostname/IP, Linux username, and port (1–65535)." });
+  if (provider === "instabox") {
+    const command = typeof body.command === "string" ? body.command.trim() : "";
+    const match = command.match(/(?:^|\s)(?:\S+\s+)*(?:-p\s+(\d+)\s+)?([A-Za-z0-9._-]+)@(ssh|mosh)\.instabox\.sh(?:\s|$)/i)
+      || command.match(/^([A-Za-z0-9._-]+)$/);
+    if (match && match.length === 2) {
+      username = match[1];
+    } else if (match) {
+      username = match[2];
+      if (match[1]) port = Number(match[1]);
+    }
+    host = "ssh.instabox.sh";
+    port = 2222;
+    if (!username || !/^[A-Za-z0-9._-]{8,128}$/.test(username)) {
+      return res.status(400).json({ error: "Paste the Instabox SSH command or its token username, for example: ssh -p 2222 TOKEN@ssh.instabox.sh" });
+    }
   }
-  if (privateKey.length > 20000 || !/-----BEGIN (?:OPENSSH |RSA |EC |DSA )?PRIVATE KEY-----/.test(privateKey)) {
+  if (!name || !/^[a-zA-Z0-9.-]{1,253}$/.test(host) || !/^[a-zA-Z0-9_][a-zA-Z0-9._-]{0,127}$/.test(username) || !Number.isInteger(port) || port < 1 || port > 65535) {
+    return res.status(400).json({ error: "Enter a server name, valid hostname/IP, username, and port (1–65535)." });
+  }
+  if (provider !== "instabox" && (privateKey.length > 20000 || !/-----BEGIN (?:OPENSSH |RSA |EC |DSA )?PRIVATE KEY-----/.test(privateKey))) {
     return res.status(400).json({ error: "Paste a valid SSH private key. Passphrase-protected keys are not supported yet." });
   }
   const id = crypto.randomBytes(12).toString("hex");
-  const record = { id, name, host, username, port, addedAt: new Date().toISOString() };
+  const record = { id, name, host, username, port, provider, addedAt: new Date().toISOString() };
   let keyPath;
   try {
-    keyPath = serverKeyPath(workspaceId, id);
-    fs.writeFileSync(keyPath, privateKey, { mode: 0o600, flag: "wx" });
-    try { fs.chmodSync(keyPath, 0o600); } catch {}
+    if (provider !== "instabox") {
+      keyPath = serverKeyPath(workspaceId, id);
+      fs.writeFileSync(keyPath, privateKey, { mode: 0o600, flag: "wx" });
+      try { fs.chmodSync(keyPath, 0o600); } catch {}
+    }
     await execFileAsync("ssh", [...sshBaseArgs(workspaceId, record), "printf AIRSHELL_SSH_OK"], { timeout: 12000, maxBuffer: 4096, windowsHide: true });
     const servers = readWorkspaceServers(workspaceId);
     servers.push(record);
@@ -252,6 +275,7 @@ app.post("/api/servers", async (req, res) => {
     const missingSsh = error && error.code === "ENOENT";
     const detail = missingSsh ? "The host running Airshell does not have the SSH client installed." :
       error && error.killed ? "SSH connection timed out. Check the host, port, network, and SSH service." :
+      provider === "instabox" ? "Instabox SSH authentication failed or the endpoint could not be reached. Use the SSH command shown in Instabox and ensure the session is still running." :
       "SSH authentication failed or the host could not be reached. Check the username, key, host, port, and server's authorized_keys.";
     console.error("SSH server add failed:", error && (error.code || error.message) || "unknown");
     return res.status(missingSsh ? 503 : 422).json({ error: detail });
