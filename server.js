@@ -13,7 +13,7 @@ const { MongoClient } = require("mongodb");
 const app = express();
 app.disable("x-powered-by");
 app.use(express.urlencoded({ extended: false, limit: "8kb" }));
-app.use(express.json({ limit: "24kb" }));
+app.use(express.json({ limit: "1mb" }));
 app.use("/assets", express.static(path.join(__dirname, "public"), { index: false, maxAge: "1h" }));
 
 app.get("/manifest.webmanifest", (_req, res) => {
@@ -93,7 +93,7 @@ const mongoClient = MONGO_URI ? new MongoClient(MONGO_URI, { serverSelectionTime
 let mongoDb = null;
 let mongoReady = false;
 const workspaceCache = new Map();
-const profileDefaults = { displayName: "Airshell User", email: "", theme: "dark" };
+const profileDefaults = { displayName: "Airshell User", email: "", theme: "dark", avatarDataUrl: "" };
 function encryptionKey() {
   return crypto.createHash("sha256").update("airshell-mongo-secrets:v1:").update(sessionSecret).digest();
 }
@@ -575,7 +575,11 @@ app.get("/api/profile", async (req, res) => {
   try {
     const doc = await loadWorkspaceDocument(workspaceId);
     const cached = workspaceCache.get(workspaceId);
-    const profile = { ...profileDefaults, ...((doc && doc.profile) || (cached && cached.profile) || {}) };
+    let localProfile = {};
+    if (!doc && !mongoReady) {
+      try { localProfile = JSON.parse(fs.readFileSync(path.join(workspaceDataDir(workspaceId), "profile.json"), "utf8")); } catch {}
+    }
+    const profile = { ...profileDefaults, ...((doc && doc.profile) || (cached && cached.profile) || localProfile) };
     res.setHeader("Cache-Control", "no-store");
     res.json({ profile, storage: mongoReady ? "mongodb" : "local" });
   } catch (error) {
@@ -589,15 +593,29 @@ app.put("/api/profile", async (req, res) => {
   if (!workspaceId) return res.status(400).json({ error: "Workspace cookie missing." });
   const body = req.body || {};
   const current = (workspaceCache.get(workspaceId) || {}).profile || profileDefaults;
+  let avatarDataUrl = current.avatarDataUrl || "";
+  if (body.avatarDataUrl === null || body.avatarDataUrl === "") avatarDataUrl = "";
+  else if (typeof body.avatarDataUrl === "string") {
+    if (body.avatarDataUrl.length > 700000 || !/^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/]+=*$/.test(body.avatarDataUrl)) {
+      return res.status(400).json({ error: "Profile picture must be a PNG, JPEG or WebP image under 500 KB." });
+    }
+    avatarDataUrl = body.avatarDataUrl;
+  }
   const profile = {
     displayName: typeof body.displayName === "string" ? body.displayName.trim().slice(0, 80) : current.displayName,
     email: typeof body.email === "string" ? body.email.trim().slice(0, 160) : current.email,
-    theme: ["dark", "light", "system"].includes(body.theme) ? body.theme : current.theme
+    theme: ["dark", "light", "system"].includes(body.theme) ? body.theme : current.theme,
+    avatarDataUrl
   };
   if (!profile.displayName || (profile.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email))) return res.status(400).json({ error: "Enter a display name and a valid email address." });
   const cached = workspaceCache.get(workspaceId) || { servers: readWorkspaceServers(workspaceId), profile: { ...profileDefaults } };
   try {
     if (mongoReady) await persistWorkspaceDocument(workspaceId, { servers: cached.servers, profile });
+    else {
+      const profilePath = path.join(workspaceDataDir(workspaceId), "profile.json");
+      fs.writeFileSync(profilePath, JSON.stringify(profile), { mode: 0o600 });
+      try { fs.chmodSync(profilePath, 0o600); } catch {}
+    }
     cached.profile = profile;
     workspaceCache.set(workspaceId, cached);
     res.setHeader("Cache-Control", "no-store");
