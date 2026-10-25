@@ -2548,3 +2548,15 @@ body.airshell-home .home-main.home-dashboard {
   .airshell-home .home-sidebar .sidebar-server-sparkline { flex: 0 1 74px !important; width: 74px !important; min-width: 28px !important; max-width: 24% !important; }
   .airshell-home .sidebar-server-remove { flex: 0 0 28px !important; width: 28px !important; min-width: 28px !important; }
 }
+
+
+/* Use the supplied Airshell mark directly in the sidebar, without a tile or extra inset. */
+.airshell-home .home-sidebar-brand img {
+  display:block !important;
+  object-fit:contain !important;
+  background:transparent !important;
+  border:0 !important;
+  border-radius:0 !important;
+  padding:0 !important;
+  box-shadow:none !important;
+}
