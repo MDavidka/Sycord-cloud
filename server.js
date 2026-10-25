@@ -116,7 +116,7 @@ function publicServer(server) {
   return { id: server.id, name: server.name, host: server.host, username: server.username, port: server.port, addedAt: server.addedAt, type: "ssh" };
 }
 function sshBaseArgs(workspaceId, server) {
-  return ["-i", serverKeyPath(workspaceId, server.id), "-p", String(server.port), "-o", "BatchMode=yes", "-o", "IdentitiesOnly=yes", "-o", "ConnectTimeout=8", "-o", "ServerAliveInterval=30", "-o", "ServerAliveCountMax=3", "-o", "StrictHostKeyChecking=accept-new", server.username + "@" + server.host];
+  return ["-i", serverKeyPath(workspaceId, server.id), "-p", String(server.port), "-o", "BatchMode=yes", "-o", "IdentitiesOnly=yes", "-o", "ConnectTimeout=8", "-o", "ServerAliveInterval=30", "-o", "ServerAliveCountMax=3", "-o", "UserKnownHostsFile=" + path.join(workspaceDataDir(workspaceId), "known_hosts"), "-o", "StrictHostKeyChecking=accept-new", server.username + "@" + server.host];
 }
 function shellQuote(value) { return "'" + String(value).replace(/'/g, "'\\''") + "'"; }
 function findWorkspaceServer(workspaceId, id) { return readWorkspaceServers(workspaceId).find(server => server.id === id) || null; }
