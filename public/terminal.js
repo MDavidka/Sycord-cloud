@@ -33,7 +33,7 @@
       status("Connected", true);
       fit.fit();
       socket.send(JSON.stringify({ type: "resize", cols: term.cols, rows: term.rows }));
-      term.focus();
+      if (runButton) runButton.disabled = false;
     });
     socket.addEventListener("message", function (event) {
       try {
@@ -46,13 +46,41 @@
       } catch (error) {}
     });
     socket.addEventListener("close", function () {
-      status("Disconnected · refresh to reconnect", false);
+      status("Disconnected · refresh to reconnect", false);\n      if (runButton) runButton.disabled = true;
       if (term && !disposed) term.writeln("\r\n\x1b[90m[Connection closed]\x1b[0m");
     });
     socket.addEventListener("error", function () { status("Connection error", false); });
-    term.onData(function (data) {
-      if (socket && socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: "input", data: data }));
-    });
+    var commandForm = document.getElementById("terminalCommandForm");
+    var commandInput = document.getElementById("terminalCommand");
+    var runButton = document.getElementById("terminalRunButton");
+    var commandHistory = [];
+    var historyIndex = 0;
+    if (commandForm && commandInput) {
+      commandForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+        var command = commandInput.value;
+        if (!command.trim() || !socket || socket.readyState !== WebSocket.OPEN) {
+          if (!socket || socket.readyState !== WebSocket.OPEN) status("Waiting for connection", false);
+          return;
+        }
+        socket.send(JSON.stringify({ type: "input", data: command + "\\r" }));
+        commandHistory.push(command);
+        historyIndex = commandHistory.length;
+        commandInput.value = "";
+        if (runButton) runButton.disabled = true;
+      });
+      commandInput.addEventListener("keydown", function (event) {
+        if (event.key === "ArrowUp" && commandHistory.length) {
+          event.preventDefault();
+          historyIndex = Math.max(0, historyIndex - 1);
+          commandInput.value = commandHistory[historyIndex] || "";
+        } else if (event.key === "ArrowDown" && commandHistory.length) {
+          event.preventDefault();
+          historyIndex = Math.min(commandHistory.length, historyIndex + 1);
+          commandInput.value = commandHistory[historyIndex] || "";
+        }
+      });
+    }
     var clear = document.getElementById("clear");
     if (clear) clear.addEventListener("click", function () { term.clear(); term.focus(); });
     window.addEventListener("resize", function () {
