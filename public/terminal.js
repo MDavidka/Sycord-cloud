@@ -79,6 +79,23 @@
       });
     }
     connect();
+    function sendTerminalKey(data) {
+      if (!socket || socket.readyState !== WebSocket.OPEN) {
+        status("Waiting for connection", false);
+        return;
+      }
+      socket.send(JSON.stringify({ type: "input", data: data }));
+      if (commandInput) commandInput.focus({ preventScroll: true });
+    }
+    document.querySelectorAll("[data-terminal-key]").forEach(function (button) {
+      button.addEventListener("click", function () {
+        var encoded = button.getAttribute("data-terminal-key") || "";
+        var value;
+        try { value = encoded.replace(/\\\\x([0-9a-f]{2})/gi, function (_, hex) { return String.fromCharCode(parseInt(hex, 16)); }).replace(/\\\\t/g, "\\t").replace(/\\\\r/g, "\\r"); }
+        catch (error) { value = ""; }
+        if (value) sendTerminalKey(value);
+      });
+    });
     if (commandForm && commandInput) {
       commandForm.addEventListener("submit", function (event) {
         event.preventDefault();
