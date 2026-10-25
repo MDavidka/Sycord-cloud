@@ -1,0 +1,64 @@
+/* Design Tokens */
+:root {
+  /* Colors */
+  --color-bg-screen: #131313;
+  --color-bg-panel: #171718;
+  --color-bg-tab-track: #1F1F21;
+  --color-bg-tab-selected: #131313;
+  --color-bg-badge: #2A2A2C;
+  --color-bg-input: #18181A;
+  --color-bg-send-button: #2A2A2C;
+  --color-border-default: rgba(255,255,255,0.14);
+  --color-border-header: rgba(255,255,255,0.08);
+  --color-border-input: rgba(255,255,255,0.12);
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: #9A9A9F;
+  --color-text-tab-inactive: #8E8E93;
+  --color-text-placeholder: #8A8A8E;
+  --color-icon-send-arrow: #BDBDBD;
+  --color-status-connected: #6FD04F;
+  --color-status-connecting: #F5A524;
+  --color-status-offline: #6B6B70;
+  --color-status-error: #FF5A4F;
+  --color-avatar-fallback-bg: #E5E5E5;
+  
+  /* Radii */
+  --radius-panel-top: 24px;
+  --radius-pill: 999px;
+  --radius-add-button: 16px;
+  --radius-badge: 14px;
+  --radius-tab-track: 16px;
+  --radius-tab-item: 13px;
+  --radius-input-bar: 28px;
+  
+  /* Spacing */
+  --spacing-screen-margin: 20px;
+  --spacing-header-height: 56px;
+  --spacing-gap-header-panel: 16px;
+  --spacing-panel-pad-top: 16px;
+  --spacing-gap-session-tabs: 16px;
+  --spacing-gap-tabs-servers: 56px;
+  --spacing-server-row-left-pad: 28px;
+  --spacing-card-gap: 16px;
+  --spacing-gap-servers-content: 32px;
+  --spacing-input-bar-height: 56px;
+  --spacing-input-bar-bottom: 12px;
+  
+  /* Font sizes */
+  --font-header-title-size: 16px;
+  --font-header-title-weight: 600;
+  --font-session-text-size: 15px;
+  --font-session-text-weight: 400;
+  --font-tab-size: 10.5px;
+  --font-tab-weight: 500;
+  --font-server-number-size: 24px;
+  --font-server-number-weight: 700;
+  --font-server-name-size: 18px;
+  --font-server-name-weight: 700;
+  --font-server-timer-size: 14px;
+  --font-server-timer-weight: 600;
+  --font-server-subtitle-size: 10px;
+  --font-server-subtitle-weight: 400;
+  --font-placeholder-size: 15px;
+  --font-placeholder-weight: 400;
+}
