@@ -379,7 +379,7 @@ wss.on("connection", (ws, req) => {
   } catch {}
 
   const firstBufferedSeq = session.outputBuffer.length ? session.outputBuffer[0].seq : session.outputSeq + 1;
-  const bufferReset = requestedSince > 0 && requestedSince < firstBufferedSeq - 1;
+  const bufferReset = requestedSince < firstBufferedSeq - 1;
   ws.send(JSON.stringify({
     type: "session",
     resumed,
@@ -414,15 +414,14 @@ wss.on("connection", (ws, req) => {
   });
 });
 
-process.on("SIGTERM", () => {
+function shutdown() {
   for (const session of terminalSessions.values()) {
     try { session.terminal.kill(); } catch {}
   }
-});
-process.on("SIGINT", () => {
-  for (const session of terminalSessions.values()) {
-    try { session.terminal.kill(); } catch {}
-  }
-});
+  server.close(() => process.exit(0));
+  setTimeout(() => process.exit(0), 1500).unref();
+}
+process.once("SIGTERM", shutdown);
+process.once("SIGINT", shutdown);
 
 server.listen(process.env.PORT || 8080, "0.0.0.0", () => console.log("Protected web terminal listening"));
