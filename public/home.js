@@ -540,7 +540,7 @@
           }
           if (packet.approval && packet.approval.id) {
             const approval = packet.approval;
-            const accepted = window.confirm("Airshell wants to perform a server change.\\n\\n" + String(approval.summary || approval.tool || "Approve action").slice(0, 1800) + "\\n\\nContinue?");
+            const accepted = window.confirm("Airshell wants to perform a server change.\n\n" + String(approval.summary || approval.tool || "Approve action").slice(0, 1800) + "\n\nContinue?");
             fetch("/api/chat/approve", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: approval.id, approved: accepted }) }).catch(function () {});
           }
           if (typeof packet.token === "string" && packet.token) {
