@@ -557,12 +557,19 @@
 
     <dialog class="server-dialog" id="addServerDialog" aria-labelledby="addServerTitle">
       <form id="addServerForm" class="server-dialog-form" autocomplete="off">
-        <div class="server-dialog-head"><div><p class="server-dialog-eyebrow">SSH CONNECTION</p><h2 id="addServerTitle">Add a server</h2><p>Only servers that pass an SSH connection check will be saved.</p></div><button type="button" class="server-dialog-close" id="closeServerDialog" aria-label="Close">×</button></div>
-        <label>Server name<input name="name" maxlength="48" required placeholder="My Ubuntu VPS"></label>
-        <div class="server-dialog-grid"><label>Host or IP<input name="host" required autocapitalize="off" spellcheck="false" placeholder="203.0.113.10"></label><label>SSH port<input name="port" type="number" min="1" max="65535" value="22" required></label></div>
-        <label>Linux username<input name="username" required autocapitalize="off" spellcheck="false" placeholder="ubuntu"></label>
-        <label>SSH private key<textarea name="privateKey" required rows="5" spellcheck="false" autocapitalize="off" placeholder="-----BEGIN OPENSSH PRIVATE KEY-----"></textarea></label>
-        <p class="server-dialog-note">The private key is stored on the Airshell host with restricted file permissions and is never sent back to the browser. Passphrase-protected keys are not supported yet.</p>
+        <div class="server-dialog-head"><div><p class="server-dialog-eyebrow">SERVER CONNECTION</p><h2 id="addServerTitle">Add a server</h2><p>Connect with an SSH key or Instabox quick connect.</p></div><button type="button" class="server-dialog-close" id="closeServerDialog" aria-label="Close">×</button></div>
+        <label>Connection type<select name="provider" id="serverProvider"><option value="ssh">SSH · private key</option><option value="instabox">Instabox · token command</option></select></label>
+        <label>Server name<input name="name" maxlength="48" required placeholder="My server"></label>
+        <div id="sshFields">
+          <div class="server-dialog-grid"><label>Host or IP<input name="host" id="serverHost" required autocapitalize="off" spellcheck="false" placeholder="203.0.113.10"></label><label>SSH port<input name="port" id="serverPort" type="number" min="1" max="65535" value="22" required></label></div>
+          <label>Linux username<input name="username" id="serverUsername" required autocapitalize="off" spellcheck="false" placeholder="ubuntu"></label>
+          <label>SSH private key<textarea name="privateKey" id="serverPrivateKey" required rows="5" spellcheck="false" autocapitalize="off" placeholder="-----BEGIN OPENSSH PRIVATE KEY-----"></textarea></label>
+          <p class="server-dialog-note">The private key is stored on the Airshell host with restricted file permissions and is never sent back to the browser.</p>
+        </div>
+        <div id="instaboxFields" hidden>
+          <label>Instabox SSH / Mosh command<textarea name="command" id="instaboxCommand" rows="2" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="ssh -p 2222 TOKEN@ssh.instabox.sh"></textarea></label>
+          <p class="server-dialog-note">Paste the command from Instabox. The token is saved privately as the SSH username; no password or private key is required.</p>
+        </div>
         <p class="server-dialog-error" id="serverFormError" role="alert" hidden></p>
         <div class="server-dialog-actions"><button type="button" class="server-dialog-cancel" id="cancelServerDialog">Cancel</button><button type="submit" class="server-dialog-submit" id="saveServerButton">Test and add server</button></div>
       </form>
