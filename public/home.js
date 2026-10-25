@@ -233,7 +233,20 @@
 
   const profileName = document.querySelector(".profile-sheet-name");
   const profileEmail = document.querySelector(".profile-sheet-email");
-  let savedProfile = { displayName: "Airshell User", email: "", theme: "dark" };
+  const profileAvatar = document.querySelector(".profile-sheet-avatar");
+  const topAvatar = document.getElementById("profileToggle");
+  const avatarInput = document.getElementById("profileAvatarInput");
+  const avatarRemove = document.getElementById("profileAvatarRemove");
+  let savedProfile = { displayName: "Airshell User", email: "", theme: "dark", avatarDataUrl: "" };
+  function renderAvatar(element, avatarDataUrl, fallback) {
+    if (!element) return;
+    element.replaceChildren();
+    if (avatarDataUrl) {
+      const image = document.createElement("img");
+      image.src = avatarDataUrl; image.alt = "Profile picture"; image.className = "profile-avatar-image";
+      element.appendChild(image);
+    } else element.textContent = (fallback || "A").trim().charAt(0).toUpperCase() || "A";
+  }
   function applyProfile(profile) {
     savedProfile = { ...savedProfile, ...(profile || {}) };
     if (profileName) {
@@ -242,6 +255,9 @@
       profileName.appendChild(document.createTextNode(" ")); profileName.appendChild(plan);
     }
     if (profileEmail) profileEmail.textContent = savedProfile.email || "No email set";
+    renderAvatar(profileAvatar, savedProfile.avatarDataUrl, savedProfile.displayName);
+    renderAvatar(topAvatar, savedProfile.avatarDataUrl, savedProfile.displayName);
+    if (avatarRemove) avatarRemove.hidden = !savedProfile.avatarDataUrl;
     const systemLight = savedProfile.theme === "system" && window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
     document.body.classList.toggle("airshell-light-theme", savedProfile.theme === "light" || systemLight);
     document.querySelectorAll("[data-theme-choice]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.themeChoice === savedProfile.theme)));
@@ -260,6 +276,31 @@
       applyProfile(data.profile);
     } catch (error) { showToolFeedback(error.message || "Could not load saved profile."); }
   }
+  if (avatarInput && profileAvatar) {
+    profileAvatar.addEventListener("click", () => avatarInput.click());
+    profileAvatar.setAttribute("tabindex", "0");
+    profileAvatar.setAttribute("aria-label", "Change profile picture");
+    profileAvatar.addEventListener("keydown", event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); avatarInput.click(); } });
+    avatarInput.addEventListener("change", async () => {
+      const file = avatarInput.files && avatarInput.files[0];
+      if (!file) return;
+      if (!["image/png", "image/jpeg", "image/webp"].includes(file.type) || file.size > 500 * 1024) {
+        showToolFeedback("Choose a PNG, JPEG or WebP image under 500 KB."); avatarInput.value = ""; return;
+      }
+      try {
+        const dataUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.onerror = () => reject(new Error("Could not read image.")); reader.readAsDataURL(file);
+        });
+        await saveProfile({ avatarDataUrl: dataUrl }); showToolFeedback("Profile picture saved.");
+      } catch (error) { showToolFeedback(error.message || "Could not save profile picture."); }
+      finally { avatarInput.value = ""; }
+    });
+  }
+  if (avatarRemove) avatarRemove.addEventListener("click", async event => {
+    event.stopPropagation();
+    try { await saveProfile({ avatarDataUrl: null }); showToolFeedback("Profile picture removed."); }
+    catch (error) { showToolFeedback(error.message || "Could not remove profile picture."); }
+  });
   document.querySelectorAll("[data-theme-choice]").forEach(button => button.addEventListener("click", async () => {
     try { await saveProfile({ theme: button.dataset.themeChoice }); showToolFeedback("Profile theme saved."); }
     catch (error) { showToolFeedback(error.message || "Could not save theme."); }
