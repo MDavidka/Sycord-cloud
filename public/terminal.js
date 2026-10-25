@@ -90,9 +90,25 @@
     document.querySelectorAll("[data-terminal-key]").forEach(function (button) {
       button.addEventListener("click", function () {
         var encoded = button.getAttribute("data-terminal-key") || "";
-        var value;
-        try { value = encoded.replace(/\\\\x([0-9a-f]{2})/gi, function (_, hex) { return String.fromCharCode(parseInt(hex, 16)); }).replace(/\\\\t/g, "\\t").replace(/\\\\r/g, "\\r"); }
-        catch (error) { value = ""; }
+        if (encoded === "enter") {
+          var command = commandInput ? commandInput.value : "";
+          if (command.trim()) {
+            if (!socket || socket.readyState !== WebSocket.OPEN) { status("Waiting for connection", false); return; }
+            socket.send(JSON.stringify({ type: "input", data: command + "\r" }));
+            commandHistory.push(command);
+            historyIndex = commandHistory.length;
+            commandInput.value = "";
+            if (runButton) runButton.classList.remove("ready");
+          } else {
+            sendTerminalKey("\r");
+          }
+          return;
+        }
+        var value = encoded.replace(/\\\\x([0-9a-f]{2})/gi, function (_, hex) {
+          return String.fromCharCode(parseInt(hex, 16));
+        });
+        if (encoded === "\\\\t") value = "\t";
+        if (encoded === "\\\\r") value = "\r";
         if (value) sendTerminalKey(value);
       });
     });
