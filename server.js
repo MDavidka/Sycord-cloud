@@ -2,6 +2,9 @@ const express = require("express");
 const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
+const { execFile } = require("node:child_process");
+const { promisify } = require("node:util");
+const execFileAsync = promisify(execFile);
 const http = require("node:http");
 const pty = require("node-pty");
 const { WebSocketServer, WebSocket } = require("ws");
@@ -82,6 +85,42 @@ function ensureWorkspaceCookie(req, res) {
   return id;
 }
 
+
+const DATA_DIR = path.resolve(process.env.AIRSHELL_DATA_DIR || path.join(__dirname, "data"));
+function workspaceDataDir(workspaceId) {
+  if (!/^[a-f0-9]{64}$/.test(workspaceId || "")) throw new Error("Invalid workspace");
+  const dir = path.join(DATA_DIR, workspaceId);
+  fs.mkdirSync(path.join(dir, "keys"), { recursive: true, mode: 0o700 });
+  try { fs.chmodSync(dir, 0o700); fs.chmodSync(path.join(dir, "keys"), 0o700); } catch {}
+  return dir;
+}
+function serverConfigPath(workspaceId) { return path.join(workspaceDataDir(workspaceId), "servers.json"); }
+function serverKeyPath(workspaceId, id) {
+  if (!/^[a-f0-9]{24}$/.test(id || "")) throw new Error("Invalid server ID");
+  return path.join(workspaceDataDir(workspaceId), "keys", id + ".key");
+}
+function readWorkspaceServers(workspaceId) {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(serverConfigPath(workspaceId), "utf8"));
+    return Array.isArray(parsed) ? parsed.filter(s => s && /^[a-f0-9]{24}$/.test(s.id || "")) : [];
+  } catch (error) { if (error.code === "ENOENT") return []; throw error; }
+}
+function writeWorkspaceServers(workspaceId, servers) {
+  const target = serverConfigPath(workspaceId);
+  const temp = target + "." + crypto.randomBytes(6).toString("hex") + ".tmp";
+  fs.writeFileSync(temp, JSON.stringify(servers, null, 2), { mode: 0o600 });
+  try { fs.chmodSync(temp, 0o600); } catch {}
+  fs.renameSync(temp, target);
+}
+function publicServer(server) {
+  return { id: server.id, name: server.name, host: server.host, username: server.username, port: server.port, addedAt: server.addedAt, type: "ssh" };
+}
+function sshBaseArgs(workspaceId, server) {
+  return ["-i", serverKeyPath(workspaceId, server.id), "-p", String(server.port), "-o", "BatchMode=yes", "-o", "IdentitiesOnly=yes", "-o", "ConnectTimeout=8", "-o", "ServerAliveInterval=30", "-o", "ServerAliveCountMax=3", "-o", "StrictHostKeyChecking=accept-new", server.username + "@" + server.host];
+}
+function shellQuote(value) { return "'" + String(value).replace(/'/g, "'\\''") + "'"; }
+function findWorkspaceServer(workspaceId, id) { return readWorkspaceServers(workspaceId).find(server => server.id === id) || null; }
+
 function hasSession(req) {
   const cookies = (req.headers.cookie || "").split(";").map(v => v.trim());
   const item = cookies.find(v => v.startsWith("terminal_auth="));
@@ -158,6 +197,78 @@ app.get("/dashboard", (req, res) => {
   ensureWorkspaceCookie(req, res);
   res.setHeader("Cache-Control", "no-store");
   res.sendFile(path.join(__dirname, "views", "dashboard.html"));
+});
+
+
+app.get("/api/servers", (req, res) => {
+  if (!hasSession(req)) return res.status(401).json({ error: "Authentication required" });
+  const workspaceId = getWorkspaceId(req);
+  if (!workspaceId) return res.status(400).json({ error: "Workspace cookie missing. Reload the page and try again." });
+  try {
+    res.setHeader("Cache-Control", "no-store");
+    return res.json({ servers: readWorkspaceServers(workspaceId).map(publicServer) });
+  } catch (error) {
+    console.error("Could not read server registry:", error.message);
+    return res.status(500).json({ error: "Could not load saved servers. Check the server's persistent data directory." });
+  }
+});
+
+app.post("/api/servers", async (req, res) => {
+  if (!hasSession(req)) return res.status(401).json({ error: "Authentication required" });
+  const workspaceId = getWorkspaceId(req);
+  if (!workspaceId) return res.status(400).json({ error: "Workspace cookie missing. Reload the page and try again." });
+  const body = req.body || {};
+  const name = typeof body.name === "string" ? body.name.trim().slice(0, 48) : "";
+  const host = typeof body.host === "string" ? body.host.trim().toLowerCase() : "";
+  const username = typeof body.username === "string" ? body.username.trim() : "";
+  const port = body.port === undefined || body.port === "" ? 22 : Number(body.port);
+  const privateKey = typeof body.privateKey === "string" ? body.privateKey.trim() + "\n" : "";
+  if (!name || !/^[a-zA-Z0-9.-]{1,253}$/.test(host) || !/^[a-z_][a-z0-9_-]{0,31}$/.test(username) || !Number.isInteger(port) || port < 1 || port > 65535) {
+    return res.status(400).json({ error: "Enter a server name, valid hostname/IP, Linux username, and port (1–65535)." });
+  }
+  if (privateKey.length > 20000 || !/-----BEGIN (?:OPENSSH |RSA |EC |DSA )?PRIVATE KEY-----/.test(privateKey)) {
+    return res.status(400).json({ error: "Paste a valid SSH private key. Passphrase-protected keys are not supported yet." });
+  }
+  const id = crypto.randomBytes(12).toString("hex");
+  const record = { id, name, host, username, port, addedAt: new Date().toISOString() };
+  let keyPath;
+  try {
+    keyPath = serverKeyPath(workspaceId, id);
+    fs.writeFileSync(keyPath, privateKey, { mode: 0o600, flag: "wx" });
+    try { fs.chmodSync(keyPath, 0o600); } catch {}
+    await execFileAsync("ssh", [...sshBaseArgs(workspaceId, record), "printf AIRSHELL_SSH_OK"], { timeout: 12000, maxBuffer: 4096, windowsHide: true });
+    const servers = readWorkspaceServers(workspaceId);
+    servers.push(record);
+    writeWorkspaceServers(workspaceId, servers);
+    res.setHeader("Cache-Control", "no-store");
+    return res.status(201).json({ server: publicServer(record) });
+  } catch (error) {
+    if (keyPath) { try { fs.unlinkSync(keyPath); } catch {} }
+    const missingSsh = error && error.code === "ENOENT";
+    const detail = missingSsh ? "The host running Airshell does not have the SSH client installed." :
+      error && error.killed ? "SSH connection timed out. Check the host, port, network, and SSH service." :
+      "SSH authentication failed or the host could not be reached. Check the username, key, host, port, and server's authorized_keys.";
+    console.error("SSH server add failed:", error && (error.code || error.message) || "unknown");
+    return res.status(missingSsh ? 503 : 422).json({ error: detail });
+  }
+});
+
+app.delete("/api/servers/:id", (req, res) => {
+  if (!hasSession(req)) return res.status(401).json({ error: "Authentication required" });
+  const workspaceId = getWorkspaceId(req);
+  if (!workspaceId) return res.status(400).json({ error: "Workspace cookie missing." });
+  const id = req.params.id;
+  if (!/^[a-f0-9]{24}$/.test(id || "")) return res.status(400).json({ error: "Invalid server ID." });
+  try {
+    const servers = readWorkspaceServers(workspaceId);
+    if (!servers.some(server => server.id === id)) return res.status(404).json({ error: "Server not found." });
+    writeWorkspaceServers(workspaceId, servers.filter(server => server.id !== id));
+    try { fs.unlinkSync(serverKeyPath(workspaceId, id)); } catch {}
+    return res.json({ deleted: true, id });
+  } catch (error) {
+    console.error("Could not remove server:", error.message);
+    return res.status(500).json({ error: "Could not remove this server." });
+  }
 });
 
 app.post("/api/chat", async (req, res) => {
