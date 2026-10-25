@@ -46,7 +46,8 @@
       } catch (error) {}
     });
     socket.addEventListener("close", function () {
-      status("Disconnected · refresh to reconnect", false);\n      if (runButton) runButton.disabled = true;
+      status("Disconnected · refresh to reconnect", false);
+      if (runButton) runButton.disabled = true;
       if (term && !disposed) term.writeln("\r\n\x1b[90m[Connection closed]\x1b[0m");
     });
     socket.addEventListener("error", function () { status("Connection error", false); });
@@ -63,7 +64,7 @@
           if (!socket || socket.readyState !== WebSocket.OPEN) status("Waiting for connection", false);
           return;
         }
-        socket.send(JSON.stringify({ type: "input", data: command + "\\r" }));
+        socket.send(JSON.stringify({ type: "input", data: command + "\r" }));
         commandHistory.push(command);
         historyIndex = commandHistory.length;
         commandInput.value = "";
