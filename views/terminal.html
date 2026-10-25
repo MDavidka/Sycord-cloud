@@ -84,9 +84,9 @@
       display:flex !important; position:absolute !important; z-index:15;
       left:clamp(16px,3.2vw,32px); right:clamp(16px,3.2vw,32px);
       bottom:max(24px,env(safe-area-inset-bottom)); width:auto; margin:0;
-      min-height:68px; align-items:center; gap:9px; padding:8px 9px 8px 13px;
-      border:1px solid #101010; border-radius:28px; background:#050505 !important;
-      box-shadow:0 0 0 1px #222; box-sizing:border-box;
+      min-height:64px; height:64px; align-items:center; gap:9px; padding:8px 10px 8px 20px;
+      border:1px solid #2a2a2e; border-radius:999px; background:#181819 !important;
+      box-shadow:0 0 0 1px #202022; box-sizing:border-box;
       -webkit-backdrop-filter:none; backdrop-filter:none;
     }
     .terminal-main > .terminal-command-composer input[type="text"] {
@@ -108,7 +108,7 @@
       .terminal-main #terminal { inset:16px 12px 100px; }
       .terminal-main > .terminal-command-composer {
         left:16px; right:16px; bottom:max(24px,env(safe-area-inset-bottom));
-        min-height:62px; gap:5px; padding:7px 7px 7px 10px;
+        min-height:60px; height:60px; gap:5px; padding:7px 8px 7px 18px;
       }
       .terminal-main > .terminal-command-composer input[type="text"] { font-size:16px; height:40px; }
     }
