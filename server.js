@@ -45,6 +45,8 @@ function createSessionToken() {
 }
 
 let activeTerminals = 0;
+const terminalSessions = new Map();
+const TERMINAL_BUFFER_LIMIT = 512 * 1024;
 let cpuPrevious = process.cpuUsage();
 let cpuPreviousAt = process.hrtime.bigint();
 let cpuPercent = 0;
@@ -60,6 +62,25 @@ const cpuSampler = setInterval(() => {
 cpuSampler.unref();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ noServer: true, maxPayload: 16 * 1024 });
+
+function readCookie(req, name) {
+  const cookies = (req.headers.cookie || "").split(";").map(v => v.trim());
+  const item = cookies.find(v => v.startsWith(name + "="));
+  return item ? item.slice(name.length + 1) : "";
+}
+
+function getWorkspaceId(req) {
+  const value = readCookie(req, "terminal_workspace");
+  return /^[a-f0-9]{64}$/.test(value) ? value : "";
+}
+
+function ensureWorkspaceCookie(req, res) {
+  const existing = getWorkspaceId(req);
+  if (existing) return existing;
+  const id = crypto.randomBytes(32).toString("hex");
+  res.append("Set-Cookie", "terminal_workspace=" + id + "; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=" + SESSION_TTL_SECONDS);
+  return id;
+}
 
 function hasSession(req) {
   const cookies = (req.headers.cookie || "").split(";").map(v => v.trim());
@@ -124,12 +145,17 @@ app.post("/login", (req, res) => {
   if (supplied.length !== expected.length || !crypto.timingSafeEqual(supplied, expected)) {
     return res.status(401).type("html").send(loginPage("Incorrect password."));
   }
-  res.setHeader("Set-Cookie", "terminal_auth=" + createSessionToken() + "; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=" + SESSION_TTL_SECONDS);
+  const workspaceId = getWorkspaceId(req) || crypto.randomBytes(32).toString("hex");
+  res.setHeader("Set-Cookie", [
+    "terminal_auth=" + createSessionToken() + "; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=" + SESSION_TTL_SECONDS,
+    "terminal_workspace=" + workspaceId + "; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=" + SESSION_TTL_SECONDS
+  ]);
   res.redirect(303, "/dashboard");
 });
 
 app.get("/dashboard", (req, res) => {
   if (!hasSession(req)) return res.status(401).type("html").send(loginPage("Sign in to continue."));
+  ensureWorkspaceCookie(req, res);
   res.setHeader("Cache-Control", "no-store");
   res.sendFile(path.join(__dirname, "views", "dashboard.html"));
 });
@@ -255,13 +281,16 @@ app.get("/access", (req, res) => {
 
 app.get("/terminal", (req, res) => {
   if (!hasSession(req)) return res.status(401).type("html").send(loginPage("Előbb jelentkezz be."));
+  ensureWorkspaceCookie(req, res);
   res.setHeader("Cache-Control", "no-store");
   res.sendFile(path.join(__dirname, "views", "terminal.html"));
 });
 
 server.on("upgrade", (req, socket, head) => {
   const origin = req.headers.origin;
-  if (!hasSession(req) || (origin && new URL(origin).host !== req.headers.host) || req.url !== "/ws") {
+  let pathname = "";
+  try { pathname = new URL(req.url, "http://localhost").pathname; } catch {}
+  if (!hasSession(req) || (origin && new URL(origin).host !== req.headers.host) || pathname !== "/ws" || !getWorkspaceId(req)) {
     socket.write("HTTP/1.1 401 Unauthorized\r\nConnection: close\r\n\r\n");
     socket.destroy();
     return;
@@ -269,50 +298,131 @@ server.on("upgrade", (req, socket, head) => {
   wss.handleUpgrade(req, socket, head, ws => wss.emit("connection", ws, req));
 });
 
-wss.on("connection", ws => {
+function spawnTerminalSession(workspaceId) {
   const shell = process.env.SHELL || "/bin/bash";
-  let terminal;
-  try {
-    terminal = pty.spawn(shell, ["--login"], {
-      name: "xterm-256color",
-      cols: 100,
-      rows: 30,
-      cwd: process.env.HOME || "/app",
-      env: { ...process.env, TERM: "xterm-256color", COLORTERM: "truecolor" }
-    });
-  } catch (error) {
-    ws.send(JSON.stringify({ type: "error", message: "Nem sikerült elindítani a terminált: " + error.message }));
-    ws.close();
+  const terminal = pty.spawn(shell, ["--login"], {
+    name: "xterm-256color",
+    cols: 100,
+    rows: 30,
+    cwd: process.env.HOME || "/app",
+    env: { ...process.env, TERM: "xterm-256color", COLORTERM: "truecolor" }
+  });
+  const session = {
+    id: workspaceId,
+    terminal,
+    socket: null,
+    outputSeq: 0,
+    outputBuffer: [],
+    outputBytes: 0,
+    createdAt: Date.now(),
+    exited: false
+  };
+  terminalSessions.set(workspaceId, session);
+  activeTerminals = terminalSessions.size;
+
+  terminal.onData(data => {
+    if (session.exited) return;
+    const chunk = { type: "output", seq: ++session.outputSeq, data };
+    session.outputBuffer.push(chunk);
+    session.outputBytes += Buffer.byteLength(data);
+    while (session.outputBytes > TERMINAL_BUFFER_LIMIT && session.outputBuffer.length > 1) {
+      const removed = session.outputBuffer.shift();
+      session.outputBytes -= Buffer.byteLength(removed.data);
+    }
+    if (session.socket && session.socket.readyState === WebSocket.OPEN) {
+      try { session.socket.send(JSON.stringify(chunk)); } catch {}
+    }
+  });
+
+  terminal.onExit(({ exitCode }) => {
+    session.exited = true;
+    if (terminalSessions.get(workspaceId) === session) terminalSessions.delete(workspaceId);
+    activeTerminals = terminalSessions.size;
+    if (session.socket && session.socket.readyState === WebSocket.OPEN) {
+      try { session.socket.send(JSON.stringify({ type: "session-ended", exitCode })); } catch {}
+      session.socket.close();
+    }
+    session.socket = null;
+  });
+  return session;
+}
+
+wss.on("connection", (ws, req) => {
+  const workspaceId = getWorkspaceId(req);
+  if (!workspaceId) {
+    ws.close(4401, "Workspace session cookie required");
     return;
   }
-  activeTerminals += 1;
-  let sessionCounted = true;
-  const releaseSessionCount = () => {
-    if (!sessionCounted) return;
-    activeTerminals = Math.max(0, activeTerminals - 1);
-    sessionCounted = false;
-  };
-  terminal.onData(data => {
-    if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: "output", data }));
-  });
-  terminal.onExit(() => {
-    releaseSessionCount();
-    if (ws.readyState === WebSocket.OPEN) ws.close();
-  });
+
+  let session = terminalSessions.get(workspaceId);
+  const resumed = Boolean(session && !session.exited);
+  if (!resumed) {
+    try {
+      session = spawnTerminalSession(workspaceId);
+    } catch (error) {
+      ws.send(JSON.stringify({ type: "error", message: "Could not start terminal: " + error.message }));
+      ws.close();
+      return;
+    }
+  }
+
+  if (session.socket && session.socket !== ws && session.socket.readyState < WebSocket.CLOSING) {
+    try { session.socket.close(4001, "Terminal attached in another tab"); } catch {}
+  }
+  session.socket = ws;
+
+  let requestedSince = 0;
+  try {
+    const parsedUrl = new URL(req.url, "http://localhost");
+    const value = Number(parsedUrl.searchParams.get("since") || 0);
+    if (Number.isSafeInteger(value) && value >= 0) requestedSince = value;
+  } catch {}
+
+  const firstBufferedSeq = session.outputBuffer.length ? session.outputBuffer[0].seq : session.outputSeq + 1;
+  const bufferReset = requestedSince > 0 && requestedSince < firstBufferedSeq - 1;
+  ws.send(JSON.stringify({
+    type: "session",
+    resumed,
+    createdAt: session.createdAt,
+    lastSeq: session.outputSeq,
+    bufferReset
+  }));
+  if (bufferReset) {
+    ws.send(JSON.stringify({ type: "notice", message: "Some older terminal output was trimmed from the reconnect buffer." }));
+  }
+  for (const chunk of session.outputBuffer) {
+    if (chunk.seq > requestedSince && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(chunk));
+  }
+
   ws.on("message", raw => {
+    if (session.socket !== ws || session.exited) return;
     let msg;
     try { msg = JSON.parse(raw.toString()); } catch { return; }
-    if (msg.type === "input" && typeof msg.data === "string" && msg.data.length <= 4096) terminal.write(msg.data);
+    if (msg.type === "input" && typeof msg.data === "string" && msg.data.length <= 4096) {
+      session.terminal.write(msg.data);
+    }
     if (msg.type === "resize" && Number.isInteger(msg.cols) && Number.isInteger(msg.rows)) {
       const cols = Math.max(20, Math.min(240, msg.cols));
       const rows = Math.max(5, Math.min(100, msg.rows));
-      terminal.resize(cols, rows);
+      session.terminal.resize(cols, rows);
     }
   });
+
   ws.on("close", () => {
-    releaseSessionCount();
-    try { terminal.kill(); } catch {}
+    if (session.socket === ws) session.socket = null;
+    // Keep the PTY alive after the browser disconnects so long-running CLI jobs continue.
   });
+});
+
+process.on("SIGTERM", () => {
+  for (const session of terminalSessions.values()) {
+    try { session.terminal.kill(); } catch {}
+  }
+});
+process.on("SIGINT", () => {
+  for (const session of terminalSessions.values()) {
+    try { session.terminal.kill(); } catch {}
+  }
 });
 
 server.listen(process.env.PORT || 8080, "0.0.0.0", () => console.log("Protected web terminal listening"));
