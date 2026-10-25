@@ -20,7 +20,7 @@
     term = new Terminal({
       cursorBlink: true, convertEol: true, scrollback: 3000, fontSize: 13,
       fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
-      theme: { background: "#101010", foreground: "#ededed", cursor: "#ededed", selectionBackground: "#444444" }
+      theme: { background: "#121212", foreground: "#d7d7da", cursor: "#e8e8eb", selectionBackground: "#343438", black: "#121212", brightBlack: "#77777e" }
     });
     fit = new FitAddon.FitAddon();
     term.loadAddon(fit);
