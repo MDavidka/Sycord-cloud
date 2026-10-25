@@ -63,3 +63,8 @@ Each saved host opens its own SSH terminal session at `/terminal?server=<id>`. W
 - WebSocket ping/pong keepalive is enabled. This improves connection stability, but cannot prevent downtime caused by host sleep, restarts, network outages, or a remote server going offline.
 
 The server registry is workspace-cookie scoped. Clearing browser site data creates a new workspace identity, so that browser will not see the previous workspace's saved server list unless its workspace cookie is preserved.
+
+
+## MongoDB persistence
+
+Set `MONGO_URI` as a private deployment environment variable to enable persistent storage. The app creates `workspaces` and `terminal_logs` collections automatically. Saved server records, encrypted SSH private keys, profile preferences, and the latest 500 terminal output chunks per workspace/server are stored in MongoDB. SSH keys are encrypted using a key derived from `TERMINAL_SESSION_SECRET` (or `TERMINAL_PASSWORD` when no separate secret is configured); keep that secret stable across redeployments or encrypted keys cannot be restored. Never commit `MONGO_URI` or database credentials. Without `MONGO_URI`, the app falls back to local filesystem storage, which is not durable on ephemeral hosts.
