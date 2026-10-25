@@ -2570,18 +2570,18 @@ body.airshell-home .home-main.home-dashboard {
     bottom: 0 !important;
     left: 0 !important;
     right: auto !important;
-    width: min(312px, 80vw) !important;
+    width: min(320px, 80vw) !important;
     max-width: 82vw !important;
     height: 100dvh !important;
     max-height: none !important;
     box-sizing: border-box !important;
-    padding: max(20px, calc(env(safe-area-inset-top, 0px) + 12px)) 0 max(16px, env(safe-area-inset-bottom, 0px)) !important;
+    padding: max(22px, calc(env(safe-area-inset-top, 0px) + 14px)) 0 max(16px, env(safe-area-inset-bottom, 0px)) !important;
     margin: 0 !important;
     border: none !important;
-    border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
     border-radius: 0 28px 28px 0 !important;
-    background: radial-gradient(circle at 10% 4%, #201414 0%, #111c17 28%, #111c17 84%, #201414 100%) !important;
-    box-shadow: 18px 0 50px rgba(0, 0, 0, 0.65) !important;
+    background: #131313 !important;
+    box-shadow: none !important;
     overflow: hidden !important;
   }
   .airshell-home .home-sidebar:not(.open) {
@@ -2594,26 +2594,26 @@ body.airshell-home .home-main.home-dashboard {
     display: flex !important;
     align-items: center !important;
     justify-content: flex-start !important;
-    min-height: 44px !important;
-    padding: 0 20px 8px !important;
-    gap: 12px !important;
+    min-height: 48px !important;
+    padding: 0 20px 10px !important;
+    gap: 14px !important;
   }
   .airshell-home .home-sidebar-brand {
     display: inline-flex !important;
     align-items: center !important;
-    gap: 12px !important;
+    gap: 14px !important;
     color: #f5f5f6 !important;
     text-decoration: none !important;
     min-width: 0 !important;
   }
   .airshell-home .home-sidebar-brand img {
-    width: 28px !important;
-    height: 28px !important;
-    flex: 0 0 28px !important;
+    width: 32px !important;
+    height: 32px !important;
+    flex: 0 0 32px !important;
     object-fit: contain !important;
   }
   .airshell-home .home-sidebar-brand span {
-    font-size: 19px !important;
+    font-size: 20px !important;
     font-weight: 600 !important;
     letter-spacing: -0.02em !important;
     color: #f5f5f6 !important;
@@ -2624,24 +2624,25 @@ body.airshell-home .home-main.home-dashboard {
   }
   .airshell-home .home-sidebar-search-wrap {
     display: block !important;
-    margin: 10px 18px 16px !important;
+    margin: 12px 18px 18px !important;
   }
   .airshell-home .home-sidebar-search {
     box-sizing: border-box !important;
     width: 100% !important;
-    height: 42px !important;
-    padding: 0 14px !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-radius: 12px !important;
-    background: rgba(255, 255, 255, 0.035) !important;
+    height: 44px !important;
+    padding: 0 15px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 13px !important;
+    background: rgba(255, 255, 255, 0.04) !important;
     color: #f1f1f3 !important;
-    font-size: 14.5px !important;
+    font-size: 15.5px !important;
+    box-shadow: none !important;
     outline: none !important;
     -webkit-appearance: none !important;
     appearance: none !important;
   }
   .airshell-home .home-sidebar-search::placeholder {
-    color: #6d7876 !important;
+    color: #83838a !important;
     opacity: 1 !important;
   }
   .airshell-home .home-sidebar-scroll {
@@ -2653,50 +2654,52 @@ body.airshell-home .home-main.home-dashboard {
   }
   .airshell-home .home-sidebar .home-nav {
     display: grid !important;
-    gap: 2px !important;
+    gap: 3px !important;
   }
   .airshell-home .home-sidebar .sidebar-item {
     display: flex !important;
     align-items: center !important;
-    min-height: 42px !important;
-    padding: 0 10px !important;
-    gap: 13px !important;
-    border-radius: 9px !important;
-    color: #9da6a4 !important;
-    font-size: 15px !important;
+    min-height: 46px !important;
+    padding: 0 12px !important;
+    gap: 14px !important;
+    border-radius: 10px !important;
+    color: #a8a8af !important;
+    font-size: 16px !important;
     font-weight: 450 !important;
+    box-shadow: none !important;
   }
   .airshell-home .home-sidebar .sidebar-item:hover,
   .airshell-home .home-sidebar .sidebar-item:active {
-    color: #f4f4f5 !important;
-    background: rgba(255, 255, 255, 0.04) !important;
+    color: #f5f5f6 !important;
+    background: rgba(255, 255, 255, 0.05) !important;
   }
   .airshell-home .home-sidebar .sidebar-item.active {
-    color: #f2f3f4 !important;
+    color: #ffffff !important;
   }
   .airshell-home .home-sidebar .sidebar-item svg {
-    width: 19px !important;
-    height: 19px !important;
-    flex: 0 0 19px !important;
-    color: #747d7c !important;
-    stroke-width: 1.65 !important;
+    width: 22px !important;
+    height: 22px !important;
+    min-width: 22px !important;
+    flex: 0 0 22px !important;
+    color: #808088 !important;
+    stroke-width: 1.7 !important;
   }
   .airshell-home .home-sidebar .sidebar-item.active svg {
-    color: #8c9694 !important;
+    color: #a5a5ad !important;
   }
   .airshell-home .home-sidebar-section {
-    margin-top: 22px !important;
+    margin-top: 24px !important;
   }
   .airshell-home .home-sidebar .home-nav-label {
-    margin: 0 10px 8px !important;
-    color: #697472 !important;
-    font-size: 13px !important;
+    margin: 0 12px 10px !important;
+    color: #72727a !important;
+    font-size: 13.5px !important;
     font-weight: 450 !important;
     letter-spacing: -0.01em !important;
   }
   .airshell-home .home-sidebar-servers {
     display: grid !important;
-    gap: 2px !important;
+    gap: 3px !important;
   }
   .airshell-home .sidebar-server-row {
     display: flex !important;
@@ -2707,54 +2710,56 @@ body.airshell-home .home-main.home-dashboard {
   .airshell-home .home-sidebar .sidebar-server-item {
     display: flex !important;
     align-items: center !important;
-    min-height: 46px !important;
-    padding: 3px 10px !important;
-    gap: 13px !important;
-    border-radius: 9px !important;
-    color: #9da6a4 !important;
+    min-height: 48px !important;
+    padding: 4px 12px !important;
+    gap: 14px !important;
+    border-radius: 10px !important;
+    color: #a8a8af !important;
     min-width: 0 !important;
     flex: 1 1 auto !important;
+    box-shadow: none !important;
   }
   .airshell-home .home-sidebar .sidebar-server-item:hover {
-    color: #f4f4f5 !important;
-    background: rgba(255, 255, 255, 0.04) !important;
+    color: #f5f5f6 !important;
+    background: rgba(255, 255, 255, 0.05) !important;
   }
   .airshell-home .home-sidebar .sidebar-server-item .server-icon {
-    width: 19px !important;
-    height: 19px !important;
-    flex: 0 0 19px !important;
-    color: #747d7c !important;
+    width: 22px !important;
+    height: 22px !important;
+    min-width: 22px !important;
+    flex: 0 0 22px !important;
+    color: #808088 !important;
   }
   .airshell-home .home-sidebar .sidebar-server-label {
     display: flex !important;
     flex-direction: column !important;
-    gap: 2px !important;
+    gap: 3px !important;
     min-width: 0 !important;
     flex: 1 1 auto !important;
   }
   .airshell-home .home-sidebar .sidebar-server-name {
     display: inline-flex !important;
     align-items: center !important;
-    gap: 7px !important;
-    font-size: 14.5px !important;
-    color: #9da6a4 !important;
+    gap: 8px !important;
+    font-size: 15.5px !important;
+    color: #a8a8af !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
   }
   .airshell-home .home-sidebar .sidebar-server-host {
-    font-size: 11px !important;
-    color: #5d6765 !important;
+    font-size: 12px !important;
+    color: #65656d !important;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
   }
   .airshell-home .home-sidebar .sidebar-server-sparkline {
     display: block !important;
-    flex: 0 1 54px !important;
-    width: 54px !important;
-    height: 18px !important;
-    color: #3f6087 !important;
+    flex: 0 1 58px !important;
+    width: 58px !important;
+    height: 20px !important;
+    color: #556885 !important;
     opacity: 0.8 !important;
   }
   .airshell-home .home-sidebar .sidebar-server-sparkline path {
@@ -2762,11 +2767,12 @@ body.airshell-home .home-main.home-dashboard {
     stroke-width: 1.3 !important;
   }
   .airshell-home .sidebar-server-remove {
-    flex: 0 0 22px !important;
-    width: 22px !important;
-    height: 22px !important;
+    flex: 0 0 24px !important;
+    width: 24px !important;
+    height: 24px !important;
     opacity: 0 !important;
-    color: #67716f !important;
+    color: #72727a !important;
+    box-shadow: none !important;
   }
   .airshell-home .sidebar-server-row:hover .sidebar-server-remove {
     opacity: 1 !important;
@@ -2776,12 +2782,12 @@ body.airshell-home .home-main.home-dashboard {
     box-shadow: 0 0 0 2px rgba(0, 190, 99, 0.2) !important;
   }
   .airshell-home .home-sidebar .server-add-trigger {
-    color: #7b8584 !important;
+    color: #8c8c94 !important;
   }
   .airshell-home .home-sidebar .server-add-trigger:hover {
-    color: #e5e7e6 !important;
+    color: #e5e5eb !important;
   }
   .airshell-home .home-sidebar-pinned {
-    margin-top: 22px !important;
+    margin-top: 24px !important;
   }
 }
