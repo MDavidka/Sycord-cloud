@@ -8,6 +8,7 @@ const execFileAsync = promisify(execFile);
 const http = require("node:http");
 const pty = require("node-pty");
 const { WebSocketServer, WebSocket } = require("ws");
+const { MongoClient } = require("mongodb");
 
 const app = express();
 app.disable("x-powered-by");
@@ -87,6 +88,110 @@ function ensureWorkspaceCookie(req, res) {
 
 
 const DATA_DIR = path.resolve(process.env.AIRSHELL_DATA_DIR || path.join(__dirname, "data"));
+const MONGO_URI = (process.env.MONGO_URI || "").trim();
+const mongoClient = MONGO_URI ? new MongoClient(MONGO_URI, { serverSelectionTimeoutMS: 8000, connectTimeoutMS: 8000, maxPoolSize: 10 }) : null;
+let mongoDb = null;
+let mongoReady = false;
+const workspaceCache = new Map();
+const profileDefaults = { displayName: "Airshell User", email: "", theme: "dark" };
+function encryptionKey() {
+  return crypto.createHash("sha256").update("airshell-mongo-secrets:v1:").update(sessionSecret).digest();
+}
+function encryptSecret(value) {
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv("aes-256-gcm", encryptionKey(), iv);
+  const encrypted = Buffer.concat([cipher.update(String(value), "utf8"), cipher.final()]);
+  return { v: 1, iv: iv.toString("base64"), tag: cipher.getAuthTag().toString("base64"), data: encrypted.toString("base64") };
+}
+function decryptSecret(payload) {
+  if (!payload || payload.v !== 1) return "";
+  try {
+    const decipher = crypto.createDecipheriv("aes-256-gcm", encryptionKey(), Buffer.from(payload.iv, "base64"));
+    decipher.setAuthTag(Buffer.from(payload.tag, "base64"));
+    return Buffer.concat([decipher.update(Buffer.from(payload.data, "base64")), decipher.final()]).toString("utf8");
+  } catch { return ""; }
+}
+async function persistWorkspaceDocument(workspaceId, patch) {
+  if (!mongoReady || !mongoDb) return false;
+  await mongoDb.collection("workspaces").updateOne(
+    { _id: workspaceId },
+    { $set: { ...patch, updatedAt: new Date() }, $setOnInsert: { createdAt: new Date() } },
+    { upsert: true }
+  );
+  return true;
+}
+async function persistTerminalChunk(workspaceId, serverId, chunk) {
+  if (!mongoReady || !mongoDb) return;
+  try {
+    await mongoDb.collection("terminal_logs").updateOne(
+      { workspaceId, serverId: serverId || "local" },
+      { $push: { chunks: { $each: [{ seq: chunk.seq, data: String(chunk.data).slice(-16384), at: new Date() }], $slice: -500 } }, $set: { updatedAt: new Date() }, $setOnInsert: { createdAt: new Date() } },
+      { upsert: true }
+    );
+  } catch (error) { console.error("Could not persist terminal log:", error.message); }
+}
+async function loadWorkspaceDocument(workspaceId) {
+  if (!mongoReady || !mongoDb) return null;
+  return mongoDb.collection("workspaces").findOne({ _id: workspaceId });
+}
+async function initializeMongoPersistence() {
+  if (!mongoClient) {
+    console.warn("MONGO_URI is not configured; using local filesystem storage only.");
+    return;
+  }
+  try {
+    await mongoClient.connect();
+    mongoDb = mongoClient.db();
+    await Promise.all([
+      mongoDb.collection("workspaces").createIndex({ updatedAt: 1 }),
+      mongoDb.collection("terminal_logs").createIndex({ workspaceId: 1, serverId: 1 }, { unique: true }),
+      mongoDb.collection("terminal_logs").createIndex({ updatedAt: 1 }, { expireAfterSeconds: 2592000 })
+    ]);
+    for await (const doc of mongoDb.collection("workspaces").find({})) {
+      if (!/^[a-f0-9]{64}$/.test(doc._id || "")) continue;
+      const servers = Array.isArray(doc.servers) ? doc.servers.filter(item => item && /^[a-f0-9]{24}$/.test(item.id || "")) : [];
+      workspaceCache.set(doc._id, { servers, profile: { ...profileDefaults, ...(doc.profile || {}) } });
+      const dir = workspaceDataDir(doc._id);
+      fs.writeFileSync(path.join(dir, "servers.json"), JSON.stringify(servers.map(({ privateKeyEncrypted, ...item }) => item), null, 2), { mode: 0o600 });
+      for (const item of servers) {
+        if (item.provider !== "instabox" && item.privateKeyEncrypted) {
+          const key = decryptSecret(item.privateKeyEncrypted);
+          if (key) {
+            const keyPath = serverKeyPath(doc._id, item.id);
+            fs.writeFileSync(keyPath, key, { mode: 0o600 });
+            try { fs.chmodSync(keyPath, 0o600); } catch {}
+          }
+        }
+      }
+    }
+    mongoReady = true;
+    let migrated = 0;
+    try {
+      for (const entry of fs.readdirSync(DATA_DIR, { withFileTypes: true })) {
+        if (!entry.isDirectory() || !/^[a-f0-9]{64}$/.test(entry.name) || workspaceCache.has(entry.name)) continue;
+        const localServers = readWorkspaceServersFromDisk(entry.name);
+        const servers = localServers.map(item => {
+          let privateKeyEncrypted = item.privateKeyEncrypted;
+          if (item.provider !== "instabox" && !privateKeyEncrypted) {
+            try { privateKeyEncrypted = encryptSecret(fs.readFileSync(serverKeyPath(entry.name, item.id), "utf8")); } catch {}
+          }
+          return privateKeyEncrypted ? { ...item, privateKeyEncrypted } : item;
+        });
+        const profile = { ...profileDefaults };
+        workspaceCache.set(entry.name, { servers, profile });
+        await persistWorkspaceDocument(entry.name, { servers, profile });
+        migrated++;
+      }
+    } catch (error) { if (error.code !== "ENOENT") console.warn("Local data migration skipped:", error.message); }
+    console.log("MongoDB persistence connected; migrated local workspaces:", migrated);
+  } catch (error) {
+    mongoReady = false;
+    mongoDb = null;
+    console.error("MongoDB connection failed; local filesystem fallback enabled:", error.message);
+    try { await mongoClient.close(); } catch {}
+  }
+}
+
 function workspaceDataDir(workspaceId) {
   if (!/^[a-f0-9]{64}$/.test(workspaceId || "")) throw new Error("Invalid workspace");
   const dir = path.join(DATA_DIR, workspaceId);
@@ -99,18 +204,27 @@ function serverKeyPath(workspaceId, id) {
   if (!/^[a-f0-9]{24}$/.test(id || "")) throw new Error("Invalid server ID");
   return path.join(workspaceDataDir(workspaceId), "keys", id + ".key");
 }
-function readWorkspaceServers(workspaceId) {
+function readWorkspaceServersFromDisk(workspaceId) {
   try {
     const parsed = JSON.parse(fs.readFileSync(serverConfigPath(workspaceId), "utf8"));
     return Array.isArray(parsed) ? parsed.filter(s => s && /^[a-f0-9]{24}$/.test(s.id || "")) : [];
   } catch (error) { if (error.code === "ENOENT") return []; throw error; }
 }
-function writeWorkspaceServers(workspaceId, servers) {
+function readWorkspaceServers(workspaceId) {
+  const cached = workspaceCache.get(workspaceId);
+  return cached ? cached.servers : readWorkspaceServersFromDisk(workspaceId);
+}
+async function writeWorkspaceServers(workspaceId, servers) {
   const target = serverConfigPath(workspaceId);
   const temp = target + "." + crypto.randomBytes(6).toString("hex") + ".tmp";
-  fs.writeFileSync(temp, JSON.stringify(servers, null, 2), { mode: 0o600 });
+  const cleanForDisk = servers.map(({ privateKeyEncrypted, ...item }) => item);
+  const cached = workspaceCache.get(workspaceId) || { servers: [], profile: { ...profileDefaults } };
+  if (mongoReady) await persistWorkspaceDocument(workspaceId, { servers, profile: cached.profile });
+  fs.writeFileSync(temp, JSON.stringify(cleanForDisk, null, 2), { mode: 0o600 });
   try { fs.chmodSync(temp, 0o600); } catch {}
   fs.renameSync(temp, target);
+  cached.servers = servers;
+  workspaceCache.set(workspaceId, cached);
 }
 function publicServer(server) {
   return { id: server.id, name: server.name, host: server.host, username: server.provider === "instabox" ? "Instabox" : server.username, port: server.port, addedAt: server.addedAt, provider: server.provider || "ssh", type: "ssh" };
@@ -215,7 +329,7 @@ app.get("/api/servers", (req, res) => {
   if (!workspaceId) return res.status(400).json({ error: "Workspace cookie missing. Reload the page and try again." });
   try {
     res.setHeader("Cache-Control", "no-store");
-    return res.json({ servers: readWorkspaceServers(workspaceId).map(publicServer) });
+    return res.json({ servers: readWorkspaceServers(workspaceId).map(publicServer), storage: mongoReady ? "mongodb" : "local" });
   } catch (error) {
     console.error("Could not read server registry:", error.message);
     return res.status(500).json({ error: "Could not load saved servers. Check the server's persistent data directory." });
@@ -265,9 +379,10 @@ app.post("/api/servers", async (req, res) => {
       try { fs.chmodSync(keyPath, 0o600); } catch {}
     }
     await execFileAsync("ssh", [...sshBaseArgs(workspaceId, record), "printf AIRSHELL_SSH_OK"], { timeout: 12000, maxBuffer: 4096, windowsHide: true });
+    if (provider !== "instabox") record.privateKeyEncrypted = encryptSecret(privateKey);
     const servers = readWorkspaceServers(workspaceId);
     servers.push(record);
-    writeWorkspaceServers(workspaceId, servers);
+    await writeWorkspaceServers(workspaceId, servers);
     res.setHeader("Cache-Control", "no-store");
     return res.status(201).json({ server: publicServer(record) });
   } catch (error) {
@@ -282,7 +397,7 @@ app.post("/api/servers", async (req, res) => {
   }
 });
 
-app.delete("/api/servers/:id", (req, res) => {
+app.delete("/api/servers/:id", async (req, res) => {
   if (!hasSession(req)) return res.status(401).json({ error: "Authentication required" });
   const workspaceId = getWorkspaceId(req);
   if (!workspaceId) return res.status(400).json({ error: "Workspace cookie missing." });
@@ -291,7 +406,7 @@ app.delete("/api/servers/:id", (req, res) => {
   try {
     const servers = readWorkspaceServers(workspaceId);
     if (!servers.some(server => server.id === id)) return res.status(404).json({ error: "Server not found." });
-    writeWorkspaceServers(workspaceId, servers.filter(server => server.id !== id));
+    await writeWorkspaceServers(workspaceId, servers.filter(server => server.id !== id));
     try { fs.unlinkSync(serverKeyPath(workspaceId, id)); } catch {}
     return res.json({ deleted: true, id });
   } catch (error) {
@@ -453,6 +568,62 @@ app.get("/api/stats", (req, res) => {
   });
 });
 
+app.get("/api/profile", async (req, res) => {
+  if (!hasSession(req)) return res.status(401).json({ error: "Authentication required" });
+  const workspaceId = getWorkspaceId(req);
+  if (!workspaceId) return res.status(400).json({ error: "Workspace cookie missing." });
+  try {
+    const doc = await loadWorkspaceDocument(workspaceId);
+    const cached = workspaceCache.get(workspaceId);
+    const profile = { ...profileDefaults, ...((doc && doc.profile) || (cached && cached.profile) || {}) };
+    res.setHeader("Cache-Control", "no-store");
+    res.json({ profile, storage: mongoReady ? "mongodb" : "local" });
+  } catch (error) {
+    console.error("Could not load profile:", error.message);
+    res.status(503).json({ error: "Could not load saved profile from MongoDB." });
+  }
+});
+app.put("/api/profile", async (req, res) => {
+  if (!hasSession(req)) return res.status(401).json({ error: "Authentication required" });
+  const workspaceId = getWorkspaceId(req);
+  if (!workspaceId) return res.status(400).json({ error: "Workspace cookie missing." });
+  const body = req.body || {};
+  const current = (workspaceCache.get(workspaceId) || {}).profile || profileDefaults;
+  const profile = {
+    displayName: typeof body.displayName === "string" ? body.displayName.trim().slice(0, 80) : current.displayName,
+    email: typeof body.email === "string" ? body.email.trim().slice(0, 160) : current.email,
+    theme: ["dark", "light", "system"].includes(body.theme) ? body.theme : current.theme
+  };
+  if (!profile.displayName || (profile.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email))) return res.status(400).json({ error: "Enter a display name and a valid email address." });
+  const cached = workspaceCache.get(workspaceId) || { servers: readWorkspaceServers(workspaceId), profile: { ...profileDefaults } };
+  try {
+    if (mongoReady) await persistWorkspaceDocument(workspaceId, { servers: cached.servers, profile });
+    cached.profile = profile;
+    workspaceCache.set(workspaceId, cached);
+    res.setHeader("Cache-Control", "no-store");
+    res.json({ profile, storage: mongoReady ? "mongodb" : "local", persisted: mongoReady });
+  } catch (error) {
+    console.error("Could not save profile:", error.message);
+    res.status(503).json({ error: "Profile could not be saved to MongoDB. Please try again." });
+  }
+});
+app.get("/api/terminal/logs", async (req, res) => {
+  if (!hasSession(req)) return res.status(401).json({ error: "Authentication required" });
+  const workspaceId = getWorkspaceId(req);
+  if (!workspaceId) return res.status(400).json({ error: "Workspace cookie missing." });
+  const serverId = typeof req.query.server === "string" ? req.query.server : "local";
+  if (serverId !== "local" && !/^[a-f0-9]{24}$/.test(serverId)) return res.status(400).json({ error: "Invalid server ID." });
+  try {
+    if (!mongoReady) return res.json({ chunks: [], storage: "local", available: false });
+    const doc = await mongoDb.collection("terminal_logs").findOne({ workspaceId, serverId });
+    res.setHeader("Cache-Control", "no-store");
+    res.json({ chunks: doc && Array.isArray(doc.chunks) ? doc.chunks : [], storage: "mongodb", available: true });
+  } catch (error) {
+    console.error("Could not load terminal logs:", error.message);
+    res.status(503).json({ error: "Could not load saved terminal logs." });
+  }
+});
+
 app.post("/logout", (_req, res) => {
   res.setHeader("Set-Cookie", "terminal_auth=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT");
   res.redirect(303, "/");
@@ -523,6 +694,7 @@ function spawnTerminalSession(workspaceId, serverId) {
     if (session.exited) return;
     const chunk = { type: "output", seq: ++session.outputSeq, data };
     session.outputBuffer.push(chunk);
+    void persistTerminalChunk(workspaceId, serverId, chunk);
     session.outputBytes += Buffer.byteLength(data);
     while (session.outputBytes > TERMINAL_BUFFER_LIMIT && session.outputBuffer.length > 1) {
       const removed = session.outputBuffer.shift();
@@ -555,7 +727,7 @@ const websocketHeartbeat = setInterval(() => {
 }, 25000);
 websocketHeartbeat.unref();
 
-wss.on("connection", (ws, req) => {
+wss.on("connection", async (ws, req) => {
   ws.isAlive = true;
   ws.on("pong", () => { ws.isAlive = true; });
   const workspaceId = getWorkspaceId(req);
@@ -600,6 +772,14 @@ wss.on("connection", (ws, req) => {
     if (Number.isSafeInteger(value) && value >= 0) requestedSince = value;
   } catch {}
 
+  if (!resumed && requestedSince === 0 && mongoReady) {
+    try {
+      const saved = await mongoDb.collection("terminal_logs").findOne({ workspaceId, serverId: serverId || "local" });
+      if (saved && Array.isArray(saved.chunks) && saved.chunks.length) {
+        ws.send(JSON.stringify({ type: "saved-log", chunks: saved.chunks.map(item => ({ data: item.data, seq: item.seq })) }));
+      }
+    } catch (error) { console.error("Could not restore terminal log:", error.message); }
+  }
   const firstBufferedSeq = session.outputBuffer.length ? session.outputBuffer[0].seq : session.outputSeq + 1;
   const bufferReset = requestedSince < firstBufferedSeq - 1;
   ws.send(JSON.stringify({
@@ -646,4 +826,4 @@ function shutdown() {
 process.once("SIGTERM", shutdown);
 process.once("SIGINT", shutdown);
 
-server.listen(process.env.PORT || 8080, "0.0.0.0", () => console.log("Protected web terminal listening"));
+initializeMongoPersistence().finally(() => { server.listen(process.env.PORT || 8080, "0.0.0.0", () => console.log("Protected web terminal listening")); });
