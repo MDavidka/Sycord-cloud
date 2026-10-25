@@ -462,37 +462,28 @@ app.get("/api/servers/:id/file", async (req, res) => {
 
 app.post("/api/chat", async (req, res) => {
   if (!hasSession(req)) return res.status(401).json({ error: "Authentication required" });
-
   const apiKey = String(process.env.N_API || "").trim();
   if (!apiKey) return res.status(503).json({ error: "AI is not configured. Set N_API in the server environment." });
 
   const inputMessages = req.body && Array.isArray(req.body.messages) ? req.body.messages : [];
-  if (!inputMessages.length || inputMessages.length > 20) {
-    return res.status(400).json({ error: "Send between 1 and 20 recent messages." });
-  }
-
+  if (!inputMessages.length || inputMessages.length > 20) return res.status(400).json({ error: "Send between 1 and 20 recent messages." });
   const messages = [];
   for (const item of inputMessages) {
-    if (!item || !["user", "assistant"].includes(item.role) || typeof item.content !== "string") {
-      return res.status(400).json({ error: "Invalid chat message format." });
-    }
+    if (!item || !["user", "assistant"].includes(item.role) || typeof item.content !== "string") return res.status(400).json({ error: "Invalid chat message format." });
     const content = item.content.trim();
-    if (!content || content.length > 4000) {
-      return res.status(400).json({ error: "Each message must contain 1–4000 characters." });
-    }
+    if (!content || content.length > 4000) return res.status(400).json({ error: "Each message must contain 1–4000 characters." });
     messages.push({ role: item.role, content });
   }
-  if (messages[messages.length - 1].role !== "user") {
-    return res.status(400).json({ error: "The latest message must be from the user." });
-  }
+  if (messages[messages.length - 1].role !== "user") return res.status(400).json({ error: "The latest message must be from the user." });
 
+  const wantsStream = req.headers.accept && req.headers.accept.includes("text/event-stream");
   try {
     const upstream = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": "Bearer " + apiKey,
         "Content-Type": "application/json",
-        "Accept": "application/json"
+        "Accept": wantsStream ? "text/event-stream" : "application/json"
       },
       body: JSON.stringify({
         model: "minimaxai/minimax-m3.1-flash",
@@ -500,16 +491,18 @@ app.post("/api/chat", async (req, res) => {
         temperature: 1,
         top_p: 0.95,
         max_tokens: 2048,
-        stream: false
+        stream: Boolean(wantsStream)
       }),
       signal: AbortSignal.timeout(60000)
     });
 
-    const data = await upstream.json().catch(() => ({}));
     if (!upstream.ok) {
+      const bodyText = await upstream.text().catch(() => "");
+      let data = {};
+      try { data = bodyText ? JSON.parse(bodyText) : {}; } catch {}
       const providerMessage = data && data.error
         ? (typeof data.error === "string" ? data.error : data.error.message || data.error.detail || JSON.stringify(data.error))
-        : (data && data.detail ? String(data.detail) : "No error detail returned");
+        : (data && data.detail ? String(data.detail) : bodyText.slice(0, 300) || "No error detail returned");
       console.error("NVIDIA NIM request failed:", upstream.status, providerMessage.slice(0, 800));
       const publicStatus = [400, 401, 403, 404, 422, 429, 503].includes(upstream.status) ? upstream.status : 502;
       let friendlyError = "NVIDIA NIM returned HTTP " + upstream.status + ".";
@@ -521,20 +514,69 @@ app.post("/api/chat", async (req, res) => {
       return res.status(publicStatus).json({ error: friendlyError, providerStatus: upstream.status });
     }
 
-    const answer = data && data.choices && data.choices[0] && data.choices[0].message
-      ? data.choices[0].message.content
-      : "";
-    if (typeof answer !== "string" || !answer.trim()) {
-      return res.status(502).json({ error: "The AI provider returned an empty response." });
+    if (wantsStream) {
+      if (!upstream.body) return res.status(502).json({ error: "The AI provider did not return a stream." });
+      res.status(200);
+      res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
+      res.setHeader("Cache-Control", "no-cache, no-transform");
+      res.setHeader("Connection", "keep-alive");
+      res.setHeader("X-Accel-Buffering", "no");
+      if (typeof res.flushHeaders === "function") res.flushHeaders();
+      const reader = upstream.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let ended = false;
+      const sendEvent = (payload) => { if (!res.destroyed && !res.writableEnded) res.write("data: " + JSON.stringify(payload) + "\n\n"); };
+      try {
+        while (!ended) {
+          const part = await reader.read();
+          if (part.done) break;
+          buffer += decoder.decode(part.value, { stream: true });
+          const lines = buffer.split(/\r?\n/);
+          buffer = lines.pop() || "";
+          for (const line of lines) {
+            if (!line.startsWith("data:")) continue;
+            const payload = line.slice(5).trim();
+            if (!payload) continue;
+            if (payload === "[DONE]") { ended = true; break; }
+            let packet;
+            try { packet = JSON.parse(payload); } catch { continue; }
+            if (packet.error) throw new Error(typeof packet.error === "string" ? packet.error : packet.error.message || "The AI provider stream failed.");
+            const choice = packet.choices && packet.choices[0];
+            const token = choice && choice.delta && choice.delta.content;
+            if (typeof token === "string" && token) sendEvent({ token });
+          }
+        }
+        if (buffer.startsWith("data:")) {
+          const payload = buffer.slice(5).trim();
+          if (payload && payload !== "[DONE]") {
+            try {
+              const packet = JSON.parse(payload);
+              const token = packet.choices && packet.choices[0] && packet.choices[0].delta && packet.choices[0].delta.content;
+              if (typeof token === "string" && token) sendEvent({ token });
+            } catch {}
+          }
+        }
+        sendEvent({ done: true, model: "minimaxai/minimax-m3.1-flash" });
+      } catch (error) {
+        console.error("NVIDIA NIM stream error:", error && error.message ? error.message : "unknown error");
+        sendEvent({ error: "The AI stream was interrupted. Please try again." });
+      } finally {
+        try { reader.releaseLock(); } catch {}
+        if (!res.writableEnded) res.end();
+      }
+      return;
     }
+
+    const data = await upstream.json().catch(() => ({}));
+    const answer = data && data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : "";
+    if (typeof answer !== "string" || !answer.trim()) return res.status(502).json({ error: "The AI provider returned an empty response." });
     res.setHeader("Cache-Control", "no-store");
     return res.json({ answer: answer.trim(), model: "minimaxai/minimax-m3.1-flash" });
   } catch (error) {
     const timedOut = error && (error.name === "TimeoutError" || error.name === "AbortError");
     console.error("NVIDIA NIM request error:", error && error.message ? error.message : "unknown error");
-    return res.status(timedOut ? 504 : 502).json({
-      error: timedOut ? "The AI request timed out. Please try again." : "Could not connect to the AI provider. Please try again."
-    });
+    return res.status(timedOut ? 504 : 502).json({ error: timedOut ? "The AI request timed out. Please try again." : "Could not connect to the AI provider. Please try again." });
   }
 });
 
