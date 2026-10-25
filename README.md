@@ -52,13 +52,13 @@ Airshell is configured as a standalone Progressive Web App (PWA). Open it in Saf
 
 The sidebar's **Servers** section is populated only from SSH hosts saved by the signed-in workspace. Use **Add server** to provide a display name, host/IP, SSH port, Linux username, and a private key. Airshell verifies the SSH connection before adding the entry. Passphrase-protected private keys are not currently supported. The private key is kept server-side with restrictive file permissions and is never returned by the API.
 
-Each saved host opens its own SSH terminal session at `/terminal?server=<id>`. Browser disconnects do not intentionally terminate the remote SSH process; the WebSocket reconnects and reattaches to the same in-process PTY while the Airshell process remains alive. The **Files** tab lists the remote directory and supports text previews up to 128 KiB per file. The Files API currently relies on GNU `find` and standard SSH tools on the remote Linux host.
+Each saved host opens its own SSH terminal session at `/terminal?server=<id>`. When `tmux` is installed on the remote host, Airshell automatically attaches to a named `tmux` session for that server; this lets CLI processes continue and be reattached after a browser disconnect or an Airshell restart. Without `tmux`, the terminal falls back to a regular SSH shell and cannot promise process persistence across disconnects. The **Files** tab lists the remote directory and supports text previews up to 128 KiB per file. The Files API currently relies on GNU `find` and standard SSH tools on the remote Linux host.
 
 ### Persistent hosting
 
 - Set `AIRSHELL_DATA_DIR` to a **persistent, private volume** on the Airshell host. It stores each workspace's server registry and SSH keys. If the hosting platform's filesystem is ephemeral, saved servers and keys can disappear after a redeploy/restart.
 - Keep the Airshell service on an always-on host/container. A GitHub commit does not keep a sleeping/free hosting instance alive. Configure your host's restart policy and, if supported, use `/healthz` for health checks.
-- Install an OpenSSH client (`ssh`) on the Airshell host, and allow outbound SSH connections to your remote hosts.
+- Install an OpenSSH client (`ssh`) on the Airshell host, and allow outbound SSH connections to your remote hosts. Install `tmux` on each remote Linux host for long-running CLI sessions to survive SSH/Airshell restarts.
 - Use SSH keys dedicated to this app with least-privilege accounts. Removing a server from the sidebar deletes the saved record and its stored key from the configured data directory.
 - WebSocket ping/pong keepalive is enabled. This improves connection stability, but cannot prevent downtime caused by host sleep, restarts, network outages, or a remote server going offline.
 
