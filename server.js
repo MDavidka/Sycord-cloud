@@ -470,6 +470,8 @@ function spawnTerminalSession(workspaceId, serverId) {
     command = "ssh";
     args = sshBaseArgs(workspaceId, remote);
     args.splice(args.length - 1, 0, "-tt");
+    const remoteCommand = "if command -v tmux >/dev/null 2>&1; then exec tmux new-session -A -s airshell_" + serverId + "; else printf '\\n[Airshell] tmux is not installed; this shell will not survive an SSH disconnect. Install tmux for persistent sessions.\\n'; exec \"\${SHELL:-/bin/bash}\" -l; fi";
+    args.push(remoteCommand);
   }
   const terminal = pty.spawn(command, args, {
     name: "xterm-256color",
