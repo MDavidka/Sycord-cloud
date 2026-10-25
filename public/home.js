@@ -24,6 +24,10 @@
   const toolFeedback = $("toolFeedback");
   const cpuHistory = [];
   const memoryHistory = [];
+  const serverDialog = $("addServerDialog");
+  const serverForm = $("addServerForm");
+  const serverFormError = $("serverFormError");
+  const saveServerButton = $("saveServerButton");
 
   function setHidden(el, hidden) {
     if (el) el.hidden = hidden;
@@ -87,6 +91,81 @@
     openSidebar(false);
     showToolFeedback(label + " is a visual placeholder and is not connected yet.");
   }));
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+  }
+  async function loadServers() {
+    const list = $("sidebarServers");
+    if (!list) return;
+    try {
+      const response = await fetch("/api/servers", { credentials: "same-origin", cache: "no-store" });
+      if (!response.ok) throw new Error(response.status === 401 ? "Please sign in again." : "Could not load servers.");
+      const data = await response.json();
+      const servers = Array.isArray(data.servers) ? data.servers : [];
+      const selectedId = new URLSearchParams(location.search).get("server");
+      list.innerHTML = servers.length ? servers.map((server) =>
+        '<div class="sidebar-server-row" data-server-row="' + escapeHtml(server.id) + '">' +
+        '<button class="sidebar-server-item' + (selectedId === server.id ? " current" : "") + '" type="button" data-server-open="' + escapeHtml(server.id) + '" data-sidebar-search="servers ' + escapeHtml(server.name) + ' ' + escapeHtml(server.host) + '">' +
+        '<svg class="server-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="7" rx="2"/><rect x="3" y="14" width="18" height="7" rx="2"/><path d="M7 6.5h.01M7 17.5h.01M11 6.5h6M11 17.5h6"/></svg>' +
+        '<span class="sidebar-server-label"><span class="sidebar-server-name">' + escapeHtml(server.name) + '</span><span class="sidebar-server-host">' + escapeHtml(server.username) + '@' + escapeHtml(server.host) + '</span></span></button>' +
+        '<button class="sidebar-server-remove" type="button" data-server-remove="' + escapeHtml(server.id) + '" aria-label="Remove ' + escapeHtml(server.name) + '" title="Remove server">×</button></div>'
+      ).join("") : '<p class="servers-empty" id="serversEmpty">No servers added yet</p>';
+      list.querySelectorAll("[data-server-open]").forEach((button) => button.addEventListener("click", () => {
+        location.href = "/terminal?server=" + encodeURIComponent(button.dataset.serverOpen);
+      }));
+      list.querySelectorAll("[data-server-remove]").forEach((button) => button.addEventListener("click", async () => {
+        const id = button.dataset.serverRemove;
+        if (!window.confirm("Remove this saved server and its stored SSH key?")) return;
+        button.disabled = true;
+        try {
+          const response = await fetch("/api/servers/" + encodeURIComponent(id), { method: "DELETE", credentials: "same-origin" });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(data.error || "Could not remove server.");
+          await loadServers();
+          if (new URLSearchParams(location.search).get("server") === id) location.href = "/terminal";
+        } catch (error) { showToolFeedback(error.message || "Could not remove server."); button.disabled = false; }
+      }));
+      if (sidebarSearch && sidebarSearch.value.trim()) sidebarSearch.dispatchEvent(new Event("input"));
+    } catch (error) {
+      list.innerHTML = '<p class="servers-empty">' + escapeHtml(error.message || "Could not load servers") + '</p>';
+    }
+  }
+  function openServerDialog() {
+    if (!serverDialog) return;
+    if (serverFormError) { serverFormError.hidden = true; serverFormError.textContent = ""; }
+    if (typeof serverDialog.showModal === "function") serverDialog.showModal();
+    else serverDialog.setAttribute("open", "");
+    const first = serverForm && serverForm.elements.namedItem("name");
+    if (first) window.setTimeout(() => first.focus({ preventScroll: true }), 50);
+  }
+  function closeServerDialog() { if (serverDialog && serverDialog.open) serverDialog.close(); }
+  if ($("addServerButton")) $("addServerButton").addEventListener("click", openServerDialog);
+  if ($("closeServerDialog")) $("closeServerDialog").addEventListener("click", closeServerDialog);
+  if ($("cancelServerDialog")) $("cancelServerDialog").addEventListener("click", closeServerDialog);
+  if (serverDialog) serverDialog.addEventListener("click", (event) => { if (event.target === serverDialog) closeServerDialog(); });
+  if (serverForm) serverForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (serverFormError) { serverFormError.hidden = true; serverFormError.textContent = ""; }
+    if (saveServerButton) { saveServerButton.disabled = true; saveServerButton.textContent = "Testing SSH…"; }
+    const payload = Object.fromEntries(new FormData(serverForm).entries());
+    payload.port = Number(payload.port || 22);
+    try {
+      const response = await fetch("/api/servers", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Could not add server.");
+      serverForm.reset();
+      const port = serverForm.elements.namedItem("port"); if (port) port.value = "22";
+      closeServerDialog();
+      await loadServers();
+      showToolFeedback("SSH connection verified · server added");
+    } catch (error) {
+      if (serverFormError) { serverFormError.textContent = error.message || "Could not add server."; serverFormError.hidden = false; }
+    } finally {
+      if (saveServerButton) { saveServerButton.disabled = false; saveServerButton.textContent = "Test and add server"; }
+    }
+  });
+  loadServers();
 
 
 
