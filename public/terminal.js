@@ -10,6 +10,7 @@
   var reconnectTimer = null;
   var reconnectAttempt = 0;
   var maxReconnectDelay = 15000;
+  var lastOutputSeq = 0;
   function status(message, connected) {
     state.textContent = message;
     var dot = document.getElementById("terminalDot");
@@ -41,14 +42,27 @@
       if (disposed) return;
       if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) return;
       status(reconnectAttempt ? "Reconnecting…" : "Connecting", false);
-      socket = new WebSocket(protocol + "//" + location.host + "/ws");
+      socket = new WebSocket(protocol + "//" + location.host + "/ws?since=" + lastOutputSeq);
       var activeSocket = socket;
       activeSocket.addEventListener("message", function (event) {
         if (socket !== activeSocket || disposed) return;
         try {
           var message = JSON.parse(event.data);
-          if (message.type === "output") term.write(message.data);
-          else if (message.type === "error") {
+          if (message.type === "session") {
+            if (message.bufferReset) {
+              term.clear();
+              term.writeln("\x1b[90m[Reconnected. Earlier output was trimmed.]\x1b[0m\r\n");
+            }
+            if (message.resumed) status("Session resumed", true);
+          } else if (message.type === "output") {
+            term.write(message.data);
+            if (Number.isSafeInteger(message.seq)) lastOutputSeq = Math.max(lastOutputSeq, message.seq);
+          } else if (message.type === "notice") {
+            term.writeln("\r\n\x1b[90m[" + message.message + "]\x1b[0m");
+          } else if (message.type === "session-ended") {
+            term.writeln("\r\n\x1b[90m[Terminal process exited with code " + message.exitCode + ".]\x1b[0m");
+            status("Session ended", false);
+          } else if (message.type === "error") {
             term.writeln("\r\n" + message.message);
             status("Terminal error", false);
           }
