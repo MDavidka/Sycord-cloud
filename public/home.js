@@ -24,6 +24,7 @@
   const toolFeedback = $("toolFeedback");
   const cpuHistory = [];
   const memoryHistory = [];
+  const serverTelemetryHistory = new Map();
   const serverDialog = $("addServerDialog");
   const serverForm = $("addServerForm");
   const serverFormError = $("serverFormError");
@@ -108,7 +109,8 @@
         '<div class="sidebar-server-row" data-server-row="' + escapeHtml(server.id) + '">' +
         '<button class="sidebar-server-item' + (selectedId === server.id ? " current" : "") + '" type="button" data-server-open="' + escapeHtml(server.id) + '" data-sidebar-search="servers ' + escapeHtml(server.name) + ' ' + escapeHtml(server.host) + '">' +
         '<svg class="server-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="7" rx="2"/><rect x="3" y="14" width="18" height="7" rx="2"/><path d="M7 6.5h.01M7 17.5h.01M11 6.5h6M11 17.5h6"/></svg>' +
-        '<span class="sidebar-server-label"><span class="sidebar-server-name">' + escapeHtml(server.name) + '<span class="server-status-dot status-checking" data-server-status="' + escapeHtml(server.id) + '" role="status" aria-label="Checking server status" title="Checking connection"></span></span><span class="sidebar-server-host">' + escapeHtml(server.username) + '@' + escapeHtml(server.host) + '</span></span></button>' +
+        '<span class="sidebar-server-label"><span class="sidebar-server-name">' + escapeHtml(server.name) + '<span class="server-status-dot status-checking" data-server-status="' + escapeHtml(server.id) + '" role="status" aria-label="Checking server status" title="Checking connection"></span></span><span class="sidebar-server-host">' + escapeHtml(server.username) + '@' + escapeHtml(server.host) + '</span></span>' +
+        '<svg class="sidebar-server-sparkline" viewBox="0 0 100 24" preserveAspectRatio="none" role="img" data-server-telemetry="' + escapeHtml(server.id) + '" aria-label="Server load telemetry unavailable" title="Waiting for telemetry"><path d="M1 18 L99 18"/></svg></button>' +
         '<button class="sidebar-server-remove" type="button" data-server-remove="' + escapeHtml(server.id) + '" aria-label="Remove ' + escapeHtml(server.name) + '" title="Remove server">×</button></div>'
       ).join("") : '<p class="servers-empty" id="serversEmpty">No servers added yet</p>';
       list.querySelectorAll("[data-server-open]").forEach((button) => button.addEventListener("click", () => {
@@ -148,6 +150,28 @@
           const label = status === "online" ? "Online" : status === "offline" ? "Offline" : "Status unavailable";
           dot.setAttribute("aria-label", label);
           dot.title = label;
+          const sparkline = document.querySelector('[data-server-telemetry="' + CSS.escape(server.id) + '"]');
+          if (sparkline && data.metrics && Number.isFinite(data.metrics.load1)) {
+            const history = serverTelemetryHistory.get(server.id) || [];
+            history.push(Math.max(0, data.metrics.load1));
+            if (history.length > 18) history.shift();
+            serverTelemetryHistory.set(server.id, history);
+            const peak = Math.max(1, ...history);
+            const points = history.map((value, index) => {
+              const x = history.length === 1 ? 50 : 2 + index * 96 / (history.length - 1);
+              const y = 21 - (Math.min(value, peak) / peak) * 17;
+              return (index ? "L" : "M") + x.toFixed(1) + " " + y.toFixed(1);
+            });
+            sparkline.querySelector("path").setAttribute("d", points.join(" "));
+            const title = "Load average (1m): " + data.metrics.load1.toFixed(2) + " · Memory used: " + data.metrics.memoryPercent + "%";
+            sparkline.setAttribute("aria-label", title);
+            sparkline.title = title;
+            sparkline.classList.add("has-telemetry");
+          } else if (sparkline) {
+            sparkline.setAttribute("aria-label", "Server telemetry unavailable");
+            sparkline.title = "Server telemetry unavailable";
+            sparkline.classList.remove("has-telemetry");
+          }
         } catch (_) {
           dot.className = "server-status-dot status-unknown";
           dot.setAttribute("aria-label", "Status unavailable");
