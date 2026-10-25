@@ -43,6 +43,17 @@
       status(reconnectAttempt ? "Reconnecting…" : "Connecting", false);
       socket = new WebSocket(protocol + "//" + location.host + "/ws");
       var activeSocket = socket;
+      activeSocket.addEventListener("message", function (event) {
+        if (socket !== activeSocket || disposed) return;
+        try {
+          var message = JSON.parse(event.data);
+          if (message.type === "output") term.write(message.data);
+          else if (message.type === "error") {
+            term.writeln("\r\n" + message.message);
+            status("Terminal error", false);
+          }
+        } catch (error) {}
+      });
       activeSocket.addEventListener("open", function () {
         if (disposed || socket !== activeSocket) { activeSocket.close(); return; }
         reconnectAttempt = 0;
@@ -56,7 +67,7 @@
         if (runButton) runButton.disabled = true;
         if (disposed) return;
         status("Connection lost · reconnecting", false);
-        term.writeln("\\r\\n\\x1b[90m[Connection lost — reconnecting…]\\x1b[0m");
+        term.writeln("\r\n\x1b[90m[Connection lost — reconnecting…]\x1b[0m");
         var delay = Math.min(1000 * Math.pow(2, reconnectAttempt), maxReconnectDelay);
         reconnectAttempt += 1;
         if (reconnectTimer) clearTimeout(reconnectTimer);
@@ -68,16 +79,6 @@
       });
     }
     connect();
-    socket.addEventListener("message", function (event) {
-      try {
-        var message = JSON.parse(event.data);
-        if (message.type === "output") term.write(message.data);
-        else if (message.type === "error") {
-          term.writeln("\r\n" + message.message);
-          status("Terminal error", false);
-        }
-      } catch (error) {}
-    });
     if (commandForm && commandInput) {
       commandForm.addEventListener("submit", function (event) {
         event.preventDefault();
