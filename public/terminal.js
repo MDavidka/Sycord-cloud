@@ -7,6 +7,9 @@
   var term = null;
   var fit = null;
   var disposed = false;
+  var reconnectTimer = null;
+  var reconnectAttempt = 0;
+  var maxReconnectDelay = 15000;
   function status(message, connected) {
     state.textContent = message;
     var dot = document.getElementById("terminalDot");
@@ -27,14 +30,44 @@
     term.open(terminalNode);
     fit.fit();
     var protocol = location.protocol === "https:" ? "wss:" : "ws:";
-    status("Connecting", false);
-    socket = new WebSocket(protocol + "//" + location.host + "/ws");
-    socket.addEventListener("open", function () {
-      status("Connected", true);
-      fit.fit();
-      socket.send(JSON.stringify({ type: "resize", cols: term.cols, rows: term.rows }));
-      if (runButton) runButton.disabled = false;
-    });
+    var commandForm = document.getElementById("terminalCommandForm");
+    var commandInput = document.getElementById("terminalCommand");
+    var runButton = document.getElementById("terminalRunButton");
+    var commandHistory = [];
+    var historyIndex = 0;
+    if (runButton) runButton.disabled = true;
+
+    function connect() {
+      if (disposed) return;
+      if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) return;
+      status(reconnectAttempt ? "Reconnecting…" : "Connecting", false);
+      socket = new WebSocket(protocol + "//" + location.host + "/ws");
+      var activeSocket = socket;
+      activeSocket.addEventListener("open", function () {
+        if (disposed || socket !== activeSocket) { activeSocket.close(); return; }
+        reconnectAttempt = 0;
+        status("Connected", true);
+        fit.fit();
+        activeSocket.send(JSON.stringify({ type: "resize", cols: term.cols, rows: term.rows }));
+        if (runButton) runButton.disabled = false;
+      });
+      activeSocket.addEventListener("close", function () {
+        if (socket !== activeSocket) return;
+        if (runButton) runButton.disabled = true;
+        if (disposed) return;
+        status("Connection lost · reconnecting", false);
+        term.writeln("\\r\\n\\x1b[90m[Connection lost — reconnecting…]\\x1b[0m");
+        var delay = Math.min(1000 * Math.pow(2, reconnectAttempt), maxReconnectDelay);
+        reconnectAttempt += 1;
+        if (reconnectTimer) clearTimeout(reconnectTimer);
+        reconnectTimer = setTimeout(connect, delay);
+      });
+      activeSocket.addEventListener("error", function () {
+        if (socket === activeSocket) status("Connection error · retrying", false);
+        try { activeSocket.close(); } catch (error) {}
+      });
+    }
+    connect();
     socket.addEventListener("message", function (event) {
       try {
         var message = JSON.parse(event.data);
@@ -45,18 +78,6 @@
         }
       } catch (error) {}
     });
-    socket.addEventListener("close", function () {
-      status("Disconnected · refresh to reconnect", false);
-      if (runButton) runButton.disabled = true;
-      if (term && !disposed) term.writeln("\r\n\x1b[90m[Connection closed]\x1b[0m");
-    });
-    socket.addEventListener("error", function () { status("Connection error", false); });
-    var commandForm = document.getElementById("terminalCommandForm");
-    var commandInput = document.getElementById("terminalCommand");
-    var runButton = document.getElementById("terminalRunButton");
-    var commandHistory = [];
-    var historyIndex = 0;
-    if (runButton) runButton.disabled = true;
     if (commandForm && commandInput) {
       commandForm.addEventListener("submit", function (event) {
         event.preventDefault();
@@ -96,7 +117,8 @@
     });
     window.addEventListener("beforeunload", function () {
       disposed = true;
-      if (socket && socket.readyState === WebSocket.OPEN) socket.close();
+      if (reconnectTimer) clearTimeout(reconnectTimer);
+      if (socket && socket.readyState < WebSocket.CLOSING) socket.close();
       if (term) term.dispose();
     });
   } catch (error) {
