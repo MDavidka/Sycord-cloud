@@ -407,10 +407,13 @@ app.get("/api/servers/:id/status", async (req, res) => {
   if (!server) return res.status(404).json({ error: "Server not found." });
   res.setHeader("Cache-Control", "no-store");
   try {
-    await execFileAsync("ssh", [...sshBaseArgs(workspaceId, server), "printf AIRSHELL_STATUS_OK"], { timeout: 10000, maxBuffer: 1024, windowsHide: true });
-    return res.json({ id, status: "online", checkedAt: new Date().toISOString() });
+    const command = "printf 'AIRSHELL_METRICS '; awk '{printf \"%s \", $1}' /proc/loadavg; awk '/MemTotal:/ {t=$2} /MemAvailable:/ {a=$2} END {if(t>0) printf \"%.0f\", 100*(t-a)/t}' /proc/meminfo";
+    const result = await execFileAsync("ssh", [...sshBaseArgs(workspaceId, server), command], { timeout: 10000, maxBuffer: 1024, windowsHide: true });
+    const match = String(result.stdout || "").match(/AIRSHELL_METRICS\\s+([\\d.]+)\\s+([\\d.]+)\\s+([\\d.]+)\\s+(\\d{1,3})/);
+    const metrics = match ? { load1: Number(match[1]), load5: Number(match[2]), load15: Number(match[3]), memoryPercent: Math.min(100, Number(match[4])) } : null;
+    return res.json({ id, status: "online", metrics, checkedAt: new Date().toISOString() });
   } catch (error) {
-    return res.json({ id, status: error && error.code === "ENOENT" ? "unknown" : "offline", checkedAt: new Date().toISOString() });
+    return res.json({ id, status: error && error.code === "ENOENT" ? "unknown" : "offline", metrics: null, checkedAt: new Date().toISOString() });
   }
 });
 
