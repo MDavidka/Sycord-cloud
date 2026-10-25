@@ -144,25 +144,46 @@
   if ($("closeServerDialog")) $("closeServerDialog").addEventListener("click", closeServerDialog);
   if ($("cancelServerDialog")) $("cancelServerDialog").addEventListener("click", closeServerDialog);
   if (serverDialog) serverDialog.addEventListener("click", (event) => { if (event.target === serverDialog) closeServerDialog(); });
+    const providerSelect = $("serverProvider");
+  const sshFields = $("sshFields");
+  const instaboxFields = $("instaboxFields");
+  function updateProviderFields() {
+    const isInstabox = providerSelect && providerSelect.value === "instabox";
+    if (sshFields) sshFields.hidden = isInstabox;
+    if (instaboxFields) instaboxFields.hidden = !isInstabox;
+    ["serverHost","serverPort","serverUsername","serverPrivateKey"].forEach((id) => {
+      const field = $(id);
+      if (field) field.required = !isInstabox;
+    });
+    const command = $("instaboxCommand");
+    if (command) command.required = Boolean(isInstabox);
+    if (saveServerButton) saveServerButton.textContent = isInstabox ? "Connect Instabox" : "Test and add server";
+  }
+  if (providerSelect) {
+    providerSelect.addEventListener("change", updateProviderFields);
+    updateProviderFields();
+  }
   if (serverForm) serverForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (serverFormError) { serverFormError.hidden = true; serverFormError.textContent = ""; }
-    if (saveServerButton) { saveServerButton.disabled = true; saveServerButton.textContent = "Testing SSH…"; }
     const payload = Object.fromEntries(new FormData(serverForm).entries());
     payload.port = Number(payload.port || 22);
+    if (saveServerButton) { saveServerButton.disabled = true; saveServerButton.textContent = payload.provider === "instabox" ? "Connecting…" : "Testing SSH…"; }
     try {
       const response = await fetch("/api/servers", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || "Could not add server.");
       serverForm.reset();
       const port = serverForm.elements.namedItem("port"); if (port) port.value = "22";
+      if (providerSelect) providerSelect.value = "ssh";
+      updateProviderFields();
       closeServerDialog();
       await loadServers();
-      showToolFeedback("SSH connection verified · server added");
+      showToolFeedback(payload.provider === "instabox" ? "Instabox connected · server added" : "SSH connection verified · server added");
     } catch (error) {
       if (serverFormError) { serverFormError.textContent = error.message || "Could not add server."; serverFormError.hidden = false; }
     } finally {
-      if (saveServerButton) { saveServerButton.disabled = false; saveServerButton.textContent = "Test and add server"; }
+      if (saveServerButton) { saveServerButton.disabled = false; updateProviderFields(); }
     }
   });
   loadServers();
