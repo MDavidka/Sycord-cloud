@@ -173,6 +173,11 @@ const loginPage = (message = "") => {
   ].join("\n");
 };
 
+app.get("/healthz", (_req, res) => {
+  res.setHeader("Cache-Control", "no-store");
+  res.status(200).json({ ok: true, uptimeSeconds: Math.floor(process.uptime()) });
+});
+
 app.get("/", (_req, res) => {
   if (hasSession(_req)) return res.redirect("/dashboard");
   res.type("html").send(loginPage());
@@ -515,7 +520,18 @@ function spawnTerminalSession(workspaceId, serverId) {
   return session;
 }
 
+const websocketHeartbeat = setInterval(() => {
+  for (const ws of wss.clients) {
+    if (ws.isAlive === false) { ws.terminate(); continue; }
+    ws.isAlive = false;
+    try { ws.ping(); } catch { try { ws.terminate(); } catch {} }
+  }
+}, 25000);
+websocketHeartbeat.unref();
+
 wss.on("connection", (ws, req) => {
+  ws.isAlive = true;
+  ws.on("pong", () => { ws.isAlive = true; });
   const workspaceId = getWorkspaceId(req);
   if (!workspaceId) {
     ws.close(4401, "Workspace session cookie required");
