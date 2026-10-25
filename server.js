@@ -588,12 +588,12 @@ app.post("/api/chat", async (req, res) => {
   const workspaceId = getWorkspaceId(req);
   if (!workspaceId) return res.status(400).json({ error: "Workspace cookie missing." });
   const inputMessages = req.body && Array.isArray(req.body.messages) ? req.body.messages : [];
-  if (!inputMessages.length || inputMessages.length > 20) return res.status(400).json({ error: "Send between 1 and 20 recent messages." });
+  if (!inputMessages.length || inputMessages.length > 12) return res.status(400).json({ error: "Send between 1 and 12 recent messages." });
   const messages = [{ role: "system", content: agentSystemPrompt }];
   for (const item of inputMessages) {
     if (!item || !["user", "assistant"].includes(item.role) || typeof item.content !== "string") return res.status(400).json({ error: "Invalid chat message format." });
     const content = item.content.trim();
-    if (!content || content.length > 4000) return res.status(400).json({ error: "Each message must contain 1–4000 characters." });
+    if (!content || content.length > 3000) return res.status(400).json({ error: "Each message must contain 1–3000 characters." });
     messages.push({ role: item.role, content });
   }
   if (messages[messages.length - 1].role !== "user") return res.status(400).json({ error: "The latest message must be from the user." });
@@ -604,56 +604,49 @@ app.post("/api/chat", async (req, res) => {
   }
   const sendEvent = payload => { if (wantsStream && !res.destroyed && !res.writableEnded) res.write("data: " + JSON.stringify(payload) + "\n\n"); };
   try {
-    let finalText = "";
-    let toolRounds = 0;
-    while (toolRounds < 5) {
-      const upstream = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
-        method: "POST", headers: { "Authorization": "Bearer " + apiKey, "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "minimaxai/minimax-m3.1-flash", messages, tools: agentTools, tool_choice: "auto", temperature: 0.4, top_p: 0.95, max_tokens: 2048, stream: false }),
-        signal: AbortSignal.timeout(60000)
-      });
-      if (!upstream.ok) {
-        const bodyText = await upstream.text().catch(() => "");
-        let data = {}; try { data = bodyText ? JSON.parse(bodyText) : {}; } catch {}
-        const message = data && data.error ? (typeof data.error === "string" ? data.error : data.error.message || JSON.stringify(data.error)) : bodyText.slice(0, 250);
-        console.error("NVIDIA NIM agent request failed:", upstream.status, String(message).slice(0, 500));
-        const friendly = upstream.status === 401 || upstream.status === 403 ? "Check the N_API key." : upstream.status === 429 ? "The AI provider is rate-limiting requests; retry shortly." : "AI provider returned HTTP " + upstream.status + ".";
-        if (wantsStream) { sendEvent({ error: friendly }); return res.end(); }
-        return res.status(502).json({ error: friendly });
-      }
-      const data = await upstream.json();
-      const choice = data && data.choices && data.choices[0];
-      const message = choice && choice.message;
-      if (!message) throw new Error("The AI provider returned an empty message.");
-      if (!Array.isArray(message.tool_calls) || !message.tool_calls.length) { finalText = typeof message.content === "string" ? message.content : ""; break; }
-      messages.push({ role: "assistant", content: message.content || "", tool_calls: message.tool_calls });
-      for (const call of message.tool_calls.slice(0, 6)) {
-        const name = call.function && call.function.name;
-        let args = {}; try { args = JSON.parse(call.function.arguments || "{}"); } catch {}
-        sendEvent({ status: "Airshell · " + String(name || "tool").replace(/([A-Z])/g, " $1") });
-        const result = await executeAgentTool(workspaceId, name, args, sendEvent);
-        messages.push({ role: "tool", tool_call_id: call.id, name, content: String(result).slice(0, 20000) });
-      }
-      toolRounds++;
+    // One provider request per user turn: no tool-call loop and no fallback request.
+    const upstream = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
+      method: "POST",
+      headers: { "Authorization": "Bearer " + apiKey, "Content-Type": "application/json" },
+      body: JSON.stringify({ model: "minimaxai/minimax-m3.1-flash", messages, tools: agentTools, tool_choice: "auto", temperature: 0.3, top_p: 0.9, max_tokens: 1200, stream: false }),
+      signal: AbortSignal.timeout(45000)
+    });
+    if (!upstream.ok) {
+      const bodyText = await upstream.text().catch(() => "");
+      let data = {}; try { data = bodyText ? JSON.parse(bodyText) : {}; } catch {}
+      const providerMessage = data && data.error ? (typeof data.error === "string" ? data.error : data.error.message || JSON.stringify(data.error)) : bodyText.slice(0, 250);
+      console.error("Airshell provider error:", upstream.status, String(providerMessage).slice(0, 400));
+      const status = upstream.status === 429 ? 429 : upstream.status === 401 || upstream.status === 403 ? upstream.status : 502;
+      const friendly = upstream.status === 429 ? "Airshell reached the AI provider rate limit. Wait a moment and retry; this turn used one AI request." : upstream.status === 401 || upstream.status === 403 ? "Check the N_API key." : "AI provider returned HTTP " + upstream.status + ".";
+      if (wantsStream) { sendEvent({ error: friendly }); return res.end(); }
+      return res.status(status).json({ error: friendly });
     }
-    if (!finalText.trim()) {
-      const fallback = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
-        method: "POST", headers: { "Authorization": "Bearer " + apiKey, "Content-Type": "application/json" },
-        body: JSON.stringify({ model: "minimaxai/minimax-m3.1-flash", messages, temperature: 0.4, max_tokens: 2048, stream: false }),
-        signal: AbortSignal.timeout(60000)
-      });
-      const data = await fallback.json().catch(() => ({}));
-      finalText = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content || "";
+    const data = await upstream.json();
+    const message = data && data.choices && data.choices[0] && data.choices[0].message;
+    if (!message) throw new Error("The AI provider returned an empty message.");
+    let answer = typeof message.content === "string" ? message.content.trim() : "";
+    const toolCalls = Array.isArray(message.tool_calls) ? message.tool_calls.slice(0, 2) : [];
+    const toolResults = [];
+    for (const call of toolCalls) {
+      const name = call.function && call.function.name;
+      let args = {}; try { args = JSON.parse(call.function.arguments || "{}"); } catch {}
+      sendEvent({ status: "Airshell · " + String(name || "tool").replace(/([A-Z])/g, " $1") });
+      const result = await executeAgentTool(workspaceId, name, args, sendEvent);
+      toolResults.push({ tool: name || "unknown", result: String(result).slice(0, 5000) });
     }
-    if (!finalText.trim()) throw new Error("The AI returned an empty response.");
-    if (!wantsStream) { res.setHeader("Cache-Control", "no-store"); return res.json({ answer: finalText.trim(), model: "minimaxai/minimax-m3.1-flash" }); }
-    const answer = finalText.trim();
-    for (let i = 0; i < answer.length; i += 24) { if (res.destroyed || res.writableEnded) break; sendEvent({ token: answer.slice(i, i + 24) }); }
-    sendEvent({ done: true, model: "minimaxai/minimax-m3.1-flash" });
+    if (toolResults.length) {
+      const report = toolResults.map(item => item.tool + ":\n" + item.result).join("\n\n");
+      answer = (answer ? answer + "\n\n" : "Airshell completed one tool round. Here are the results:\n\n") + report;
+      if (Array.isArray(message.tool_calls) && message.tool_calls.length > 2) answer += "\n\nI stopped after two tools to keep this turn within the rate limit. Ask me to continue for the next step.";
+    }
+    if (!answer) answer = "Airshell could not produce a text answer for this turn. Please try a more specific request.";
+    if (!wantsStream) { res.setHeader("Cache-Control", "no-store"); return res.json({ answer, model: "minimaxai/minimax-m3.1-flash", toolsUsed: toolResults.map(item => item.tool), requestCount: 1 }); }
+    for (let i = 0; i < answer.length; i += 48) { if (res.destroyed || res.writableEnded) break; sendEvent({ token: answer.slice(i, i + 48) }); }
+    sendEvent({ done: true, model: "minimaxai/minimax-m3.1-flash", toolsUsed: toolResults.map(item => item.tool), requestCount: 1 });
     return res.end();
   } catch (error) {
     console.error("Airshell agent error:", error && error.message || "unknown error");
-    if (wantsStream) { sendEvent({ error: "Airshell encountered an error: " + String(error && error.message || "unknown error").slice(0, 300) }); if (!res.writableEnded) res.end(); return; }
+    if (wantsStream) { sendEvent({ error: "Airshell encountered an error: " + String(error && error.message || "unknown error").slice(0, 250) }); if (!res.writableEnded) res.end(); return; }
     return res.status(502).json({ error: "Could not complete the Airshell agent request." });
   }
 });
