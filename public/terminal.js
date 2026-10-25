@@ -56,6 +56,7 @@
     var runButton = document.getElementById("terminalRunButton");
     var commandHistory = [];
     var historyIndex = 0;
+    if (runButton) runButton.disabled = true;
     if (commandForm && commandInput) {
       commandForm.addEventListener("submit", function (event) {
         event.preventDefault();
@@ -68,7 +69,10 @@
         commandHistory.push(command);
         historyIndex = commandHistory.length;
         commandInput.value = "";
-        if (runButton) runButton.disabled = true;
+        if (runButton) runButton.classList.remove("ready");
+      });
+      commandInput.addEventListener("input", function () {
+        if (runButton) runButton.classList.toggle("ready", commandInput.value.trim().length > 0);
       });
       commandInput.addEventListener("keydown", function (event) {
         if (event.key === "ArrowUp" && commandHistory.length) {
