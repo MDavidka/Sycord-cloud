@@ -6,6 +6,7 @@
   const backdrop = $("sidebarBackdrop");
   const menuToggle = $("menuToggle");
   const profileToggle = $("profileToggle");
+  const newChatButton = $("newChatButton");
   const profileMenu = $("profileMenu");
   const profileSheetBackdrop = $("profileSheetBackdrop");
   const addButton = $("addButton");
@@ -391,7 +392,7 @@
     }
     if (profileEmail) profileEmail.textContent = savedProfile.email || "No email set";
     renderAvatar(profileAvatar, savedProfile.avatarDataUrl, savedProfile.displayName);
-    renderAvatar(topAvatar, savedProfile.avatarDataUrl, savedProfile.displayName);
+    if (topAvatar && topAvatar.classList.contains("home-avatar")) renderAvatar(topAvatar, savedProfile.avatarDataUrl, savedProfile.displayName);
     if (avatarRemove) avatarRemove.hidden = !savedProfile.avatarDataUrl;
     const systemLight = savedProfile.theme === "system" && window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
     document.body.classList.toggle("airshell-light-theme", savedProfile.theme === "light" || systemLight);
@@ -517,10 +518,9 @@
     const updateComposer = () => {
       const hasText = promptInput.value.trim().length > 0;
       sendButton.classList.toggle("ready", hasText);
-      sendButton.hidden = !hasText;
+      sendButton.disabled = !hasText || promptInput.disabled;
       if (voiceButton) {
-        voiceButton.hidden = hasText;
-        voiceButton.disabled = !SpeechRecognition || sendButton.disabled;
+        voiceButton.disabled = !SpeechRecognition || promptInput.disabled;
       }
       promptInput.style.height = "auto";
       promptInput.style.height = Math.min(promptInput.scrollHeight, 120) + "px";
@@ -535,6 +535,21 @@
     const chatHistory = [];
     let regenerating = false;
     const conversation = $("conversation");
+    if (newChatButton) newChatButton.addEventListener("click", () => {
+      chatHistory.length = 0;
+      regenerating = false;
+      conversation.replaceChildren();
+      document.querySelector(".home-main.home-dashboard")?.classList.remove("has-conversation");
+      promptInput.value = "";
+      promptInput.disabled = false;
+      if (fileInput) fileInput.value = "";
+      if (hint) hint.hidden = true;
+      sendButton.disabled = false;
+      updateComposer();
+      promptInput.blur();
+      conversation.scrollTop = 0;
+      softHaptic();
+    });
     const appendInlineMarkdown = (parent, source) => {
       const pattern = /(\x60[^\x60]+\x60|\*\*[^*]+\*\*|__[^_]+__|\*[^*]+\*|_[^_]+_|\[[^\]]+\]\(https?:\/\/[^\s)]+\)|https?:\/\/[^\s<]+)/g;
       let cursor = 0;
@@ -650,7 +665,31 @@
       actions.setAttribute("aria-label", "Response actions");
       actions.innerHTML = '<button type="button" data-response-action="copy" aria-label="Copy response" title="Copy response"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg></button><button type="button" data-response-action="retry" aria-label="Regenerate response" title="Regenerate response"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.6 9a7 7 0 0 1 11.6-2L20 12M4 12l2.8 5a7 7 0 0 0 11.6-2"/></svg></button>';
       actions.querySelector('[data-response-action="copy"]').addEventListener("click", () => copyText(content, "Response copied"));
-      actions.querySelector('[data-response-action="retry"]').addEventListener("click", () => {
+      const retryButton = actions.querySelector('[data-response-action="retry"]');
+      const addVoteButton = (type, label, path) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.dataset.responseAction = type;
+        button.setAttribute("aria-label", label);
+        button.setAttribute("aria-pressed", "false");
+        button.title = label;
+        button.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + path + '</svg>';
+        actions.insertBefore(button, retryButton);
+        return button;
+      };
+      const voteUp = addVoteButton("up", "Helpful response", '<path d="M7 10v12M15 5.9 14 10h5.6a2 2 0 0 1 2 2.4l-1.5 7a2 2 0 0 1-2 1.6H5a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3.5l4-7a2.2 2.2 0 0 1 2.5 2.9Z"/>');
+      const voteDown = addVoteButton("down", "Unhelpful response", '<path d="M17 14V2M9 18.1 10 14H4.4a2 2 0 0 1-2-2.4l1.5-7a2 2 0 0 1 2-1.6H19a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3.5l-4 7a2.2 2.2 0 0 1-2.5-2.9Z"/>');
+      voteUp.addEventListener("click", () => {
+        const selected = voteUp.getAttribute("aria-pressed") !== "true";
+        voteUp.setAttribute("aria-pressed", String(selected));
+        voteDown.setAttribute("aria-pressed", "false");
+      });
+      voteDown.addEventListener("click", () => {
+        const selected = voteDown.getAttribute("aria-pressed") !== "true";
+        voteDown.setAttribute("aria-pressed", String(selected));
+        voteUp.setAttribute("aria-pressed", "false");
+      });
+      retryButton.addEventListener("click", () => {
         node.remove();
         const lastResponse = chatHistory[chatHistory.length - 1];
         if (lastResponse?.role === "assistant") chatHistory.pop();
@@ -658,6 +697,7 @@
         if (!lastQuestion) return;
         regenerating = true;
         promptInput.value = lastQuestion.content;
+        promptInput.dispatchEvent(new Event("input", { bubbles: true }));
         composer.requestSubmit();
       });
       node.appendChild(actions);
@@ -682,6 +722,7 @@
       updateComposer();
 
       sendButton.disabled = true;
+      if (newChatButton) newChatButton.disabled = true;
       sendButton.classList.remove("send-bounce");
       void sendButton.offsetWidth;
       sendButton.classList.add("send-bounce");
@@ -775,8 +816,9 @@
         loading.classList.remove("home-message-loading", "home-message-streaming");
         loading.classList.add("home-message-error");
       } finally {
-        sendButton.disabled = false;
         promptInput.disabled = false;
+        if (newChatButton) newChatButton.disabled = false;
+        sendButton.disabled = false;
         sendButton.classList.remove("send-bounce");
         updateComposer();
         promptInput.focus({ preventScroll: true });
