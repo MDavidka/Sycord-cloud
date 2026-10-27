@@ -13,6 +13,7 @@ export default function HomeScreen() {
   const [canGoBack, setCanGoBack] = useState(false);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
+  const [darkAppearance, setDarkAppearance] = useState(false);
 
   const handleBack = useCallback(() => {
     if (!canGoBack) return false;
@@ -37,10 +38,13 @@ export default function HomeScreen() {
 
   const onWebMessage = (event: { nativeEvent: { data: string } }) => {
     try {
-      const message = JSON.parse(event.nativeEvent.data) as { type?: string; style?: string };
-      if (message.type !== 'haptic') return;
-      const style = message.style === 'soft' ? Haptics.ImpactFeedbackStyle.Soft : Haptics.ImpactFeedbackStyle.Light;
-      void Haptics.impactAsync(style).catch(() => {});
+      const message = JSON.parse(event.nativeEvent.data) as { type?: string; style?: string; theme?: string };
+      if (message.type === 'haptic') {
+        const style = message.style === 'soft' ? Haptics.ImpactFeedbackStyle.Soft : Haptics.ImpactFeedbackStyle.Light;
+        void Haptics.impactAsync(style).catch(() => {});
+      } else if (message.type === 'appearance') {
+        setDarkAppearance(message.theme === 'dark');
+      }
     } catch {
       // Ignore messages that are not haptic requests.
     }
@@ -62,7 +66,7 @@ export default function HomeScreen() {
   if (!startUrl) {
     return (
       <View style={styles.root}>
-        <StatusBar style="light" />
+        <StatusBar style="dark" />
         <View style={styles.setup}>
           <Text style={styles.brand}>Airshell</Text>
           <Text style={styles.title}>Connect your workspace</Text>
@@ -74,12 +78,12 @@ export default function HomeScreen() {
   }
 
   return (
-    <View style={styles.root}>
-      <StatusBar style="light" />
+    <View style={[styles.root, darkAppearance && styles.darkRoot]}>
+      <StatusBar style={darkAppearance ? 'light' : 'dark'} animated />
       <WebView<object>
         ref={webView}
         source={{ uri: startUrl }}
-        style={styles.webView}
+        style={[styles.webView, darkAppearance && styles.darkWebView]}
         originWhitelist={['https://*', 'http://*']}
         onShouldStartLoadWithRequest={({ url }) => shouldLoad(url)}
         onOpenWindow={({ nativeEvent }) => { void Linking.openURL(nativeEvent.targetUrl); }}
@@ -98,18 +102,18 @@ export default function HomeScreen() {
         domStorageEnabled
         setSupportMultipleWindows={false}
         pullToRefreshEnabled
-        renderLoading={() => <ActivityIndicator color="#f2f2f4" />}
+        renderLoading={() => <ActivityIndicator color={darkAppearance ? '#f2f2f4' : '#68717c'} />}
         startInLoadingState
       />
       {loading && (
-        <View pointerEvents="none" style={styles.loading}>
-          <ActivityIndicator color="#d8d8db" />
+        <View pointerEvents="none" style={[styles.loading, darkAppearance && styles.darkLoading]}>
+          <ActivityIndicator color={darkAppearance ? '#d8d8db' : '#68717c'} />
         </View>
       )}
       {failed && (
-        <View style={styles.error}>
-          <Text style={styles.title}>Can’t reach Airshell</Text>
-          <Text style={styles.body}>Check your connection and try again.</Text>
+        <View style={[styles.error, darkAppearance && styles.darkError]}>
+          <Text style={[styles.title, darkAppearance && styles.darkTitle]}>Can’t reach Airshell</Text>
+          <Text style={[styles.body, darkAppearance && styles.darkBody]}>Check your connection and try again.</Text>
           <Pressable style={styles.retry} onPress={retry}>
             <Text style={styles.retryText}>Try again</Text>
           </Pressable>
@@ -120,15 +124,21 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#121212' },
-  webView: { flex: 1, backgroundColor: '#121212' },
-  loading: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center', backgroundColor: '#121212' },
+  root: { flex: 1, backgroundColor: '#ffffff' },
+  darkRoot: { backgroundColor: '#111111' },
+  webView: { flex: 1, backgroundColor: '#ffffff' },
+  darkWebView: { backgroundColor: '#111111' },
+  loading: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center', backgroundColor: '#ffffff' },
+  darkLoading: { backgroundColor: '#111111' },
   setup: { flex: 1, justifyContent: 'center', paddingHorizontal: 28 },
-  error: { ...StyleSheet.absoluteFill, alignItems: 'flex-start', justifyContent: 'center', paddingHorizontal: 28, backgroundColor: '#121212' },
-  brand: { marginBottom: 28, color: '#f5f5f6', fontSize: 20, fontWeight: '600' },
-  title: { color: '#f5f5f6', fontSize: 22, fontWeight: '600' },
-  body: { marginTop: 10, color: '#aaa9ae', fontSize: 15, lineHeight: 22 },
-  code: { marginTop: 18, color: '#d7d7da', fontSize: 13 },
+  error: { ...StyleSheet.absoluteFill, alignItems: 'flex-start', justifyContent: 'center', paddingHorizontal: 28, backgroundColor: '#ffffff' },
+  darkError: { backgroundColor: '#111111' },
+  brand: { marginBottom: 28, color: '#171719', fontSize: 20, fontWeight: '600' },
+  title: { color: '#171719', fontSize: 22, fontWeight: '600' },
+  darkTitle: { color: '#f5f5f6' },
+  body: { marginTop: 10, color: '#6d6d73', fontSize: 15, lineHeight: 22 },
+  darkBody: { color: '#aaa9ae' },
+  code: { marginTop: 18, color: '#43454a', fontSize: 13 },
   retry: { marginTop: 24, minHeight: 44, justifyContent: 'center', paddingHorizontal: 18, borderRadius: 12, backgroundColor: '#eeeef0' },
   retryText: { color: '#151516', fontSize: 15, fontWeight: '600' },
 });

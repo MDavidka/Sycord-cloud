@@ -552,3 +552,295 @@ body.airshell-home,
   .airshell-home:not(.chat-active) .home-composer .composer-send { background: #242426 !important; color: #a1a1aa !important; }
   .airshell-home:not(.chat-active) .home-composer .composer-send.ready { background: #f5f5f5 !important; color: #111 !important; }
 }
+
+/* Light-first Airshell theme. The single glass treatment stays on the requested
+   sidebar control; the rest of the interface uses quiet white surfaces. */
+.airshell-home.airshell-light-theme {
+  --background: #ffffff;
+  --surface: #f4f4f5;
+  --user-bubble: #f0f0f2;
+  --primary-text: #171719;
+  --secondary-text: #5f6065;
+  --muted-text: #777980;
+  --border: rgba(17, 17, 20, .09);
+  color-scheme: light;
+  background: #ffffff !important;
+  color: var(--primary-text) !important;
+}
+.airshell-light-theme .home-shell,
+.airshell-light-theme .home-main.home-dashboard {
+  background: var(--background) !important;
+  color: var(--primary-text) !important;
+}
+.airshell-light-theme .home-topbar {
+  color: var(--primary-text) !important;
+  background: rgba(255,255,255,.97) !important;
+  border-bottom-color: rgba(17,17,20,.065) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+.airshell-light-theme .home-brand,
+.airshell-light-theme .home-title-toggle,
+.airshell-light-theme .home-new-chat,
+.airshell-light-theme .home-topbar .home-icon-button,
+.airshell-light-theme .home-topbar .home-avatar {
+  color: var(--primary-text) !important;
+}
+.airshell-light-theme .home-topbar .home-icon-button:hover,
+.airshell-light-theme .home-new-chat:hover,
+.airshell-light-theme .home-title-toggle:hover {
+  background: rgba(17,17,20,.055) !important;
+}
+.airshell-light-theme .home-topbar #menuToggle {
+  border: 1px solid rgba(17,17,20,.09) !important;
+  border-radius: 50% !important;
+  color: #25272a !important;
+  background: linear-gradient(145deg, rgba(255,255,255,.88), rgba(232,234,237,.76)) !important; /* taste-skill-ignore: requested liquid sidebar button */
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.98), 0 2px 8px rgba(25,32,40,.08) !important; /* taste-skill-ignore: requested liquid sidebar button */
+  -webkit-backdrop-filter: blur(16px) saturate(1.12) !important; /* taste-skill-ignore: requested liquid sidebar button */
+  backdrop-filter: blur(16px) saturate(1.12) !important; /* taste-skill-ignore: requested liquid sidebar button */
+}
+.airshell-light-theme .home-topbar #menuToggle:active {
+  background: rgba(225,228,232,.88) !important;
+}
+.airshell-light-theme .home-topbar .home-profile-button {
+  border-color: rgba(17,17,20,.09) !important;
+  color: #303136 !important;
+  background: #ebebed !important;
+}
+.airshell-light-theme .home-main.home-dashboard {
+  isolation: isolate;
+}
+.airshell-light-theme .home-main.home-dashboard::before {
+  background: radial-gradient(ellipse 115% 90% at 50% 100%, rgba(83,139,201,.12) 0%, rgba(118,160,207,.055) 48%, rgba(255,255,255,0) 85%) !important; /* taste-skill-ignore: preserve requested blue ambient glow */
+}
+.airshell-light-theme:not(.chat-active) .home-main.home-dashboard::before {
+  opacity: 1;
+  height: 34%;
+}
+.airshell-light-theme.composer-keyboard-open .home-main.home-dashboard::before { opacity: 0 !important; }
+.airshell-light-theme .home-main.home-dashboard > .home-conversation { color: var(--primary-text) !important; }
+.airshell-light-theme .home-main.home-dashboard .home-message.user {
+  border: 0 !important;
+  color: var(--primary-text) !important;
+  background: var(--user-bubble) !important;
+}
+.airshell-light-theme .home-main.home-dashboard .home-message.system,
+.airshell-light-theme .home-main.home-dashboard .home-message-streaming {
+  border: 0 !important;
+  color: #222327 !important;
+  background: transparent !important;
+}
+.airshell-light-theme .home-main.home-dashboard .home-message.system h1,
+.airshell-light-theme .home-main.home-dashboard .home-message.system h2,
+.airshell-light-theme .home-main.home-dashboard .home-message.system h3,
+.airshell-light-theme .home-main.home-dashboard .home-message.system strong {
+  color: #171719 !important;
+}
+.airshell-light-theme .home-main.home-dashboard .home-message.system em { color: #62646a !important; }
+.airshell-light-theme .home-main.home-dashboard .home-message.system a,
+.airshell-light-theme .home-main.home-dashboard .home-message.system .markdown-link { color: #1d5fbf !important; }
+.airshell-light-theme .home-main.home-dashboard .home-message.system pre {
+  border-color: #e4e4e7 !important;
+  background: #f6f6f7 !important;
+  color: #202126 !important;
+}
+.airshell-light-theme .home-main.home-dashboard .home-message.system code:not(pre code) {
+  background: #ececef !important;
+  color: #222327 !important;
+}
+.airshell-light-theme .home-message-actions button { color: #74767d !important; }
+.airshell-light-theme .home-message-actions button:hover {
+  color: #26282c !important;
+  background: rgba(17,17,20,.055) !important;
+}
+.airshell-light-theme .home-composer {
+  border-color: rgba(17,17,20,.09) !important;
+  background: rgba(245,245,246,.96) !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: blur(18px) !important;
+  backdrop-filter: blur(18px) !important;
+}
+.airshell-light-theme .home-composer:focus-within {
+  border-color: rgba(29,95,191,.42) !important;
+  box-shadow: 0 0 0 2px rgba(29,95,191,.11) !important;
+}
+.airshell-light-theme .home-composer textarea { color: #171719 !important; }
+.airshell-light-theme .home-composer textarea::placeholder { color: #777980 !important; }
+.airshell-light-theme .home-composer .composer-add,
+.airshell-light-theme .home-composer .mic-button,
+.airshell-light-theme .home-composer .model-select { color: #5f6268 !important; }
+.airshell-light-theme .home-composer .composer-add:hover,
+.airshell-light-theme .home-composer .mic-button:not(:disabled):hover,
+.airshell-light-theme .home-composer .model-select:hover { background: rgba(17,17,20,.06) !important; color: #171719 !important; }
+.airshell-light-theme .home-composer .composer-send {
+  color: #666970 !important;
+  background: #e5e5e7 !important;
+}
+.airshell-light-theme .home-composer .composer-send.ready {
+  color: #ffffff !important;
+  background: #171719 !important;
+}
+.airshell-light-theme .home-composer :focus-visible,
+.airshell-light-theme .home-topbar :focus-visible,
+.airshell-light-theme .home-message-actions button:focus-visible {
+  outline: 2px solid #1d5fbf !important;
+  outline-offset: 3px !important;
+}
+.airshell-light-theme .home-sidebar {
+  border-color: #e5e5e8 !important;
+  color: #171719 !important;
+  background: #ffffff !important;
+  box-shadow: 0 20px 60px rgba(20,24,30,.16) !important;
+}
+.airshell-light-theme .home-sidebar-head,
+.airshell-light-theme .home-sidebar-close,
+.airshell-light-theme .home-sidebar-brand,
+.airshell-light-theme .home-sidebar .sidebar-item { color: #232428 !important; }
+.airshell-light-theme .home-sidebar-search {
+  border-color: #e4e4e7 !important;
+  color: #171719 !important;
+  background: #f5f5f6 !important;
+}
+.airshell-light-theme .home-sidebar-search::placeholder,
+.airshell-light-theme .home-sidebar-bottom p { color: #777980 !important; }
+.airshell-light-theme .home-sidebar .sidebar-item.active,
+.airshell-light-theme .home-sidebar .sidebar-item:hover { background: #f0f0f2 !important; }
+.airshell-light-theme .home-sidebar-bottom { border-top-color: #e7e7e9 !important; }
+.airshell-light-theme .home-add-menu,
+.airshell-light-theme .home-model-menu {
+  border-color: #e4e4e7 !important;
+  background: #ffffff !important;
+  box-shadow: 0 12px 36px rgba(20,24,30,.12) !important;
+}
+.airshell-light-theme .home-add-menu button,
+.airshell-light-theme .home-add-menu a,
+.airshell-light-theme .home-model-menu button { color: #25262a !important; }
+.airshell-light-theme .home-add-menu button:hover,
+.airshell-light-theme .home-add-menu a:hover,
+.airshell-light-theme .home-model-menu button:hover,
+.airshell-light-theme .home-model-menu button[aria-selected="true"] { background: #f1f1f3 !important; }
+.airshell-light-theme .home-model-menu button span { color: #397a55 !important; }
+.airshell-light-theme .home-profile-menu {
+  border-color: #e4e4e7 !important;
+  color: #25262a !important;
+  background: #ffffff !important;
+  box-shadow: 0 14px 40px rgba(20,24,30,.14) !important;
+}
+.airshell-light-theme .profile-sheet-handle span { background: #c9cbd0 !important; }
+.airshell-light-theme .profile-sheet-account,
+.airshell-light-theme .profile-sheet-theme,
+.airshell-light-theme .profile-sheet-section { border-color: #e7e7e9 !important; }
+.airshell-light-theme .profile-sheet-avatar { color: #222327 !important; background: #e7e7e9 !important; }
+.airshell-light-theme .profile-sheet-name,
+.airshell-light-theme .profile-theme-label,
+.airshell-light-theme .home-profile-menu .profile-menu-item { color: #25262a !important; }
+.airshell-light-theme .profile-sheet-email { color: #71737a !important; }
+.airshell-light-theme .profile-plan,
+.airshell-light-theme .profile-theme-options { background: #ededf0 !important; }
+.airshell-light-theme .profile-theme-options button { color: #777980 !important; }
+.airshell-light-theme .profile-theme-options button[aria-pressed="true"] { color: #222327 !important; background: #ffffff !important; }
+.airshell-light-theme .profile-sheet-backdrop { background: rgba(25,29,35,.17) !important; }
+.airshell-light-theme .profile-avatar-remove { border-color: #ffffff !important; background: #4b4d52 !important; }
+.airshell-light-theme .mobile-home-search-wrap input {
+  border-color: #e4e4e7 !important;
+  color: #171719 !important;
+  background: rgba(255,255,255,.92) !important;
+  box-shadow: none !important;
+}
+.airshell-light-theme .mobile-home-search-wrap input::placeholder { color: #777980 !important; }
+.airshell-light-theme .mobile-home-add { border-color: #e4e4e7 !important; color: #25262a !important; background: #f6f6f7 !important; }
+.airshell-light-theme .mobile-home-tabs { border-color: #e4e4e7 !important; background: #f1f1f3 !important; }
+.airshell-light-theme .mobile-home-tabs button { color: #686a70 !important; }
+.airshell-light-theme .mobile-home-tabs button[aria-selected="true"] { color: #171719 !important; background: #ffffff !important; }
+.airshell-light-theme .mobile-server { color: #25262a !important; }
+.airshell-light-theme .mobile-server-number { color: #202126 !important; background: #ededf0 !important; }
+.airshell-light-theme .mobile-server-number .server-status-dot { border-color: #ffffff !important; }
+.airshell-light-theme .mobile-server-meta,
+.airshell-light-theme .mobile-home-empty { color: #777980 !important; }
+@media (max-width: 600px) {
+  .airshell-light-theme:not(.chat-active) .home-topbar { background: rgba(255,255,255,.94) !important; }
+  .airshell-light-theme:not(.chat-active) .home-main.home-dashboard { background: #ffffff !important; }
+  .airshell-light-theme:not(.chat-active) .home-composer {
+    min-height: 58px !important;
+    border-radius: 999px !important;
+    background: rgba(246,246,247,.96) !important;
+    box-shadow: 0 2px 10px rgba(20,24,30,.05) !important;
+  }
+  .airshell-light-theme:not(.chat-active) .home-composer .composer-send { color: #686a70 !important; background: #e6e6e8 !important; }
+  .airshell-light-theme:not(.chat-active) .home-composer .composer-send.ready { color: #ffffff !important; background: #171719 !important; }
+  .airshell-light-theme.chat-active .home-main.home-dashboard > .home-conversation { background: transparent !important; }
+  .airshell-light-theme .home-main.home-dashboard > .home-composer { background: #f4f4f5 !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .airshell-light-theme .home-topbar #menuToggle,
+  .airshell-light-theme .home-composer,
+  .airshell-light-theme .home-message-actions button { transition: none !important; }
+}
+
+/* Keep the light controls ahead of the older mobile dark-mode rules. */
+@media (max-width: 600px) {
+  .airshell-home.airshell-light-theme:not(.chat-active) .home-main.home-dashboard > .home-composer {
+    border-color: rgba(17,17,20,.09) !important;
+    background: rgba(246,246,247,.97) !important;
+    box-shadow: none !important;
+  }
+  .airshell-home.airshell-light-theme:not(.chat-active) .home-composer textarea,
+  .airshell-home.airshell-light-theme.chat-active .home-composer textarea { color: #171719 !important; }
+  .airshell-home.airshell-light-theme:not(.chat-active) .home-composer textarea::placeholder,
+  .airshell-home.airshell-light-theme.chat-active .home-composer textarea::placeholder { color: #65676d !important; }
+  .airshell-home.airshell-light-theme:not(.chat-active) .home-composer .composer-send { color: #55575d !important; background: #e6e6e8 !important; }
+  .airshell-home.airshell-light-theme:not(.chat-active) .home-composer .composer-send.ready { color: #ffffff !important; background: #171719 !important; }
+  .airshell-home.airshell-light-theme:not(.chat-active) .home-main.home-dashboard::before {
+    background: radial-gradient(ellipse 115% 90% at 50% 100%, rgba(83,139,201,.07) 0%, rgba(118,160,207,.03) 48%, rgba(255,255,255,0) 85%) !important; /* taste-skill-ignore: preserve requested blue ambient glow */
+  }
+}
+.airshell-home.airshell-light-theme .home-topbar {
+  background: #ffffff !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+.airshell-home .home-topbar .home-brand h1 {
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+}
+.airshell-home.airshell-light-theme .home-sidebar .home-sidebar-brand,
+.airshell-home.airshell-light-theme .home-sidebar .home-sidebar-brand span,
+.airshell-home.airshell-light-theme .home-sidebar .sidebar-item,
+.airshell-home.airshell-light-theme .home-sidebar .sidebar-item.active,
+.airshell-home.airshell-light-theme .home-sidebar .sidebar-server-item,
+.airshell-home.airshell-light-theme .home-sidebar .sidebar-project-item {
+  color: #25262a !important;
+}
+.airshell-home.airshell-light-theme .home-sidebar .home-nav-label,
+.airshell-home.airshell-light-theme .home-sidebar .servers-empty,
+.airshell-home.airshell-light-theme .home-sidebar .sidebar-count,
+.airshell-home.airshell-light-theme .home-sidebar .sidebar-server-host { color: #676970 !important; }
+.airshell-home.airshell-light-theme .home-sidebar .sidebar-item.active,
+.airshell-home.airshell-light-theme .home-sidebar .sidebar-item:hover,
+.airshell-home.airshell-light-theme .home-sidebar .sidebar-project-item:hover { background: #f0f0f2 !important; }
+.airshell-home.airshell-light-theme .home-sidebar .sidebar-item svg,
+.airshell-home.airshell-light-theme .home-sidebar .sidebar-server-item .server-icon { color: #5e6066 !important; }
+.airshell-home.airshell-light-theme .home-sidebar { border-right-color: #e5e5e8 !important; box-shadow: none !important; }
+.airshell-home.airshell-light-theme .home-sidebar.open { box-shadow: none !important; }
+.airshell-home.airshell-light-theme .home-topbar .home-profile-menu {
+  color: #25262a !important;
+  background: #ffffff !important;
+  border-color: #e4e4e7 !important;
+  box-shadow: 0 14px 40px rgba(20,24,30,.14) !important; /* taste-skill-ignore: account sheet overlay */
+}
+.airshell-home.airshell-light-theme .home-conversation {
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+}
+.airshell-home.airshell-light-theme .home-conversation::before {
+  background: linear-gradient(to bottom, rgba(255,255,255,.96) 0%, rgba(255,255,255,.7) 38%, rgba(255,255,255,.22) 70%, transparent 100%) !important; /* taste-skill-ignore: soften content behind fixed header */
+}
+.airshell-home.airshell-light-theme:not(.chat-active) .home-conversation::before { display: none !important; }
+.airshell-home.airshell-light-theme .home-composer textarea:focus,
+.airshell-home.airshell-light-theme .home-composer textarea:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}

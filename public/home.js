@@ -377,7 +377,7 @@
   const topAvatar = document.getElementById("profileToggle");
   const avatarInput = document.getElementById("profileAvatarInput");
   const avatarRemove = document.getElementById("profileAvatarRemove");
-  let savedProfile = { displayName: "Airshell User", email: "", theme: "dark", avatarDataUrl: "" };
+  let savedProfile = { displayName: "Airshell User", email: "", theme: "light", themeVersion: 2, avatarDataUrl: "" };
   function renderAvatar(element, avatarDataUrl, fallback) {
     if (!element) return;
     element.replaceChildren();
@@ -399,8 +399,17 @@
     renderAvatar(homeProfileToggle, savedProfile.avatarDataUrl, savedProfile.displayName);
     if (topAvatar && topAvatar.classList.contains("home-avatar")) renderAvatar(topAvatar, savedProfile.avatarDataUrl, savedProfile.displayName);
     if (avatarRemove) avatarRemove.hidden = !savedProfile.avatarDataUrl;
-    const systemLight = savedProfile.theme === "system" && window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
-    document.body.classList.toggle("airshell-light-theme", savedProfile.theme === "light" || systemLight);
+    const systemDark = savedProfile.theme === "system" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const isDark = savedProfile.theme === "dark" || systemDark;
+    document.body.classList.toggle("airshell-light-theme", !isDark);
+    document.body.style.colorScheme = isDark ? "dark" : "light";
+    const themeColor = document.querySelector('meta[name="theme-color"]');
+    if (themeColor) themeColor.content = isDark ? "#111111" : "#ffffff";
+    const colorScheme = document.querySelector('meta[name="color-scheme"]');
+    if (colorScheme) colorScheme.content = isDark ? "dark" : "light";
+    if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === "function") {
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type: "appearance", theme: isDark ? "dark" : "light" }));
+    }
     document.querySelectorAll("[data-theme-choice]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.themeChoice === savedProfile.theme)));
   }
   async function saveProfile(patch) {

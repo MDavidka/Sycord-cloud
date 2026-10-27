@@ -11,8 +11,8 @@
     "minimal-ui"
   ],
   "orientation": "any",
-  "background_color": "#131313",
-  "theme_color": "#131313",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
   "categories": [
     "developer",
     "utilities"

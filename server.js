@@ -93,7 +93,7 @@ const mongoClient = MONGO_URI ? new MongoClient(MONGO_URI, { serverSelectionTime
 let mongoDb = null;
 let mongoReady = false;
 const workspaceCache = new Map();
-const profileDefaults = { displayName: "Airshell User", email: "", theme: "dark", avatarDataUrl: "" };
+const profileDefaults = { displayName: "Airshell User", email: "", theme: "light", themeVersion: 2, avatarDataUrl: "" };
 function encryptionKey() {
   return crypto.createHash("sha256").update("airshell-mongo-secrets:v1:").update(sessionSecret).digest();
 }
@@ -713,7 +713,14 @@ app.get("/api/profile", async (req, res) => {
     if (!doc && !mongoReady) {
       try { localProfile = JSON.parse(fs.readFileSync(path.join(workspaceDataDir(workspaceId), "profile.json"), "utf8")); } catch {}
     }
-    const profile = { ...profileDefaults, ...((doc && doc.profile) || (cached && cached.profile) || localProfile) };
+    const storedProfile = (doc && doc.profile) || (cached && cached.profile) || localProfile;
+    const profile = { ...profileDefaults, ...storedProfile };
+    // Profiles created before the light-first refresh inherit the former dark default.
+    // Preserve explicit system mode, but promote legacy dark defaults to light.
+    if (!storedProfile.themeVersion && storedProfile.theme === "dark") {
+      profile.theme = "light";
+      profile.themeVersion = 2;
+    }
     res.setHeader("Cache-Control", "no-store");
     res.json({ profile, storage: mongoReady ? "mongodb" : "local" });
   } catch (error) {
@@ -739,6 +746,7 @@ app.put("/api/profile", async (req, res) => {
     displayName: typeof body.displayName === "string" ? body.displayName.trim().slice(0, 80) : current.displayName,
     email: typeof body.email === "string" ? body.email.trim().slice(0, 160) : current.email,
     theme: ["dark", "light", "system"].includes(body.theme) ? body.theme : current.theme,
+    themeVersion: 2,
     avatarDataUrl
   };
   if (!profile.displayName || (profile.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email))) return res.status(400).json({ error: "Enter a display name and a valid email address." });
