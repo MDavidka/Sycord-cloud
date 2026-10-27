@@ -1366,11 +1366,14 @@ body.airshell-home .home-main.home-dashboard {
 .home-dashboard .home-model-menu { display: none !important; }
 .home-dashboard [hidden] { display: none !important; }
 @media (max-width: 600px) {
+  .airshell-home .home-shell {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
   .airshell-home .home-topbar {
     box-sizing: border-box;
     height: calc(76px + env(safe-area-inset-top, 0px));
     min-height: calc(76px + env(safe-area-inset-top, 0px));
-    padding: calc(env(safe-area-inset-top, 0px) + 8px) 18px 0;
+    padding: 8px 18px 0;
     gap: 12px;
   }
   .airshell-home .home-main.home-dashboard {
@@ -1422,7 +1425,13 @@ body.airshell-home .home-main.home-dashboard {
     backdrop-filter: none !important;
   }
   .airshell-home .home-main.home-dashboard {
-    inset: calc(72px + env(safe-area-inset-top, 0px)) 0 0 !important;
+    inset: 72px 0 0 !important;
+  }
+  .airshell-home .home-dashboard .page-tools {
+    top: 34px;
+  }
+  .airshell-home .home-dashboard .account-grid {
+    margin-top: 108px;
   }
   .airshell-home .home-icon-button {
     width: 46px;
