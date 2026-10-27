@@ -6,6 +6,7 @@
   const backdrop = $("sidebarBackdrop");
   const menuToggle = $("menuToggle");
   const profileToggle = $("profileToggle");
+  const homeProfileToggle = $("homeProfileToggle");
   const newChatButton = $("newChatButton");
   const profileMenu = $("profileMenu");
   const profileSheetBackdrop = $("profileSheetBackdrop");
@@ -69,6 +70,7 @@
     setHidden(profileMenu, true);
     setHidden(profileSheetBackdrop, true);
     if (profileToggle) profileToggle.setAttribute("aria-expanded", "false");
+    if (homeProfileToggle) homeProfileToggle.setAttribute("aria-expanded", "false");
     document.body.classList.remove("profile-sheet-open");
   }
   function closeFloatingMenus(except) {
@@ -364,7 +366,9 @@
     setHidden(profileSheetBackdrop, !open);
     document.body.classList.toggle("profile-sheet-open", open);
     profileToggle.setAttribute("aria-expanded", String(open));
+    if (homeProfileToggle) homeProfileToggle.setAttribute("aria-expanded", String(open));
   });
+  if (homeProfileToggle && profileToggle) homeProfileToggle.addEventListener("click", () => profileToggle.click());
   if (profileSheetBackdrop) profileSheetBackdrop.addEventListener("click", closeProfileSheet);
 
   const profileName = document.querySelector(".profile-sheet-name");
@@ -392,6 +396,7 @@
     }
     if (profileEmail) profileEmail.textContent = savedProfile.email || "No email set";
     renderAvatar(profileAvatar, savedProfile.avatarDataUrl, savedProfile.displayName);
+    renderAvatar(homeProfileToggle, savedProfile.avatarDataUrl, savedProfile.displayName);
     if (topAvatar && topAvatar.classList.contains("home-avatar")) renderAvatar(topAvatar, savedProfile.avatarDataUrl, savedProfile.displayName);
     if (avatarRemove) avatarRemove.hidden = !savedProfile.avatarDataUrl;
     const systemLight = savedProfile.theme === "system" && window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
@@ -547,6 +552,9 @@
       regenerating = false;
       conversation.replaceChildren();
       document.querySelector(".home-main.home-dashboard")?.classList.remove("has-conversation");
+      document.body.classList.remove("chat-active");
+      promptInput.placeholder = "Ask about this page";
+      promptInput.setAttribute("aria-label", "Ask about this page");
       promptInput.value = "";
       promptInput.disabled = false;
       if (fileInput) fileInput.value = "";
@@ -720,6 +728,9 @@
 
       const dashboard = document.querySelector(".home-main.home-dashboard");
       if (dashboard) dashboard.classList.add("has-conversation");
+      document.body.classList.add("chat-active");
+      promptInput.placeholder = "Ask anything";
+      promptInput.setAttribute("aria-label", "Ask anything");
       if (!isRegeneration) {
         conversation.querySelectorAll(".home-message-actions").forEach((actions) => actions.remove());
         chatHistory.push({ role: "user", content: text });
@@ -917,7 +928,7 @@
   window.setInterval(updateRuntime, 15000);
 
   document.addEventListener("click", (event) => {
-    if (!event.target.closest(".home-profile-menu") && !event.target.closest("#profileToggle") && profileMenu) {
+    if (!event.target.closest(".home-profile-menu") && !event.target.closest("#profileToggle") && !event.target.closest("#homeProfileToggle") && profileMenu) {
       closeProfileSheet();
     }
     if (!event.target.closest(".home-add-menu") && !event.target.closest("#addButton") && !event.target.closest("#composerAdd") && addMenu) {
