@@ -377,7 +377,7 @@
   const topAvatar = document.getElementById("profileToggle");
   const avatarInput = document.getElementById("profileAvatarInput");
   const avatarRemove = document.getElementById("profileAvatarRemove");
-  let savedProfile = { displayName: "Airshell User", email: "", theme: "light", themeVersion: 2, avatarDataUrl: "" };
+  let savedProfile = { displayName: "Airshell User", email: "", theme: "dark", themeVersion: 3, avatarDataUrl: "" };
   function renderAvatar(element, avatarDataUrl, fallback) {
     if (!element) return;
     element.replaceChildren();

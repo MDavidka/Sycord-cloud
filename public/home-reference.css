@@ -844,3 +844,24 @@ body.airshell-home,
   outline: none !important;
   box-shadow: none !important;
 }
+
+/* Supplied dark home reference: quiet rounded control and atmospheric bottom fade. */
+.airshell-home:not(.airshell-light-theme):not(.chat-active) .home-topbar { border-bottom: 0 !important; box-shadow: none !important; }
+.airshell-home:not(.airshell-light-theme):not(.chat-active) .home-topbar #menuToggle {
+  border-radius: 14px !important; background: #202022 !important;
+  border: 0 !important; box-shadow: none !important; color: #d2d2d5 !important;
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+.airshell-home:not(.airshell-light-theme):not(.chat-active) .home-conversation::before { display: none !important; }
+.airshell-home:not(.airshell-light-theme):not(.chat-active) .home-main.home-dashboard::before {
+  opacity: 1; height: 48%;
+  background: radial-gradient(ellipse 110% 90% at 50% 100%, rgba(29,57,77,.55), rgba(24,32,39,.22) 58%, transparent 90%) !important;
+}
+.airshell-home:not(.airshell-light-theme):not(.chat-active).composer-keyboard-open .home-main.home-dashboard::before { opacity: 0 !important; }
+@media (max-width: 600px) {
+  .airshell-home:not(.chat-active) .home-topbar { padding-left: 28px !important; padding-right: 28px !important; }
+  .airshell-home:not(.airshell-light-theme):not(.chat-active) .home-main.home-dashboard > .home-composer {
+    background: #191919 !important; border-color: rgba(255,255,255,.06) !important;
+    box-shadow: 0 0 0 3px rgba(0,0,0,.16) !important;
+  }
+}
