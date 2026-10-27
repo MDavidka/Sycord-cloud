@@ -67,6 +67,7 @@
     }
     if (terminalTab) terminalTab.addEventListener("click", function () { setWorkspaceTab("terminal"); });
     if (filesTab) filesTab.addEventListener("click", function () { if (!filesTab.disabled) setWorkspaceTab("files"); });
+    if (serverId && new URLSearchParams(location.search).get("view") === "files") setWorkspaceTab("files");
 
     function formatBytes(bytes) {
       if (!Number.isFinite(bytes) || bytes < 0) return "";

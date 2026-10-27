@@ -454,6 +454,8 @@
     .airshell-light-theme .profile-theme-options button[aria-pressed="true"] { background:#d4d4d9 !important; color:#252529 !important; }
   </style>
 
+  <link rel="stylesheet" href="/assets/home-reference.css?v=2">
+
 </head>
 <body class="airshell-home">
   <div class="home-shell">
@@ -583,6 +585,23 @@
     </dialog>
     <button class="home-backdrop" id="sidebarBackdrop" aria-label="Close sidebar" hidden></button>
     <main class="home-main home-dashboard">
+      <section class="mobile-home" aria-label="Server workspace">
+        <div class="mobile-home-search-row">
+          <label class="mobile-home-search-wrap" for="mobileHomeSearch">
+            <span class="sr-only">Search servers</span>
+            <input id="mobileHomeSearch" type="search" placeholder="Arc launch" autocomplete="off">
+          </label>
+          <button class="mobile-home-add" id="mobileHomeAdd" type="button" aria-label="Add server" title="Add server">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          </button>
+        </div>
+        <div class="mobile-home-tabs" role="tablist" aria-label="Server view">
+          <button type="button" role="tab" data-home-tab="review" aria-controls="mobileHomeServers" aria-selected="true">Review</button>
+          <button type="button" role="tab" data-home-tab="activity" aria-controls="mobileHomeServers" aria-selected="false">Activity</button>
+          <button type="button" role="tab" data-home-tab="files" aria-controls="mobileHomeServers" aria-selected="false">Files</button>
+        </div>
+        <div class="mobile-home-servers" id="mobileHomeServers" role="tabpanel" aria-live="polite"><p class="mobile-home-empty">Loading servers…</p></div>
+      </section>
       <div class="page-tools" role="toolbar" aria-label="Page actions">
         <button class="page-tool" id="pageLinkButton" type="button" aria-label="Copy page link" title="Copy page link">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1"/><path d="M14 11a5 5 0 0 0-7.1 0l-2 2a5 5 0 0 0 7.1 7.1l1.1-1.1"/></svg>
@@ -646,7 +665,7 @@
       <p class="home-disclaimer" id="composerHint" hidden>Airshell workspace · terminal access available</p>
     </main>
   </div>
-  <script src="/assets/home.js?v=sidebar-ref-design-2" defer></script>
+  <script src="/assets/home.js?v=home-reference-1" defer></script>
   <style id="profile-popup-compact-overrides">
     .airshell-home .home-topbar .home-profile-menu { border-radius:24px !important; }
     .profile-sheet-handle { height:22px !important; flex-basis:22px !important; }

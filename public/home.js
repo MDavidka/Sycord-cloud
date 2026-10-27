@@ -96,6 +96,40 @@
   function escapeHtml(value) {
     return String(value).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
   }
+  let homeServers = [];
+  let homeTab = "review";
+  const mobileHomeSearch = $("mobileHomeSearch");
+  const mobileHomeServers = $("mobileHomeServers");
+  function renderMobileServers() {
+    if (!mobileHomeServers) return;
+    const query = (mobileHomeSearch?.value || "").trim().toLowerCase();
+    const servers = homeServers.filter((server) =>
+      [server.name, server.host, server.username].some((value) => String(value || "").toLowerCase().includes(query))
+    );
+    if (!servers.length) {
+      mobileHomeServers.innerHTML = '<p class="mobile-home-empty">' +
+        (query ? "No matching servers." : "No servers yet. Use the add button above to connect one.") + '</p>';
+      return;
+    }
+    mobileHomeServers.innerHTML = servers.map((server) => {
+      const index = homeServers.indexOf(server) + 1;
+      const href = "/terminal?server=" + encodeURIComponent(server.id) + (homeTab === "files" ? "&view=files" : "");
+      const description = homeTab === "files" ? "Browse server files" : "Open server terminal";
+      const meta = homeTab === "activity" ? "Checking connection…" : escapeHtml(server.username) + '@' + escapeHtml(server.host);
+      return '<a class="mobile-server" href="' + href + '" aria-label="' + description + ': ' + escapeHtml(server.name) + '">' +
+        '<span class="mobile-server-number">' + index + '<span class="server-status-dot status-checking" data-server-status="' + escapeHtml(server.id) + '" role="status" aria-label="Checking server status"></span></span>' +
+        '<span class="mobile-server-copy"><span class="mobile-server-name">' + escapeHtml(server.name) + '</span>' +
+        '<span class="mobile-server-meta" data-home-server-meta="' + escapeHtml(server.id) + '">' + meta + '</span></span></a>';
+    }).join("");
+    updateServerStatuses(servers);
+  }
+  if (mobileHomeSearch) mobileHomeSearch.addEventListener("input", renderMobileServers);
+  $("mobileHomeAdd")?.addEventListener("click", openServerDialog);
+  document.querySelectorAll("[data-home-tab]").forEach((button) => button.addEventListener("click", () => {
+    homeTab = button.dataset.homeTab;
+    document.querySelectorAll("[data-home-tab]").forEach((tab) => tab.setAttribute("aria-selected", String(tab === button)));
+    renderMobileServers();
+  }));
   async function loadServers() {
     const list = $("sidebarServers");
     if (!list) return;
@@ -104,6 +138,8 @@
       if (!response.ok) throw new Error(response.status === 401 ? "Please sign in again." : "Could not load servers.");
       const data = await response.json();
       const servers = Array.isArray(data.servers) ? data.servers : [];
+      homeServers = servers;
+      renderMobileServers();
       const selectedId = new URLSearchParams(location.search).get("server");
       list.innerHTML = servers.length ? servers.map((server) =>
         '<div class="sidebar-server-row" data-server-row="' + escapeHtml(server.id) + '">' +
@@ -132,6 +168,7 @@
       if (sidebarSearch && sidebarSearch.value.trim()) sidebarSearch.dispatchEvent(new Event("input"));
     } catch (error) {
       list.innerHTML = '<p class="servers-empty">' + escapeHtml(error.message || "Could not load servers") + '</p>';
+      if (mobileHomeServers) mobileHomeServers.innerHTML = '<p class="mobile-home-empty">' + escapeHtml(error.message || "Could not load servers") + '</p>';
     }
   }
   async function updateServerStatuses(servers) {
@@ -139,17 +176,22 @@
     const checkNext = async () => {
       const server = queue.shift();
       if (!server) return;
-      const dot = document.querySelector('[data-server-status="' + CSS.escape(server.id) + '"]');
-      if (dot) {
+      const dots = document.querySelectorAll('[data-server-status="' + CSS.escape(server.id) + '"]');
+      if (dots.length) {
         try {
           const response = await fetch("/api/servers/" + encodeURIComponent(server.id) + "/status", { credentials: "same-origin", cache: "no-store" });
           if (!response.ok) throw new Error("Status unavailable");
           const data = await response.json();
           const status = ["online", "offline", "unknown"].includes(data.status) ? data.status : "unknown";
-          dot.className = "server-status-dot status-" + status;
           const label = status === "online" ? "Online" : status === "offline" ? "Offline" : "Status unavailable";
-          dot.setAttribute("aria-label", label);
-          dot.title = label;
+          dots.forEach((dot) => {
+            dot.className = "server-status-dot status-" + status;
+            dot.setAttribute("aria-label", label);
+            dot.title = label;
+          });
+          if (homeTab === "activity") {
+            document.querySelectorAll('[data-home-server-meta="' + CSS.escape(server.id) + '"]').forEach((meta) => { meta.textContent = label; });
+          }
           const sparkline = document.querySelector('[data-server-telemetry="' + CSS.escape(server.id) + '"]');
           if (sparkline && data.metrics && Number.isFinite(data.metrics.load1)) {
             const history = serverTelemetryHistory.get(server.id) || [];
@@ -173,9 +215,14 @@
             sparkline.classList.remove("has-telemetry");
           }
         } catch (_) {
-          dot.className = "server-status-dot status-unknown";
-          dot.setAttribute("aria-label", "Status unavailable");
-          dot.title = "Status unavailable";
+          dots.forEach((dot) => {
+            dot.className = "server-status-dot status-unknown";
+            dot.setAttribute("aria-label", "Status unavailable");
+            dot.title = "Status unavailable";
+          });
+          if (homeTab === "activity") {
+            document.querySelectorAll('[data-home-server-meta="' + CSS.escape(server.id) + '"]').forEach((meta) => { meta.textContent = "Status unavailable"; });
+          }
         }
       }
       await checkNext();
@@ -183,7 +230,7 @@
     await Promise.all(Array.from({ length: Math.min(3, queue.length) }, () => checkNext()));
   }
   window.setInterval(() => {
-    const servers = Array.from(document.querySelectorAll("[data-server-status]")).map((dot) => ({ id: dot.dataset.serverStatus }));
+    const servers = Array.from(new Set(Array.from(document.querySelectorAll("[data-server-status]"), (dot) => dot.dataset.serverStatus))).map((id) => ({ id }));
     if (servers.length) updateServerStatuses(servers);
   }, 60000);
   function openServerDialog() {
