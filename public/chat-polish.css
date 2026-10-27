@@ -162,3 +162,229 @@
     flex-basis: 40px;
   }
 }
+
+
+/*
+ * Reference-match: dark, empty-chat mobile screen.
+ * Based on the supplied Airshell iPhone screenshot.  These rules intentionally
+ * do not touch active conversations, light mode, or the desktop workspace.
+ * All existing buttons, menu handlers and textarea logic remain functional.
+ */
+@media (max-width: 600px) {
+  .airshell-home:not(.airshell-light-theme):not(.chat-active) .home-shell {
+    background: #131313 !important;
+  }
+
+  .airshell-home:not(.airshell-light-theme):not(.chat-active) .home-topbar {
+    height: calc(72px + env(safe-area-inset-top, 0px)) !important;
+    min-height: calc(72px + env(safe-area-inset-top, 0px)) !important;
+    padding: calc(env(safe-area-inset-top, 0px) + 8px) 30px 0 !important;
+    gap: 0 !important;
+    background: #131313 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+  .airshell-home:not(.airshell-light-theme):not(.chat-active) .home-topbar::after {
+    display: none !important;
+  }
+
+  /* Quiet, rounded-square navigation control, not glass or a circular pill. */
+  .airshell-home:not(.airshell-light-theme):not(.chat-active) .home-topbar #menuToggle {
+    display: grid !important;
+    place-items: center;
+    width: 44px !important;
+    height: 44px !important;
+    flex: 0 0 44px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 13px !important;
+    color: #dddddf !important;
+    background: #222224 !important;
+    box-shadow: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+  .airshell-home:not(.airshell-light-theme):not(.chat-active) .home-topbar #menuToggle svg {
+    width: 23px !important;
+    height: 23px !important;
+    stroke-width: 1.8;
+  }
+  .airshell-home:not(.airshell-light-theme):not(.chat-active) .home-topbar #menuToggle:active {
+    background: #303033 !important;
+  }
+
+  /* Truly centered title, independent of the left and right action widths. */
+  .airshell-home:not(.airshell-light-theme):not(.chat-active) .home-topbar .home-title-cluster {
+    position: absolute !important;
+    top: calc(env(safe-area-inset-top, 0px) + 18px) !important;
+    left: 50% !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: min(60%, 230px);
+    height: 44px;
+    transform: translateX(-50%) !important;
+    pointer-events: auto;
+  }
+  .airshell-home:not(.airshell-light-theme):not(.chat-active) .home-title-cluster .home-brand {
+    position: static !important;
+    max-width: 100%;
+    overflow: hidden;
+    color: #f5f5f5 !important;
+    font-family: var(--chat-font) !important;
+    font-size: 19px !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+    letter-spacing: -.028em !important;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    pointer-events: auto;
+  }
+
+  /* Keep the real avatar image while giving the icon an invisible 44px hit area. */
+  .airshell-home:not(.airshell-light-theme):not(.chat-active) .home-topbar .home-profile-button {
+    display: grid !important;
+    place-items: center;
+    width: 44px !important;
+    height: 44px !important;
+    flex: 0 0 44px !important;
+    box-sizing: border-box !important;
+    margin-left: auto !important;
+    padding: 0 !important;
+    overflow: hidden;
+    border: 5px solid #131313 !important;
+    border-radius: 50% !important;
+    background: #2c2c2e !important;
+    box-shadow: none !important;
+  }
+  .airshell-home:not(.airshell-light-theme):not(.chat-active) .home-topbar .home-profile-button img {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  /* The screenshot's near-black field gently becomes blue-grey at the bottom. */
+  .airshell-home:not(.airshell-light-theme):not(.chat-active) .home-main.home-dashboard {
+    top: calc(72px + env(safe-area-inset-top, 0px)) !important;
+    background: linear-gradient(
+      180deg,
+      #131313 0%,
+      #131313 48%,
+      #181818 65%,
+      #191b1e 80%,
+      #1a2936 100%
+    ) !important;
+  }
+  .airshell-home:not(.airshell-light-theme):not(.chat-active) .home-main.home-dashboard::before {
+    opacity: .55 !important;
+    height: 34% !important;
+    bottom: -6% !important;
+    background: radial-gradient(
+      ellipse 95% 90% at 50% 100%,
+      rgba(27, 70, 110, .25) 0%,
+      rgba(25, 64, 100, .09) 48%,
+      transparent 85%
+    ) !important;
+    filter: blur(24px);
+    pointer-events: none;
+  }
+  .airshell-home:not(.airshell-light-theme):not(.chat-active).composer-keyboard-open
+  .home-main.home-dashboard::before {
+    opacity: 0 !important;
+  }
+
+  /* One-line, edge-floating pill; other composer actions remain hidden here. */
+  .airshell-home:not(.airshell-light-theme):not(.chat-active)
+  .home-main.home-dashboard > .home-composer {
+    display: flex !important;
+    align-items: center !important;
+    left: 14px !important;
+    right: 14px !important;
+    bottom: max(18px, calc(env(safe-area-inset-bottom, 0px) + var(--keyboard-offset, 0px))) !important;
+    width: auto !important;
+    min-height: 58px !important;
+    height: auto;
+    box-sizing: border-box;
+    gap: 8px !important;
+    padding: 7px 7px 7px 17px !important;
+    border: 1px solid #2a2b2e !important;
+    border-radius: 999px !important;
+    background: #1a1a1c !important;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.025), 0 2px 9px rgba(0,0,0,.13) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+  .airshell-home:not(.airshell-light-theme):not(.chat-active)
+  .home-main.home-dashboard > .home-composer > :is(.composer-add, .model-select, .mic-button) {
+    display: none !important;
+  }
+  .airshell-home:not(.airshell-light-theme):not(.chat-active)
+  .home-main.home-dashboard > .home-composer > #promptInput {
+    display: block !important;
+    position: static !important;
+    flex: 1 1 0 !important;
+    align-self: center !important;
+    min-width: 0 !important;
+    width: 0 !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    max-height: 112px !important;
+    margin: 0 !important;
+    padding: 6px 2px !important;
+    border: 0 !important;
+    outline: 0;
+    resize: none;
+    background: transparent !important;
+    color: #f3f3f5 !important;
+    font-family: var(--chat-font) !important;
+    font-size: 16px !important;
+    font-weight: 400 !important;
+    line-height: 22px !important;
+    letter-spacing: -.01em !important;
+  }
+  .airshell-home:not(.airshell-light-theme):not(.chat-active)
+  .home-main.home-dashboard > .home-composer > #promptInput::placeholder {
+    color: #99999e !important;
+    opacity: 1 !important;
+  }
+  .airshell-home:not(.airshell-light-theme):not(.chat-active)
+  .home-main.home-dashboard > .home-composer > .composer-send {
+    display: grid !important;
+    place-items: center;
+    flex: 0 0 40px !important;
+    width: 40px !important;
+    height: 40px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 50% !important;
+    color: #a5a5ad !important;
+    background: #29292c !important;
+    box-shadow: none !important;
+  }
+  .airshell-home:not(.airshell-light-theme):not(.chat-active)
+  .home-main.home-dashboard > .home-composer > .composer-send svg {
+    width: 20px !important;
+    height: 20px !important;
+    stroke-width: 1.8;
+  }
+  .airshell-home:not(.airshell-light-theme):not(.chat-active)
+  .home-main.home-dashboard > .home-composer > .composer-send.ready {
+    color: #151515 !important;
+    background: #f5f5f5 !important;
+  }
+  .airshell-home:not(.airshell-light-theme):not(.chat-active)
+  .home-main.home-dashboard > .home-composer > .composer-send.ready:active {
+    background: #dddddf !important;
+  }
+}
+@media (max-width: 350px) {
+  .airshell-home:not(.airshell-light-theme):not(.chat-active) .home-topbar {
+    padding-right: 19px !important;
+    padding-left: 19px !important;
+  }
+}
