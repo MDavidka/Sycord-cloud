@@ -1,0 +1,164 @@
+/*
+ * Airshell chat typography polish
+ * A focused, reversible UI layer for the existing dashboard.
+ * Keeps chat logic, navigation, light/dark theme and blue ambient glow intact.
+ */
+.airshell-home {
+  --chat-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Inter, sans-serif;
+  --chat-copy-size: 16px;
+  --chat-copy-line-height: 1.58;
+  font-family: var(--chat-font);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Header: quiet, balanced, native-chat hierarchy. */
+.airshell-home .home-topbar {
+  font-family: var(--chat-font);
+  gap: 8px !important;
+}
+.airshell-home .home-topbar::after {
+  opacity: .45;
+}
+.airshell-home .home-topbar .home-title-cluster {
+  max-width: calc(100% - 132px);
+  min-width: 0;
+  gap: 0;
+}
+.airshell-home .home-topbar .home-title-cluster .home-brand {
+  min-width: 0;
+  color: var(--primary-text, #f5f5f5);
+  font-family: var(--chat-font) !important;
+  font-size: 17px !important;
+  font-weight: 600 !important;
+  line-height: 1.25 !important;
+  letter-spacing: -.025em !important;
+  text-transform: none !important;
+}
+.airshell-home .home-topbar .home-brand h1 {
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.airshell-home .home-topbar .home-title-toggle {
+  flex: 0 0 44px;
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 12px;
+  color: var(--secondary-text, #a1a1aa);
+}
+.airshell-home .home-topbar .home-title-toggle svg {
+  width: 16px !important;
+  height: 16px !important;
+  stroke-width: 1.8;
+}
+.airshell-home .home-topbar .home-icon-button,
+.airshell-home .home-topbar .home-new-chat {
+  width: 44px !important;
+  height: 44px !important;
+  flex: 0 0 44px !important;
+  border-radius: 12px;
+}
+.airshell-home .home-topbar .home-icon-button svg,
+.airshell-home .home-topbar .home-new-chat svg {
+  width: 20px !important;
+  height: 20px !important;
+  stroke-width: 1.8;
+}
+.airshell-home .home-topbar :is(.home-icon-button, .home-title-toggle, .home-new-chat, .home-profile-button):focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+.airshell-home .home-topbar :is(.home-icon-button, .home-title-toggle, .home-new-chat):active {
+  background: rgba(127, 127, 127, .12);
+}
+
+/* Message typography remains consistent across breakpoints and themes. */
+.airshell-home .home-main.home-dashboard .home-message,
+.airshell-home .home-main.home-dashboard .home-message-streaming {
+  font-family: var(--chat-font) !important;
+  font-size: var(--chat-copy-size) !important;
+  font-weight: 400 !important;
+  line-height: var(--chat-copy-line-height) !important;
+  letter-spacing: -.008em !important;
+  overflow-wrap: anywhere;
+}
+.airshell-home .home-main.home-dashboard .home-message.user {
+  line-height: 1.5 !important;
+}
+.airshell-home .home-main.home-dashboard .home-message.system p {
+  margin-top: 0;
+  margin-bottom: 14px;
+}
+.airshell-home .home-main.home-dashboard .home-message.system :is(h1,h2,h3) {
+  margin: 1.2em 0 .55em;
+  color: var(--primary-text, #f5f5f5);
+  font-family: var(--chat-font);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -.025em;
+}
+.airshell-home .home-main.home-dashboard .home-message.system h1 { font-size: 21px; }
+.airshell-home .home-main.home-dashboard .home-message.system h2 { font-size: 19px; }
+.airshell-home .home-main.home-dashboard .home-message.system h3 { font-size: 17px; }
+.airshell-home .home-main.home-dashboard .home-message.system :is(pre, code) {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: 0;
+}
+
+/* Composer: readable and sized to avoid Safari's focus zoom. */
+.airshell-home .home-main.home-dashboard > .home-composer > #promptInput {
+  font-family: var(--chat-font) !important;
+  font-size: 16px !important;
+  font-weight: 400 !important;
+  line-height: 1.45 !important;
+  letter-spacing: -.01em !important;
+}
+.airshell-home .home-main.home-dashboard > .home-composer > #promptInput::placeholder {
+  font-family: var(--chat-font);
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: -.01em;
+}
+.airshell-home .home-main.home-dashboard .model-select,
+.airshell-home .home-message-actions button {
+  font-family: var(--chat-font);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+@media (max-width: 600px) {
+  .airshell-home .home-topbar {
+    padding-right: max(12px, env(safe-area-inset-right, 0px)) !important;
+    padding-left: max(12px, env(safe-area-inset-left, 0px)) !important;
+  }
+  .airshell-home .home-topbar .home-title-cluster {
+    max-width: calc(100% - 120px);
+  }
+  .airshell-home:not(.chat-active) .home-topbar .home-title-cluster .home-brand {
+    font-size: 17px !important;
+  }
+  .airshell-home .home-main.home-dashboard .home-message,
+  .airshell-home .home-main.home-dashboard .home-message-streaming {
+    font-size: 16px !important;
+    line-height: 1.55 !important;
+  }
+  .airshell-home .home-main.home-dashboard > .home-composer > #promptInput {
+    font-size: 16px !important;
+    line-height: 1.45 !important;
+  }
+}
+@media (max-width: 350px) {
+  .airshell-home .home-topbar .home-title-cluster {
+    max-width: calc(100% - 110px);
+  }
+  .airshell-home .home-topbar .home-title-toggle {
+    width: 40px !important;
+    flex-basis: 40px;
+  }
+}
