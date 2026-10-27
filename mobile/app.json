@@ -4,10 +4,10 @@
     "slug": "airshell-mobile",
     "scheme": "airshell",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
-    "backgroundColor": "#ffffff",
+    "backgroundColor": "#141416",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.airshell.mobile"
@@ -26,7 +26,8 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "expo-font"
     ],
     "extra": {
       "router": {
