@@ -196,3 +196,102 @@
   .home-dashboard.has-conversation .home-conversation { top: 18px !important; }
   .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 }
+
+/* Mobile chat finish: a quiet response glow, a stable safe-area header, and
+   no color wash behind the composer or the on-screen keyboard. */
+@media (max-width: 600px) {
+  .airshell-home .home-topbar {
+    position: fixed !important;
+    z-index: 30 !important;
+    top: 0 !important;
+    inset-inline: 0 !important;
+    box-sizing: border-box !important;
+    height: calc(62px + env(safe-area-inset-top, 0px)) !important;
+    min-height: calc(62px + env(safe-area-inset-top, 0px)) !important;
+    padding: calc(env(safe-area-inset-top, 0px) + 8px) 18px 0 !important;
+    gap: 12px !important;
+    background: rgba(18, 18, 18, .96) !important;
+    border-bottom: 1px solid rgba(255,255,255,.07) !important;
+    -webkit-backdrop-filter: blur(18px) !important;
+    backdrop-filter: blur(18px) !important;
+  }
+  .airshell-home .home-topbar .home-icon-button {
+    width: 42px !important;
+    height: 42px !important;
+    flex-basis: 42px !important;
+    border-radius: 13px !important;
+  }
+  .airshell-home .home-topbar .home-brand {
+    gap: 9px !important;
+    font-size: 16px !important;
+    line-height: 1.2 !important;
+  }
+  .airshell-home .home-topbar .home-brand img {
+    width: 30px !important;
+    height: 30px !important;
+    border-radius: 8px !important;
+  }
+  .airshell-home .home-topbar .home-avatar {
+    width: 36px !important;
+    height: 36px !important;
+    flex-basis: 36px !important;
+  }
+  .airshell-home .home-main.home-dashboard {
+    inset: calc(62px + env(safe-area-inset-top, 0px)) 0 0 !important;
+    isolation: isolate;
+    background: #121212 !important;
+  }
+  .airshell-home .home-main.home-dashboard::before {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    right: -18%;
+    bottom: -8%;
+    left: -18%;
+    height: 46%;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(ellipse at 50% 100%, rgba(39, 101, 155, .28) 0%, rgba(31, 77, 119, .17) 42%, rgba(18, 18, 18, 0) 82%);
+    filter: blur(22px);
+    transition: opacity 420ms ease-out;
+  }
+  .airshell-home .home-main.home-dashboard.has-conversation::before { opacity: 1; }
+  .airshell-home .home-main.home-dashboard > * { z-index: 1; }
+  .airshell-home .home-main.home-dashboard > .home-composer { z-index: 8; }
+  .airshell-home .home-main.home-dashboard > .home-conversation { z-index: 2; }
+  .airshell-home .home-main.home-dashboard .home-composer {
+    bottom: max(14px, env(safe-area-inset-bottom, 0px)) !important;
+  }
+  .airshell-home.composer-keyboard-open .home-main.home-dashboard::before { opacity: 0 !important; }
+  .airshell-home .home-main.home-dashboard.has-conversation > .home-conversation {
+    top: 12px !important;
+    padding-top: 16px !important;
+    padding-bottom: 14px !important;
+    gap: 14px !important;
+  }
+  .airshell-home .home-main.home-dashboard .home-message.user {
+    max-width: min(88%, 520px) !important;
+    padding: 9px 13px !important;
+    border-radius: 18px !important;
+    font-size: 15px !important;
+    line-height: 1.45 !important;
+  }
+  .airshell-home .home-main.home-dashboard .home-message.system,
+  .airshell-home .home-main.home-dashboard .home-message-streaming {
+    max-width: 100% !important;
+    font-size: 17px !important;
+    line-height: 1.62 !important;
+    letter-spacing: -.01em;
+  }
+  .airshell-home .home-main.home-dashboard .home-message.system h1 { font-size: 25px !important; line-height: 1.2 !important; }
+  .airshell-home .home-main.home-dashboard .home-message.system h2 { font-size: 21px !important; line-height: 1.25 !important; }
+  .airshell-home .home-main.home-dashboard .home-message.system h3 { font-size: 18px !important; line-height: 1.3 !important; }
+  .airshell-home .home-dashboard .home-composer textarea { font-size: 16px !important; }
+}
+@media (max-width: 380px) {
+  .airshell-home .home-main.home-dashboard .home-message.system,
+  .airshell-home .home-main.home-dashboard .home-message-streaming { font-size: 16px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .airshell-home .home-main.home-dashboard::before { transition: none !important; }
+}

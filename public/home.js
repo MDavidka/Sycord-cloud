@@ -44,6 +44,23 @@
       try { navigator.vibrate(10); } catch (_) {}
     }
   }
+  if (window.visualViewport) {
+    let largestViewport = Math.max(window.innerHeight, window.visualViewport.height);
+    const updateKeyboardState = () => {
+      largestViewport = Math.max(largestViewport, window.visualViewport.height);
+      const keyboardOpen = largestViewport - window.visualViewport.height > 120;
+      document.body.classList.toggle("composer-keyboard-open", keyboardOpen);
+    };
+    window.visualViewport.addEventListener("resize", updateKeyboardState);
+    window.addEventListener("resize", updateKeyboardState);
+    window.addEventListener("orientationchange", () => {
+      window.setTimeout(() => {
+        largestViewport = Math.max(window.innerHeight, window.visualViewport.height);
+        updateKeyboardState();
+      }, 300);
+    });
+    updateKeyboardState();
+  }
   function closeProfileSheet() {
     setHidden(profileMenu, true);
     setHidden(profileSheetBackdrop, true);
