@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, BackHandler, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView, WebViewNavigation } from 'react-native-webview';
 import type { WebView as WebViewType } from 'react-native-webview';
 import { StatusBar } from 'expo-status-bar';
@@ -45,7 +44,7 @@ export default function HomeScreen() {
 
   if (!startUrl) {
     return (
-      <SafeAreaView style={styles.root}>
+      <View style={styles.root}>
         <StatusBar style="light" />
         <View style={styles.setup}>
           <Text style={styles.brand}>Airshell</Text>
@@ -53,12 +52,12 @@ export default function HomeScreen() {
           <Text style={styles.body}>Set EXPO_PUBLIC_WEB_URL to your deployed Airshell address, then restart Expo.</Text>
           <Text style={styles.code}>EXPO_PUBLIC_WEB_URL=https://your-airshell-domain</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
+    <View style={styles.root}>
       <StatusBar style="light" />
       <WebView<object>
         ref={webView}
@@ -98,7 +97,7 @@ export default function HomeScreen() {
           </Pressable>
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
