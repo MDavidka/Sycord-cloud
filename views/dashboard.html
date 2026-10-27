@@ -454,7 +454,7 @@
     .airshell-light-theme .profile-theme-options button[aria-pressed="true"] { background:#d4d4d9 !important; color:#252529 !important; }
   </style>
 
-  <link rel="stylesheet" href="/assets/home-reference.css?v=4">
+  <link rel="stylesheet" href="/assets/home-reference.css?v=5">
 
 </head>
 <body class="airshell-home">
@@ -652,10 +652,10 @@
       </div>
       <input id="fileInput" type="file" hidden>
       <form class="home-composer" id="composer">
-        <button class="composer-icon composer-add" id="composerAdd" type="button" aria-label="More options" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg></button>
+        <button class="composer-icon composer-add" id="composerAdd" type="button" aria-label="Add attachment" title="Add attachment"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
         <textarea id="promptInput" rows="1" placeholder="Ask about this page" aria-label="Ask about this page"></textarea>
         <button class="model-select" id="modelButton" type="button" aria-haspopup="listbox" aria-expanded="false" hidden><span id="modelName">DeepSeek V4 Pro</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m7 10 5 5 5-5"/></svg></button>
-        <button class="composer-icon mic-button" id="voiceButton" type="button" aria-label="Voice input unavailable" title="Voice input is not available yet" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3m-4 0h8"/></svg></button>
+        <button class="composer-icon mic-button" id="voiceButton" type="button" aria-label="Start voice input" title="Start voice input" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3m-4 0h8"/></svg></button>
         <button class="composer-send" type="submit" aria-label="Send message"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
       </form>
       <div class="home-model-menu" id="modelMenu" role="listbox" aria-label="Choose mode" hidden>
@@ -665,7 +665,7 @@
       <p class="home-disclaimer" id="composerHint" hidden>Airshell workspace · terminal access available</p>
     </main>
   </div>
-  <script src="/assets/home.js?v=home-reference-3" defer></script>
+  <script src="/assets/home.js?v=home-reference-4" defer></script>
   <style id="profile-popup-compact-overrides">
     .airshell-home .home-topbar .home-profile-menu { border-radius:24px !important; }
     .profile-sheet-handle { height:22px !important; flex-basis:22px !important; }

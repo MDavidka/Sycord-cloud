@@ -16,6 +16,7 @@
   const modelName = $("modelName");
   const promptInput = $("promptInput");
   const sendButton = document.querySelector(".composer-send");
+  const voiceButton = $("voiceButton");
   const fileInput = $("fileInput");
   const hint = $("composerHint");
   const composer = $("composer");
@@ -50,6 +51,8 @@
       largestViewport = Math.max(largestViewport, window.visualViewport.height);
       const keyboardOpen = largestViewport - window.visualViewport.height > 120;
       document.body.classList.toggle("composer-keyboard-open", keyboardOpen);
+      const keyboardOffset = Math.max(0, window.innerHeight - window.visualViewport.height);
+      document.documentElement.style.setProperty("--keyboard-offset", keyboardOffset + "px");
     };
     window.visualViewport.addEventListener("resize", updateKeyboardState);
     window.addEventListener("resize", updateKeyboardState);
@@ -463,6 +466,28 @@
       closeFloatingMenus();
     }
   });
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (voiceButton) {
+    voiceButton.hidden = false;
+    voiceButton.disabled = !SpeechRecognition;
+    voiceButton.title = SpeechRecognition ? "Start voice input" : "Voice input is not available in this browser";
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.lang = navigator.language || "en-US";
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+      voiceButton.addEventListener("click", () => {
+        try { recognition.start(); } catch (_) { showToolFeedback("Voice input is already listening."); }
+      });
+      recognition.addEventListener("result", (event) => {
+        const spokenText = event.results?.[0]?.[0]?.transcript || "";
+        if (!spokenText || !promptInput) return;
+        promptInput.value = [promptInput.value.trim(), spokenText].filter(Boolean).join(" ");
+        promptInput.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+      recognition.addEventListener("error", () => showToolFeedback("Voice input could not start. Try again."));
+    }
+  }
   if (modelButton) modelButton.addEventListener("click", () => {
     const open = modelMenu.hidden;
     closeFloatingMenus(modelMenu);
@@ -490,7 +515,13 @@
   if (promptInput && sendButton) {
     // iOS Safari zooms into focused inputs smaller than 16px; preserve viewport scale.\n
     const updateComposer = () => {
-      sendButton.classList.toggle("ready", promptInput.value.trim().length > 0);
+      const hasText = promptInput.value.trim().length > 0;
+      sendButton.classList.toggle("ready", hasText);
+      sendButton.hidden = !hasText;
+      if (voiceButton) {
+        voiceButton.hidden = hasText;
+        voiceButton.disabled = !SpeechRecognition || sendButton.disabled;
+      }
       promptInput.style.height = "auto";
       promptInput.style.height = Math.min(promptInput.scrollHeight, 120) + "px";
     };
@@ -502,6 +533,7 @@
       }
     });
     const chatHistory = [];
+    let regenerating = false;
     const conversation = $("conversation");
     const appendInlineMarkdown = (parent, source) => {
       const pattern = /(\x60[^\x60]+\x60|\*\*[^*]+\*\*|__[^_]+__|\*[^*]+\*|_[^_]+_|\[[^\]]+\]\(https?:\/\/[^\s)]+\)|https?:\/\/[^\s<]+)/g;
@@ -612,16 +644,40 @@
       return node;
     };
 
+    const appendResponseActions = (node, content) => {
+      const actions = document.createElement("div");
+      actions.className = "home-message-actions";
+      actions.setAttribute("aria-label", "Response actions");
+      actions.innerHTML = '<button type="button" data-response-action="copy" aria-label="Copy response" title="Copy response"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg></button><button type="button" data-response-action="retry" aria-label="Regenerate response" title="Regenerate response"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.6 9a7 7 0 0 1 11.6-2L20 12M4 12l2.8 5a7 7 0 0 0 11.6-2"/></svg></button>';
+      actions.querySelector('[data-response-action="copy"]').addEventListener("click", () => copyText(content, "Response copied"));
+      actions.querySelector('[data-response-action="retry"]').addEventListener("click", () => {
+        node.remove();
+        const lastResponse = chatHistory[chatHistory.length - 1];
+        if (lastResponse?.role === "assistant") chatHistory.pop();
+        const lastQuestion = [...chatHistory].reverse().find((message) => message.role === "user");
+        if (!lastQuestion) return;
+        regenerating = true;
+        promptInput.value = lastQuestion.content;
+        composer.requestSubmit();
+      });
+      node.appendChild(actions);
+    };
+
     composer.addEventListener("submit", async (event) => {
       event.preventDefault();
       const text = promptInput.value.trim();
       if (!text || sendButton.disabled) return;
+      const isRegeneration = regenerating;
+      regenerating = false;
       softHaptic();
 
       const dashboard = document.querySelector(".home-main.home-dashboard");
       if (dashboard) dashboard.classList.add("has-conversation");
-      chatHistory.push({ role: "user", content: text });
-      appendChatMessage("user", text);
+      if (!isRegeneration) {
+        conversation.querySelectorAll(".home-message-actions").forEach((actions) => actions.remove());
+        chatHistory.push({ role: "user", content: text });
+        appendChatMessage("user", text);
+      }
       promptInput.value = "";
       updateComposer();
 
@@ -689,9 +745,10 @@
               streamCursor.setAttribute("aria-hidden", "true");
               loading.append(streamText, streamCursor);
             }
+            const nearBottom = conversation.scrollHeight - conversation.scrollTop - conversation.clientHeight < 100;
             answer += packet.token;
             streamText.textContent = answer;
-            conversation.scrollTo({ top: conversation.scrollHeight, behavior: "auto" });
+            if (nearBottom) conversation.scrollTo({ top: conversation.scrollHeight, behavior: "auto" });
           }
         };
         while (true) {
@@ -705,12 +762,14 @@
         buffer += decoder.decode();
         if (buffer.trim()) consumeEvent(buffer);
         if (!answer.trim()) throw new Error("The AI returned an empty response.");
+        const keepFollowing = conversation.scrollHeight - conversation.scrollTop - conversation.clientHeight < 100;
         renderMarkdown(loading, answer.trim());
         loading.classList.remove("home-message-loading", "home-message-streaming");
         chatHistory.push({ role: "assistant", content: answer.trim() });
         softHaptic();
+        appendResponseActions(loading, answer.trim());
         if (chatHistory.length > 20) chatHistory.splice(0, chatHistory.length - 20);
-        conversation.scrollTo({ top: conversation.scrollHeight, behavior: "smooth" });
+        if (keepFollowing) conversation.scrollTo({ top: conversation.scrollHeight, behavior: "smooth" });
       } catch (error) {
         loading.textContent = error && error.message ? error.message : "Could not get an AI response. Please try again.";
         loading.classList.remove("home-message-loading", "home-message-streaming");
