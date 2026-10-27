@@ -35,6 +35,17 @@ export default function HomeScreen() {
     webView.current?.reload();
   };
 
+  const onWebMessage = (event: { nativeEvent: { data: string } }) => {
+    try {
+      const message = JSON.parse(event.nativeEvent.data) as { type?: string; style?: string };
+      if (message.type !== 'haptic') return;
+      const style = message.style === 'soft' ? Haptics.ImpactFeedbackStyle.Soft : Haptics.ImpactFeedbackStyle.Light;
+      void Haptics.impactAsync(style).catch(() => {});
+    } catch {
+      // Ignore messages that are not haptic requests.
+    }
+  };
+
   const shouldLoad = (url: string) => {
     if (!startUrl) return false;
     try {
@@ -72,6 +83,7 @@ export default function HomeScreen() {
         originWhitelist={['https://*', 'http://*']}
         onShouldStartLoadWithRequest={({ url }) => shouldLoad(url)}
         onOpenWindow={({ nativeEvent }) => { void Linking.openURL(nativeEvent.targetUrl); }}
+        onMessage={onWebMessage}
         onNavigationStateChange={onNavigationStateChange}
         onLoadStart={() => { setLoading(true); setFailed(false); }}
         onLoadEnd={() => setLoading(false)}

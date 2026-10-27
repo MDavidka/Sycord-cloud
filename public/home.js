@@ -33,6 +33,17 @@
   function setHidden(el, hidden) {
     if (el) el.hidden = hidden;
   }
+  function softHaptic() {
+    if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === "function") {
+      try {
+        window.ReactNativeWebView.postMessage(JSON.stringify({ type: "haptic", style: "soft" }));
+        return;
+      } catch (_) {}
+    }
+    if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
+      try { navigator.vibrate(10); } catch (_) {}
+    }
+  }
   function closeProfileSheet() {
     setHidden(profileMenu, true);
     setHidden(profileSheetBackdrop, true);
@@ -50,8 +61,10 @@
   }
   function openSidebar(open) {
     if (!sidebar || !backdrop) return;
+    const wasOpen = sidebar.classList.contains("open");
     sidebar.classList.toggle("open", open);
     backdrop.hidden = !open;
+    if (open && !wasOpen) softHaptic();
     if (menuToggle) {
       menuToggle.setAttribute("aria-expanded", String(open));
       menuToggle.setAttribute("aria-label", open ? "Close sidebar" : "Open sidebar");
@@ -586,6 +599,7 @@
       event.preventDefault();
       const text = promptInput.value.trim();
       if (!text || sendButton.disabled) return;
+      softHaptic();
 
       const dashboard = document.querySelector(".home-main.home-dashboard");
       if (dashboard) dashboard.classList.add("has-conversation");
@@ -677,6 +691,7 @@
         renderMarkdown(loading, answer.trim());
         loading.classList.remove("home-message-loading", "home-message-streaming");
         chatHistory.push({ role: "assistant", content: answer.trim() });
+        softHaptic();
         if (chatHistory.length > 20) chatHistory.splice(0, chatHistory.length - 20);
         conversation.scrollTo({ top: conversation.scrollHeight, behavior: "smooth" });
       } catch (error) {
