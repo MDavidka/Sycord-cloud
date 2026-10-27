@@ -52,7 +52,7 @@
       largestViewport = Math.max(largestViewport, window.visualViewport.height);
       const keyboardOpen = largestViewport - window.visualViewport.height > 120;
       document.body.classList.toggle("composer-keyboard-open", keyboardOpen);
-      const keyboardOffset = Math.max(0, window.innerHeight - window.visualViewport.height);
+      const keyboardOffset = keyboardOpen ? Math.max(0, window.innerHeight - window.visualViewport.height - window.visualViewport.offsetTop) : 0;
       document.documentElement.style.setProperty("--keyboard-offset", keyboardOffset + "px");
     };
     window.visualViewport.addEventListener("resize", updateKeyboardState);
@@ -522,9 +522,16 @@
       if (voiceButton) {
         voiceButton.disabled = !SpeechRecognition || promptInput.disabled;
       }
-      promptInput.style.height = "auto";
-      promptInput.style.height = Math.min(promptInput.scrollHeight, 120) + "px";
+      promptInput.style.setProperty("--input-height", "38px");
+      promptInput.style.setProperty("--input-height", Math.min(promptInput.scrollHeight, 120) + "px");
     };
+    const updateConversationSpace = () => {
+      const bottom = parseFloat(window.getComputedStyle(composer).bottom) || 0;
+      document.documentElement.style.setProperty("--chat-composer-space", (composer.offsetHeight + bottom + 16) + "px");
+    };
+    if (window.ResizeObserver) new ResizeObserver(updateConversationSpace).observe(composer);
+    window.addEventListener("resize", updateConversationSpace);
+    if (window.visualViewport) window.visualViewport.addEventListener("resize", updateConversationSpace);
     promptInput.addEventListener("input", updateComposer);
     promptInput.addEventListener("keydown", (event) => {
       if (event.key === "Enter" && !event.shiftKey) {
@@ -825,6 +832,7 @@
       }
     });
     updateComposer();
+    updateConversationSpace();
   }
 
   function formatUptime(total) {
