@@ -3,6 +3,7 @@ import { ActivityIndicator, BackHandler, Linking, Pressable, StyleSheet, Text, V
 import { WebView, WebViewNavigation } from 'react-native-webview';
 import type { WebView as WebViewType } from 'react-native-webview';
 import { StatusBar } from 'expo-status-bar';
+import * as Haptics from 'expo-haptics';
 
 const configuredUrl = process.env.EXPO_PUBLIC_WEB_URL?.trim();
 const startUrl = configuredUrl ? configuredUrl.replace(/\/$/, '') + '/dashboard' : '';
@@ -27,6 +28,11 @@ export default function HomeScreen() {
   const onNavigationStateChange = (state: WebViewNavigation) => {
     setCanGoBack(state.canGoBack);
     setLoading(state.loading);
+  };
+
+  const retry = () => {
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).catch(() => {});
+    webView.current?.reload();
   };
 
   const shouldLoad = (url: string) => {
@@ -92,7 +98,7 @@ export default function HomeScreen() {
         <View style={styles.error}>
           <Text style={styles.title}>Can’t reach Airshell</Text>
           <Text style={styles.body}>Check your connection and try again.</Text>
-          <Pressable style={styles.retry} onPress={() => webView.current?.reload()}>
+          <Pressable style={styles.retry} onPress={retry}>
             <Text style={styles.retryText}>Try again</Text>
           </Pressable>
         </View>
