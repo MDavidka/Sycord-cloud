@@ -226,7 +226,7 @@
     width: min(60%, 230px);
     height: 44px;
     transform: translateX(-50%) !important;
-    pointer-events: none;
+    pointer-events: auto;
   }
   .airshell-home:not(.airshell-light-theme):not(.chat-active) .home-title-cluster .home-brand {
     position: static !important;
