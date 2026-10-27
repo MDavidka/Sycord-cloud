@@ -1410,6 +1410,42 @@ body.airshell-home .home-main.home-dashboard {
   .home-dashboard .home-composer { left: 14px; right: 14px; }
 }
 
+/* Keep the mobile workspace header compact, clear, and safe-area aware. */
+@media (max-width: 600px) {
+  .airshell-home .home-topbar {
+    height: calc(64px + env(safe-area-inset-top, 0px));
+    min-height: calc(64px + env(safe-area-inset-top, 0px));
+    padding: calc(env(safe-area-inset-top, 0px) + 7px) 16px 0;
+    gap: 12px;
+    background: rgba(18, 18, 18, .96) !important;
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+  }
+  .airshell-home .home-main.home-dashboard {
+    inset: calc(64px + env(safe-area-inset-top, 0px)) 0 0 !important;
+  }
+  .airshell-home .home-icon-button {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+    border: 1px solid #303034;
+    border-radius: 13px;
+    background: #1b1b1e;
+  }
+  .airshell-home .home-brand { font-size: 19px; letter-spacing: -.035em; }
+  .airshell-home .home-avatar {
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
+    border: 1px solid #3a3a40;
+    background: #242428;
+  }
+}
+@media (max-width: 360px) {
+  .airshell-home .home-topbar { padding-left: 12px; padding-right: 12px; gap: 10px; }
+  .airshell-home .home-brand { font-size: 18px; }
+}
+
 
 /* Ensure the recreated home composer overrides legacy hidden selectors. */
 .home-main.home-dashboard > .home-composer {
