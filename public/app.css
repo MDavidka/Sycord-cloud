@@ -2510,11 +2510,11 @@ body.airshell-home .home-main.home-dashboard {
 .airshell-home .home-sidebar .sidebar-server-sparkline { color:#5c72c9; opacity:.9; }
 .airshell-home .home-sidebar .sidebar-server-sparkline path { stroke:currentColor; stroke-width:1.15; }
 .airshell-home .home-sidebar .sidebar-server-sparkline:not(.has-telemetry) { opacity:.4; }
-.airshell-home .server-status-dot { display:inline-block; flex:0 0 7px; width:7px; height:7px; border-radius:50%; background:#77777d; box-shadow:0 0 0 2px rgba(140,140,148,.08); vertical-align:middle; }
+.airshell-home .server-status-dot { display:inline-block; flex:0 0 7px; width:7px; height:7px; border-radius:50%; background:#858585; box-shadow:none; vertical-align:middle; }
 .airshell-home .server-status-dot.status-checking { background:#8a8a92; }
-.airshell-home .server-status-dot.status-online { background:#25c777; box-shadow:0 0 0 2px rgba(37,199,119,.12); }
-.airshell-home .server-status-dot.status-offline { background:#f06464; box-shadow:0 0 0 2px rgba(240,100,100,.12); }
-.airshell-home .server-status-dot.status-unknown { background:#e5b65c; box-shadow:0 0 0 2px rgba(229,182,92,.12); }
+.airshell-home .server-status-dot.status-online { background:#2fbd73; box-shadow:none; }
+.airshell-home .server-status-dot.status-offline { background:#db6a6a; box-shadow:none; }
+.airshell-home .server-status-dot.status-unknown { background:#d5ad63; box-shadow:none; }
 
 
 
@@ -2825,7 +2825,7 @@ body.airshell-home .home-main.home-dashboard {
   }
   .airshell-home .home-sidebar .server-status-dot.status-online {
     background: #00be63 !important;
-    box-shadow: 0 0 0 2px rgba(0, 190, 99, 0.2) !important;
+    box-shadow: none !important;
   }
   .airshell-home .home-sidebar .server-add-trigger {
     color: #8c8c94 !important;
