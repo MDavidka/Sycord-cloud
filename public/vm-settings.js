@@ -213,6 +213,8 @@
     putField("addedAt", friendlyDate(server.addedAt));
     putField("authentication", server.provider === "instabox" ? "Instabox token" : server.authMethod === "password" ? "SSH password" : "SSH key");
     putField("connectionProvider", server.provider === "instabox" ? "Instabox" : "SSH");
+    // Instabox uses a private connection token; a synthetic public username is not a usable SSH address.
+    $("vmCopyHost").hidden = server.provider === "instabox";
     const info = server.providerInfo || {};
     putField("providerName", info.name || "Not identified");
     putField("providerRegion", info.region || "Not set");
