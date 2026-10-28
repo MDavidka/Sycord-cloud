@@ -296,6 +296,15 @@
   }
   function closeServerDialog() { if (serverDialog && serverDialog.open) serverDialog.close(); }
   if ($("addServerButton")) $("addServerButton").addEventListener("click", openServerDialog);
+  // Terminal header actions reuse the existing sidebar and connection dialog.
+  if ($("terminalHeaderAddServer")) $("terminalHeaderAddServer").addEventListener("click", () => {
+    openSidebar(false);
+    openServerDialog();
+  });
+  if ($("terminalServerPicker")) $("terminalServerPicker").addEventListener("click", () => {
+    openSidebar(true);
+    if (serversNavToggle?.getAttribute("aria-expanded") === "false") serversNavToggle.click();
+  });
   if ($("closeServerDialog")) $("closeServerDialog").addEventListener("click", closeServerDialog);
   if ($("cancelServerDialog")) $("cancelServerDialog").addEventListener("click", closeServerDialog);
   if (serverDialog) serverDialog.addEventListener("click", (event) => { if (event.target === serverDialog) closeServerDialog(); });
