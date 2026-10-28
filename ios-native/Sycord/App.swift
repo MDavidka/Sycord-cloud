@@ -94,6 +94,11 @@ struct ChatView: View {
     @State private var busy = false
     @State private var status = ""
     @State private var notice: String?
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @ScaledMetric(relativeTo: .title2) private var greetingSize = 26
+    private var canvas: Color { colorScheme == .dark ? Color(white: 17.0 / 255) : Color(uiColor: .systemBackground) }
+    private var composerSurface: Color { colorScheme == .dark ? Color(white: 32.0 / 255) : Color(uiColor: .secondarySystemBackground) }
     private var index: Int { conversations.firstIndex(where: { $0.id == activeID }) ?? 0 }
     private var messages: [ChatMessage] { conversations.isEmpty ? [] : conversations[index].messages }
     private var draftBinding: Binding<String> { Binding(get: { conversations.isEmpty ? "" : conversations[index].draft }, set: { value in update { $0.draft = value } }) }
@@ -101,8 +106,8 @@ struct ChatView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 if messages.isEmpty {
-                    VStack(alignment: .leading, spacing: 14) {
-                        Text("What can I help you with?").font(.system(size: 25, weight: .medium))
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("What can I help you with?").font(.system(size: greetingSize, weight: .semibold)).tracking(-0.4).fixedSize(horizontal: false, vertical: true)
                         Text("Ask about your servers or start a new task.").font(.subheadline).foregroundStyle(.secondary)
                         quickAction("Check server health", icon: "waveform.path.ecg", prompt: "Check the health of my saved servers using read-only diagnostics.")
                         NavigationLink { ServersView() } label: { Label("Open a server terminal", systemImage: "terminal").frame(maxWidth: .infinity, alignment: .leading).frame(minHeight: 44) }
@@ -116,8 +121,8 @@ struct ChatView: View {
                                     messageView(message).id(message.id)
                                 }
                                 if !status.isEmpty { HStack(spacing: 10) { ProgressView(); Text(status).foregroundStyle(.secondary) }.padding(.vertical, 6) }
-                            }.padding()
-                        }.onChange(of: messages.count) { _ in if let id = messages.last?.id { withAnimation { proxy.scrollTo(id, anchor: .bottom) } } }
+                            }.padding(20).frame(maxWidth: 760).frame(maxWidth: .infinity)
+                        }.scrollDismissesKeyboard(.interactively).onChange(of: messages.count) { _ in if let id = messages.last?.id { withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) { proxy.scrollTo(id, anchor: .bottom) } } }
                     }
                 } else {
                     VStack(spacing: 8) {
@@ -130,7 +135,7 @@ struct ChatView: View {
             }
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 VStack(alignment: .leading, spacing: 8) {
-                    TextField("Ask about your servers…", text: draftBinding, axis: .vertical).lineLimit(1...5).padding(.horizontal, 6).padding(.top, 6)
+                    TextField("Ask anything", text: draftBinding, axis: .vertical).font(.body).accessibilityLabel("Message Airshell").lineLimit(1...5).padding(.horizontal, 6).padding(.top, 6)
                     HStack {
                     NavigationLink { ServersView() } label: { Image(systemName: "server.rack").frame(width: 44, height: 44) }.accessibilityLabel("Server tools")
                     Spacer()
@@ -143,16 +148,25 @@ struct ChatView: View {
                         .background(Color.primary, in: Circle())
                         .foregroundStyle(Color(uiColor: .systemBackground))
                     }
+                    .accessibilityLabel(busy ? "Sending message" : "Send message")
+                    .keyboardShortcut(.return, modifiers: .command)
                     .disabled(busy || draftBinding.wrappedValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     }
-                }.padding(10).background(Color(uiColor: .secondarySystemBackground), in: RoundedRectangle(cornerRadius: 25)).padding(.horizontal, 16).padding(.bottom, 8)
+                }.padding(10).background(composerSurface, in: RoundedRectangle(cornerRadius: 25)).padding(.horizontal, 16).padding(.bottom, 8)
 
             }
+            .background(canvas)
+            .tint(.primary)
             .navigationTitle("Airshell")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) { Menu { ForEach(conversations) { item in Button(item.title) { activeID = item.id } } } label: { Image(systemName: "sidebar.left") } }
-                ToolbarItem(placement: .navigationBarTrailing) { Button { let c = Conversation(); conversations.append(c); activeID = c.id; persist() } label: { Image(systemName: "square.and.pencil") } }
+                ToolbarItem(placement: .principal) {
+                    Menu { NavigationLink("Account", destination: AccountView()) } label: {
+                        HStack(spacing: 6) { Text("Airshell").font(.headline); Image(systemName: "chevron.down").font(.caption) }.frame(minHeight: 44)
+                    }.accessibilityLabel("Airshell account menu")
+                }
+                ToolbarItem(placement: .navigationBarLeading) { Menu { ForEach(conversations) { item in Button(item.title) { activeID = item.id } } } label: { Image(systemName: "sidebar.left").font(.system(size: 21)).frame(width: 44, height: 44) }.disabled(busy).accessibilityLabel("Conversations") }
+                ToolbarItem(placement: .navigationBarTrailing) { Button { let c = Conversation(); conversations.append(c); activeID = c.id; persist() } label: { Image(systemName: "square.and.pencil").font(.system(size: 21)).frame(width: 44, height: 44) }.disabled(busy).accessibilityLabel("New conversation") }
             }
             .onAppear { restoreChats() }
         }
@@ -163,7 +177,7 @@ struct ChatView: View {
         }.buttonStyle(.plain).disabled(busy)
     }
     @ViewBuilder private func messageView(_ message: ChatMessage) -> some View {
-        if message.role == "user" { Text(message.content).padding(.horizontal, 15).padding(.vertical, 11).background(.quaternary, in: RoundedRectangle(cornerRadius: 20)).frame(maxWidth: .infinity, alignment: .trailing) }
+        if message.role == "user" { Text(message.content).textSelection(.enabled).padding(.horizontal, 15).padding(.vertical, 11).background(.quaternary, in: RoundedRectangle(cornerRadius: 20)).frame(maxWidth: .infinity, alignment: .trailing) }
         else { VStack(alignment: .leading, spacing: 8) { Text(LocalizedStringKey(message.content)).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading); if let error = message.error { Text(error).foregroundStyle(.red); if !busy { Button("Retry") { Task { await retry() } } } } }.frame(maxWidth: .infinity, alignment: .leading) }
     }
     private func update(_ change: (inout Conversation) -> Void) { guard conversations.indices.contains(index) else { return }; change(&conversations[index]); persist() }
