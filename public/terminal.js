@@ -51,6 +51,9 @@
     var terminalTab = document.getElementById("terminalTab");
     var filesTab = document.getElementById("filesTab");
     var filesPanel = document.getElementById("serverFilesPanel");
+    var settingsPanel = document.getElementById("serverSettingsPanel");
+    var settingsButton = document.getElementById("terminalSettingsButton");
+    var lastContentView = "terminal";
     var workspaceServerName = document.getElementById("workspaceServerName");
     var workspaceServerMeta = document.getElementById("workspaceServerMeta");
     var filesPathInput = document.getElementById("filesPath");
@@ -63,13 +66,26 @@
     if (filesTab) filesTab.disabled = !serverId;
 
     function setWorkspaceTab(name) {
-      var showFiles = name === "files" && Boolean(serverId);
-      if (terminalTab) { terminalTab.classList.toggle("active", !showFiles); terminalTab.setAttribute("aria-selected", String(!showFiles)); }
+      var showSettings = name === "settings";
+      var showFiles = !showSettings && name === "files" && Boolean(serverId);
+      var showTerminal = !showSettings && !showFiles;
+      var view = showSettings ? "settings" : showFiles ? "files" : "terminal";
+      if (!showSettings) lastContentView = view;
+      document.body.dataset.vmView = view;
+      if (terminalTab) { terminalTab.classList.toggle("active", showTerminal); terminalTab.setAttribute("aria-selected", String(showTerminal)); }
       if (filesTab) { filesTab.classList.toggle("active", showFiles); filesTab.setAttribute("aria-selected", String(showFiles)); }
+      if (settingsButton) { settingsButton.classList.toggle("active", showSettings); settingsButton.setAttribute("aria-pressed", String(showSettings)); }
       if (filesPanel) filesPanel.hidden = !showFiles;
-      terminalNode.style.display = showFiles ? "none" : "";
-      if (!showFiles && fit && term) {
+      if (settingsPanel) settingsPanel.hidden = !showSettings;
+      terminalNode.style.display = showTerminal ? "" : "none";
+      var url = new URL(location.href);
+      if (view === "terminal") url.searchParams.delete("view");
+      else url.searchParams.set("view", view);
+      history.replaceState(history.state, "", url.pathname + url.search + url.hash);
+      window.dispatchEvent(new CustomEvent(showSettings ? "airshell:vm-settings-open" : "airshell:vm-settings-close", { detail: { serverId: serverId } }));
+      if (showTerminal && fit && term) {
         window.requestAnimationFrame(function () {
+          if (document.body.dataset.vmView !== "terminal") return;
           fit.fit();
           if (socket && socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: "resize", cols: term.cols, rows: term.rows }));
         });
@@ -78,7 +94,13 @@
     }
     if (terminalTab) terminalTab.addEventListener("click", function () { setWorkspaceTab("terminal"); });
     if (filesTab) filesTab.addEventListener("click", function () { if (!filesTab.disabled) setWorkspaceTab("files"); });
-    if (serverId && new URLSearchParams(location.search).get("view") === "files") setWorkspaceTab("files");
+    if (settingsButton) settingsButton.addEventListener("click", function () {
+      setWorkspaceTab(document.body.dataset.vmView === "settings" ? lastContentView : "settings");
+    });
+    var initialView = new URLSearchParams(location.search).get("view");
+    if (initialView === "settings") setWorkspaceTab("settings");
+    else if (initialView === "files" && serverId) setWorkspaceTab("files");
+    else document.body.dataset.vmView = "terminal";
 
     function formatBytes(bytes) {
       if (!Number.isFinite(bytes) || bytes < 0) return "";
@@ -247,7 +269,7 @@
         if (disposed || socket !== activeSocket) { activeSocket.close(); return; }
         reconnectAttempt = 0;
         status("Connected", true);
-        fit.fit();
+        if (document.body.dataset.vmView === "terminal") fit.fit();
         activeSocket.send(JSON.stringify({ type: "resize", cols: term.cols, rows: term.rows }));
         if (runButton) runButton.disabled = false;
       });
@@ -333,7 +355,7 @@
     var clear = document.getElementById("clear");
     if (clear) clear.addEventListener("click", function () { term.clear(); term.focus(); });
     window.addEventListener("resize", function () {
-      if (fit && term) {
+      if (fit && term && document.body.dataset.vmView === "terminal") {
         fit.fit();
         if (socket && socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: "resize", cols: term.cols, rows: term.rows }));
       }
