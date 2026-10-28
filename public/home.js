@@ -291,7 +291,7 @@
     if (serverFormError) { serverFormError.hidden = true; serverFormError.textContent = ""; }
     if (typeof serverDialog.showModal === "function") serverDialog.showModal();
     else serverDialog.setAttribute("open", "");
-    const first = serverForm && serverForm.elements.namedItem("name");
+    const first = serverForm && serverForm.elements.namedItem(connectionModeSelect?.value === "supporter" ? "password" : "name");
     if (first) window.setTimeout(() => first.focus({ preventScroll: true }), 50);
   }
   function closeServerDialog() { if (serverDialog && serverDialog.open) serverDialog.close(); }
@@ -306,22 +306,28 @@
   const sshPasswordFields = $("sshPasswordFields");
   const instaboxFields = $("instaboxFields");
   const supporterDurationFields = $("supporterDurationFields");
+  const connectionTypeFields = $("serverConnectionTypeFields");
+  const serverNameFields = $("serverNameFields");
   function updateProviderFields() {
-    const connectionType = connectionTypeSelect ? connectionTypeSelect.value : "ssh-key";
+    const isSupporter = connectionModeSelect?.value === "supporter";
+    const connectionType = isSupporter ? "ssh-password" : connectionTypeSelect?.value || "ssh-key";
     const isInstabox = connectionType === "instabox";
     const usesPassword = connectionType === "ssh-password";
-    const isSupporter = connectionModeSelect && connectionModeSelect.value === "supporter";
-    if (sshFields) sshFields.hidden = isInstabox;
-    if (sshKeyFields) sshKeyFields.hidden = isInstabox || usesPassword;
-    if (sshPasswordFields) sshPasswordFields.hidden = isInstabox || !usesPassword;
-    if (instaboxFields) instaboxFields.hidden = !isInstabox;
+    if (connectionTypeFields) connectionTypeFields.hidden = isSupporter;
+    if (serverNameFields) serverNameFields.hidden = isSupporter;
+    if (sshFields) sshFields.hidden = isSupporter || isInstabox;
+    if (sshKeyFields) sshKeyFields.hidden = isSupporter || isInstabox || usesPassword;
+    if (sshPasswordFields) sshPasswordFields.hidden = !isSupporter && (isInstabox || !usesPassword);
+    if (instaboxFields) instaboxFields.hidden = isSupporter || !isInstabox;
     if (supporterDurationFields) supporterDurationFields.hidden = !isSupporter;
-    ["serverHost","serverPort","serverUsername"].forEach((id) => { const field = $(id); if (field) field.required = !isInstabox; });
-    const key = $("serverPrivateKey"); if (key) key.required = !isInstabox && !usesPassword;
-    const password = $("serverPassword"); if (password) password.required = !isInstabox && usesPassword;
+    const nameField = serverForm?.elements.namedItem("name");
+    if (nameField) nameField.required = !isSupporter;
+    ["serverHost","serverPort","serverUsername"].forEach((id) => { const field = $(id); if (field) field.required = !isSupporter && !isInstabox; });
+    const key = $("serverPrivateKey"); if (key) key.required = !isSupporter && !isInstabox && !usesPassword;
+    const password = $("serverPassword"); if (password) password.required = isSupporter || (!isInstabox && usesPassword);
     const command = $("instaboxCommand");
-    if (command) command.required = Boolean(isInstabox);
-    if (saveServerButton) saveServerButton.textContent = isInstabox ? "Connect Instabox" : isSupporter ? "Connect supporter VM" : "Test and add server";
+    if (command) command.required = !isSupporter && isInstabox;
+    if (saveServerButton) saveServerButton.textContent = isSupporter ? "Connect supporter VM" : isInstabox ? "Connect Instabox" : "Test and add server";
   }
   if (connectionTypeSelect || connectionModeSelect) {
     connectionTypeSelect?.addEventListener("change", updateProviderFields);
@@ -331,9 +337,12 @@
   if (serverForm) serverForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (serverFormError) { serverFormError.hidden = true; serverFormError.textContent = ""; }
-    const payload = Object.fromEntries(new FormData(serverForm).entries());
-    payload.port = Number(payload.port || 22);
-    if (saveServerButton) { saveServerButton.disabled = true; saveServerButton.textContent = payload.connectionType === "instabox" ? "Connecting…" : "Testing SSH…"; }
+    const isSupporter = connectionModeSelect?.value === "supporter";
+    const payload = isSupporter
+      ? { connectionMode: "supporter", password: $("serverPassword").value }
+      : Object.fromEntries(new FormData(serverForm).entries());
+    if (!isSupporter) payload.port = Number(payload.port || 22);
+    if (saveServerButton) { saveServerButton.disabled = true; saveServerButton.textContent = isSupporter ? "Connecting…" : payload.connectionType === "instabox" ? "Connecting…" : "Testing SSH…"; }
     try {
       const response = await fetch("/api/servers", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const data = await response.json().catch(() => ({}));
