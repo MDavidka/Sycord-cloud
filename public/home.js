@@ -296,11 +296,7 @@
   }
   function closeServerDialog() { if (serverDialog && serverDialog.open) serverDialog.close(); }
   if ($("addServerButton")) $("addServerButton").addEventListener("click", openServerDialog);
-  // Terminal header actions reuse the existing sidebar and connection dialog.
-  if ($("terminalHeaderAddServer")) $("terminalHeaderAddServer").addEventListener("click", () => {
-    openSidebar(false);
-    openServerDialog();
-  });
+  // The top-right terminal action is now VM Settings; the server picker still opens the sidebar.
   if ($("terminalServerPicker")) $("terminalServerPicker").addEventListener("click", () => {
     openSidebar(true);
     if (serversNavToggle?.getAttribute("aria-expanded") === "false") serversNavToggle.click();
