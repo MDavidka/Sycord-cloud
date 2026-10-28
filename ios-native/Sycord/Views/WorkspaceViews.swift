@@ -52,41 +52,48 @@ struct AddServerView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Picker("Provider", selection: $provider) { Text("SSH server").tag("ssh"); Text("Instabox").tag("instabox") }.pickerStyle(.segmented)
                 Picker("Access", selection: $connectionMode) { Text("Standard").tag("standard"); Text("Supporter VM").tag("supporter") }
                 if connectionMode == "supporter" {
-                    Section("Temporary access") {
-                        Picker("Access lasts", selection: $expiresInDays) { Text("7 days").tag("7"); Text("30 days").tag("30") }
-                        Text("At expiry Sycord deletes its saved credential and disconnects. The VM and its own login settings are unchanged.").font(.footnote).foregroundStyle(.secondary)
+                    Section("Supporter VM") {
+                        SecureField("SSH account password", text: $sshPassword)
+                            .textInputAutocapitalization(.never).autocorrectionDisabled()
+                        Text("The VM address and account are preconfigured by the administrator. Temporary access expires after 30 days.").font(.footnote).foregroundStyle(.secondary)
                     }
-                }
-                Section("Connection") {
-                    TextField("Server name", text: $name).textInputAutocapitalization(.words)
-                    if provider == "instabox" { TextField("Instabox SSH command or token username", text: $command).textInputAutocapitalization(.never).autocorrectionDisabled() }
-                    else {
-                        Picker("Authentication", selection: $authMethod) { Text("SSH key").tag("key"); Text("Password").tag("password") }.pickerStyle(.segmented)
-                        TextField("Hostname or IP", text: $host).textInputAutocapitalization(.never).autocorrectionDisabled()
-                        TextField("Username", text: $username).textInputAutocapitalization(.never).autocorrectionDisabled()
-                        TextField("Port", text: $port).keyboardType(.numberPad)
-                        if authMethod == "key" { SecureField("SSH private key", text: $privateKey, prompt: Text("Paste private key")).textInputAutocapitalization(.never).autocorrectionDisabled() }
-                        else { SecureField("SSH account password", text: $sshPassword).textInputAutocapitalization(.never).autocorrectionDisabled() }
+                } else {
+                    Picker("Provider", selection: $provider) { Text("SSH server").tag("ssh"); Text("Instabox").tag("instabox") }.pickerStyle(.segmented)
+                    Section("Connection") {
+                        TextField("Server name", text: $name).textInputAutocapitalization(.words)
+                        if provider == "instabox" { TextField("Instabox SSH command or token username", text: $command).textInputAutocapitalization(.never).autocorrectionDisabled() }
+                        else {
+                            Picker("Authentication", selection: $authMethod) { Text("SSH key").tag("key"); Text("Password").tag("password") }.pickerStyle(.segmented)
+                            TextField("Hostname or IP", text: $host).textInputAutocapitalization(.never).autocorrectionDisabled()
+                            TextField("Username", text: $username).textInputAutocapitalization(.never).autocorrectionDisabled()
+                            TextField("Port", text: $port).keyboardType(.numberPad)
+                            if authMethod == "key" { SecureField("SSH private key", text: $privateKey, prompt: Text("Paste private key")).textInputAutocapitalization(.never).autocorrectionDisabled() }
+                            else { SecureField("SSH account password", text: $sshPassword).textInputAutocapitalization(.never).autocorrectionDisabled() }
+                        }
                     }
+                    Section { Text(provider == "instabox" ? "The Instabox token stays private on the Sycord host." : authMethod == "key" ? "The key is stored securely on your workspace and never shown again." : "The password is encrypted on the Sycord host. SSH password login must be enabled on the remote VM.").font(.footnote).foregroundStyle(.secondary) }
                 }
                 if let error { Text(error).foregroundStyle(.red) }
-                Section { Text(provider == "instabox" ? "The Instabox token stays private on the Sycord host." : authMethod == "key" ? "The key is stored securely on your workspace and never shown again." : "The password is encrypted on the Sycord host. SSH password login must be enabled on the remote VM.").font(.footnote).foregroundStyle(.secondary) }
             }
             .navigationTitle("Add server")
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }; ToolbarItem(placement: .confirmationAction) { Button(busy ? "Connecting…" : "Connect") { Task { await save() } }.disabled(busy || name.isEmpty) } }
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }; ToolbarItem(placement: .confirmationAction) { Button(busy ? "Connecting…" : "Connect") { Task { await save() } }.disabled(busy || (connectionMode == "supporter" ? sshPassword.isEmpty : name.isEmpty)) } }
         }
     }
     private func save() async {
         busy = true; error = nil; defer { busy = false }
-        var payload: [String: String] = ["provider": provider, "name": name, "connectionMode": connectionMode, "expiresInDays": expiresInDays]
-        if provider == "instabox" { payload["command"] = command }
-        else {
-            payload.merge(["host": host, "username": username, "port": port, "authMethod": authMethod]) { _, new in new }
-            if authMethod == "key" { payload["privateKey"] = privateKey }
-            else { payload["password"] = sshPassword }
+        var payload: [String: String]
+        if connectionMode == "supporter" {
+            payload = ["connectionMode": "supporter", "password": sshPassword]
+        } else {
+            payload = ["provider": provider, "name": name, "connectionMode": "standard"]
+            if provider == "instabox" { payload["command"] = command }
+            else {
+                payload.merge(["host": host, "username": username, "port": port, "authMethod": authMethod]) { _, new in new }
+                if authMethod == "key" { payload["privateKey"] = privateKey }
+                else { payload["password"] = sshPassword }
+            }
         }
         do { let body = try JSONSerialization.data(withJSONObject: payload); let _: AddedServer = try await api.request("/api/servers", method: "POST", body: body); try await api.refreshServers(); dismiss() }
         catch { self.error = error.localizedDescription }
