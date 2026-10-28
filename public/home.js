@@ -828,6 +828,20 @@
       event.preventDefault();
       const text = promptInput.value.trim();
       if (!text || sendButton.disabled) return;
+      sendButton.disabled = true;
+      try {
+        const status = await fetch('/api/chat/status', { credentials: 'same-origin', cache: 'no-store' });
+        if (!status.ok) throw new Error('Cannot check chat availability. Please try again.');
+        if (!(await status.json()).configured) {
+          showToolFeedback('AI chat is unavailable. Ask your workspace administrator to connect an AI provider. Your draft is saved.');
+          updateComposer();
+          return;
+        }
+      } catch (_) {
+        showToolFeedback('Cannot reach chat right now. Your draft is saved. Please try again.');
+        updateComposer();
+        return;
+      }
       const isRegeneration = regenerating;
       regenerating = false;
       softHaptic();
@@ -863,7 +877,7 @@
           method: "POST",
           credentials: "same-origin",
           headers: { "Content-Type": "application/json", "Accept": "text/event-stream" },
-          body: JSON.stringify({ messages: chatHistory.slice(-20) })
+          body: JSON.stringify({ messages: chatHistory.slice(-12) })
         });
         if (!response.ok) {
           const responseText = await response.text();
@@ -936,7 +950,10 @@
         if (chatHistory.length > 20) chatHistory.splice(0, chatHistory.length - 20);
         if (keepFollowing) conversation.scrollTo({ top: conversation.scrollHeight, behavior: "smooth" });
       } catch (error) {
-        loading.textContent = error && error.message ? error.message : "Could not get an AI response. Please try again.";
+        loading.textContent = "The response could not be completed. Your message is back in the composer; please try again.";
+        loading.setAttribute('role', 'alert');
+        promptInput.value = text;
+        if (chatHistory.at(-1)?.role === 'user') chatHistory.pop();
         loading.classList.remove("home-message-loading", "home-message-streaming");
         loading.classList.add("home-message-error");
       } finally {

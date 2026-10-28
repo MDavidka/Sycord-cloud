@@ -821,10 +821,16 @@ app.post("/api/chat/approve", (req, res) => {
   return res.json({ ok: true });
 });
 
+app.get("/api/chat/status", (req, res) => {
+  if (!hasSession(req)) return res.status(401).json({ error: "Authentication required" });
+  res.setHeader("Cache-Control", "no-store");
+  res.json({ configured: Boolean(String(process.env.N_API || "").trim()) });
+});
+
 app.post("/api/chat", async (req, res) => {
   if (!hasSession(req)) return res.status(401).json({ error: "Authentication required" });
   const apiKey = String(process.env.N_API || "").trim();
-  if (!apiKey) return res.status(503).json({ error: "AI is not configured. Set N_API in the server environment." });
+  if (!apiKey) return res.status(503).json({ error: "AI chat is unavailable. The workspace administrator needs to connect an AI provider." });
   const workspaceId = getWorkspaceId(req);
   if (!workspaceId) return res.status(400).json({ error: "Workspace cookie missing." });
   const inputMessages = req.body && Array.isArray(req.body.messages) ? req.body.messages : [];
@@ -857,7 +863,7 @@ app.post("/api/chat", async (req, res) => {
       const providerMessage = data && data.error ? (typeof data.error === "string" ? data.error : data.error.message || JSON.stringify(data.error)) : bodyText.slice(0, 250);
       console.error("Airshell provider error:", upstream.status, String(providerMessage).slice(0, 400));
       const status = upstream.status === 429 ? 429 : upstream.status === 401 || upstream.status === 403 ? upstream.status : 502;
-      const friendly = upstream.status === 429 ? "Airshell reached the AI provider rate limit. Wait a moment and retry; this turn used one AI request." : upstream.status === 401 || upstream.status === 403 ? "Check the N_API key." : "AI provider returned HTTP " + upstream.status + ".";
+      const friendly = upstream.status === 429 ? "Airshell reached the AI provider rate limit. Wait a moment and retry; this turn used one AI request." : upstream.status === 401 || upstream.status === 403 ? "The AI provider could not authenticate this workspace. Contact your administrator." : "AI provider returned HTTP " + upstream.status + ".";
       if (wantsStream) { sendEvent({ error: friendly }); return res.end(); }
       return res.status(status).json({ error: friendly });
     }
