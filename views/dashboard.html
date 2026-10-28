@@ -573,11 +573,10 @@
         <div class="server-dialog-head"><div><p class="server-dialog-eyebrow">SERVER CONNECTION</p><h2 id="addServerTitle">Add a server</h2><p>Connect an SSH host or grant temporary access to a supporter VM.</p></div><button type="button" class="server-dialog-close" id="closeServerDialog" aria-label="Close">×</button></div>
         <label>Access<select name="connectionMode" id="serverConnectionMode"><option value="standard">Standard server</option><option value="supporter">Supporter VM · temporary access</option></select></label>
         <div id="supporterDurationFields" hidden>
-          <label>Access duration<select name="expiresInDays"><option value="7">7 days</option><option value="30">30 days</option></select></label>
-          <p class="server-dialog-note">At expiry Sycord deletes its saved credential and disconnects. The VM and its own login settings are unchanged.</p>
+          <p class="server-dialog-note">Enter only the VM's SSH password. The administrator configures the server address and SSH account. Access automatically expires after 30 days.</p>
         </div>
-        <label>Connection type<select name="connectionType" id="serverConnectionType"><option value="ssh-key">SSH · private key</option><option value="ssh-password">SSH · password</option><option value="instabox">Instabox · token command</option></select></label>
-        <label>Server name<input name="name" maxlength="48" required placeholder="My server"></label>
+        <div id="serverConnectionTypeFields"><label>Connection type<select name="connectionType" id="serverConnectionType"><option value="ssh-key">SSH · private key</option><option value="ssh-password">SSH · password</option><option value="instabox">Instabox · token command</option></select></label></div>
+        <div id="serverNameFields"><label>Server name<input name="name" maxlength="48" required placeholder="My server"></label></div>
         <div id="sshFields">
           <div class="server-dialog-grid"><label>Host or IP<input name="host" id="serverHost" required autocapitalize="off" spellcheck="false" placeholder="203.0.113.10"></label><label>SSH port<input name="port" id="serverPort" type="number" min="1" max="65535" value="22" required></label></div>
           <label>Linux username<input name="username" id="serverUsername" required autocapitalize="off" spellcheck="false" placeholder="ubuntu"></label>
