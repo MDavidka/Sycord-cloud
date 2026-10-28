@@ -621,14 +621,46 @@
     const chatHistory = [];
     let regenerating = false;
     const conversation = $("conversation");
+    // The empty-state shortcuts are real actions. Server navigation stays
+    // separate from AI requests and never exposes supporter connections as tabs.
+    document.querySelectorAll("[data-home-shortcut]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const action = button.dataset.homeShortcut;
+        softHaptic();
+        if (action === "terminal") {
+          if (!homeServers.length) {
+            openServerDialog();
+          } else if (homeServers.length === 1) {
+            location.href = "/terminal?server=" + encodeURIComponent(homeServers[0].id);
+          } else {
+            openSidebar(true);
+            if (serversNavToggle?.getAttribute("aria-expanded") === "false") serversNavToggle.click();
+          }
+          return;
+        }
+        if (!homeServers.length) {
+          openServerDialog();
+          return;
+        }
+        const prompts = {
+          health: "Check the health of my saved Linux servers using read-only diagnostics. Summarize CPU, memory, disk usage, uptime, and any problems. If you need a specific server, ask me.",
+          logs: "Review recent system logs from my saved Linux servers using read-only commands. Summarize notable errors and warnings without changing anything. If you need a specific server, ask me."
+        };
+        const prompt = prompts[action];
+        if (!prompt || promptInput.disabled) return;
+        promptInput.value = prompt;
+        promptInput.dispatchEvent(new Event("input", { bubbles: true }));
+        composer.requestSubmit();
+      });
+    });
     if (newChatButton) newChatButton.addEventListener("click", () => {
       chatHistory.length = 0;
       regenerating = false;
       conversation.replaceChildren();
       document.querySelector(".home-main.home-dashboard")?.classList.remove("has-conversation");
       document.body.classList.remove("chat-active");
-      promptInput.placeholder = "Ask about this page";
-      promptInput.setAttribute("aria-label", "Ask about this page");
+      promptInput.placeholder = "Ask anything";
+      promptInput.setAttribute("aria-label", "Ask anything");
       promptInput.value = "";
       promptInput.disabled = false;
       if (fileInput) fileInput.value = "";
