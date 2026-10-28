@@ -412,3 +412,218 @@ All P0 work is a prerequisite to advertising Airshell as a trustworthy, general-
 - Every write or terminal command proposed by AI is reviewed, correctly bound, recorded and verified.
 - No fake Inbox/Roadmap/Research destinations remain.
 - Cross-page sidebar and themes visually match, without custom shaded exceptions.
+
+
+## 7. P2 — advanced features and product differentiation
+
+P2 features should be implemented only after P0/P1 workflows are stable. They add depth without sacrificing the calm basic app.
+
+### 7.1 Advanced server operations
+
+- **P2-SRV-01 [L] Tags and saved views:** examples: web, database, critical, personal, staging; filters sync with account.
+- **P2-SRV-02 [M] Custom server ordering:** drag reorder with a non-drag accessible alternative.
+- **P2-SRV-03 [L] SSH jump host / ProxyJump:** optional, explicit multi-hop architecture; distinct from simple Supporter VM reachability preflight.
+- **P2-SRV-04 [L] SSH agent forwarding policy:** ideally disabled; only considered for explicit trusted contexts with safety warnings.
+- **P2-SRV-05 [M] Key fingerprint review:** recognized host keys, changed-key history and remove/trust workflow.
+- **P2-SRV-06 [M] Connection templates:** nonsecret host settings, SSH port and username defaults; never ship credentials in templates.
+- **P2-SRV-07 [M] Expiring temporary access:** countdown, renew/recreate only after authorization; UI distinguishes server-side expiration vs remote credential expiry.
+- **P2-SRV-08 [L] Shared server metadata with RBAC:** explicitly separate users and credential ownership; no implicit sharing.
+- **P2-SRV-09 [L] Host dependency map:** manually defined relationships, not guessed topology.
+- **P2-SRV-10 [L] Export/import configuration:** encrypted secure transfer with explicit recipient and rotation plan.
+- **P2-SRV-11 [M] Favorite quick-connect actions:** one tap to open the selected host's own terminal or Files, not execute a command.
+- **P2-SRV-12 [L] Connectivity diagnostics:** distinguish Airshell backend -> host network vs main VM -> supporter reachability where relevant.
+
+### 7.2 Terminal power-user features
+
+- **P2-TERM-01 [L] Split terminal on tablet/desktop:** two panels, independent sessions, visible target headers.
+- **P2-TERM-02 [M] Session naming and pinning:** preserve names and explicit selection.
+- **P2-TERM-03 [L] Searchable command history:** scope per-user/per-server; redact credentials; opt-in persistence.
+- **P2-TERM-04 [M] Snippet library:** vetted commands with descriptions, variables and explicit preview.
+- **P2-TERM-05 [L] Local terminal clipboard workflow:** paste multiple commands with newline review and accidental execution prevention.
+- **P2-TERM-06 [M] Terminal text theme:** neutral presets, accessible foreground/ANSI color pairings.
+- **P2-TERM-07 [L] Large-output virtualization/serialization:** bounded scrollback and explicit export; do not freeze iPhone.
+- **P2-TERM-08 [M] URL recognition with secure open:** no automatic shell-command links or secret-bearing URL navigation.
+- **P2-TERM-09 [M] Long-running job detach:** separate persistent tmux task from foreground terminal session; display actual status.
+- **P2-TERM-10 [M] Terminal session history:** who connected, how long, and why ended, subject to privacy policy.
+- **P2-TERM-11 [M] Configurable gestures:** two-finger horizontal history/terminal tab movement only when not conflicting with terminal apps.
+- **P2-TERM-12 [L] Hardware keyboard shortcuts:** Ctrl/Alt pass-through, command palette and key mapping.
+- **P2-TERM-13 [M] Terminal command privacy mode:** visually reduce sensitive pastes; server should still securely process input.
+- **P2-TERM-14 [L] Read-only shared terminal observer:** explicitly scoped, audited and consented; no input without permission.
+- **P2-TERM-15 [M] SSH connection test transcript:** redacted, stage-based debugging with safe copy.
+
+### 7.3 Richer file workspace
+
+- **P2-FILE-01 [L] Multi-file tabs:** unsaved badge, restore active tab, explicit close.
+- **P2-FILE-02 [M] Compare two files:** read-only side-by-side and inline diff modes.
+- **P2-FILE-03 [M] Config validation preflight:** JSON parse, YAML when supported, common config syntax checks before proposed save.
+- **P2-FILE-04 [M] File permissions inspector:** read and proposed chmod/chown changes with explicit consequences.
+- **P2-FILE-05 [M] Filename/path bookmarks:** per server and scoped to user.
+- **P2-FILE-06 [L] Content search across allowed roots:** bounded size, timeout, file count and path restrictions.
+- **P2-FILE-07 [L] Remote download/upload:** scoped size caps, virus/unsafe file handling, safe overwrite prompts.
+- **P2-FILE-08 [M] Folder tree on wide screens:** keyboard accessibility and symlink/cycle handling.
+- **P2-FILE-09 [L] Save history with recovery:** chronological revisions, optional retention limit, explicit restore.
+- **P2-FILE-10 [M] File editor command palette:** jump to line, find/replace, format selection.
+- **P2-FILE-11 [L] Atomic multi-file change proposal:** show per-file diffs and failure recovery, no all-or-nothing claim unless transactional.
+- **P2-FILE-12 [M] Git-aware indicators:** show repository root/modified status only when Git is available and permissions allow.
+- **P2-FILE-13 [M] Relative link path resolver:** never navigate outside approved root merely because a file contains a link.
+- **P2-FILE-14 [L] File size and content policy:** confidential path exclusions and regulated data handling where relevant.
+
+### 7.4 Monitoring, uptime and alerts
+
+- **P2-MON-01 [L] Time-series backend store:** CPU, memory, disk, network and process metrics with aggregation and retention.
+- **P2-MON-02 [M] Chart compare:** synced timestamps with a clear “missing data” pattern.
+- **P2-MON-03 [M] Incident thresholds:** sustained CPU, high disk, memory exhaustion, SSH unreachable, certificate nearing expiry where inspected.
+- **P2-MON-04 [L] Notification center:** queued events, read/unread, grouping and deduplication.
+- **P2-MON-05 [L] Web Push for installed iPhone PWA:** permission from explicit gesture, actionable and not sensitive; supported home-screen web-app conditions apply.
+- **P2-MON-06 [M] Optional email/webhook alert destinations:** verify ownership and prevent leakage.
+- **P2-MON-07 [M] Scheduled weekly server summary:** actual sampled facts, concise trend and recommended inspections.
+- **P2-MON-08 [M] Safe diagnostic snapshots:** redact private IP/hosts/secrets before export.
+- **P2-MON-09 [L] Service health checks:** HTTP/TCP endpoint probes from authorized backend, not unbounded network scanner.
+- **P2-MON-10 [M] Alert suppression windows:** maintenance mode, snooze and dedup policies; do not hide critical events silently.
+- **P2-MON-11 [M] SLA/SLO definitions:** explicitly documented uptime semantics, no claim from a few HTTP polls.
+- **P2-MON-12 [L] Correlated incident timeline:** metrics, changes, disconnects, tool runs; correlation not guaranteed causation.
+- **P2-MON-13 [M] Metric retention/export:** CSV with timestamp zone and units, avoid leaking sensitive hosts.
+- **P2-MON-14 [L] Process inspection:** bounded process list, resource usage and authorized details, no broad process environment dump.
+- **P2-MON-15 [L] Service management:** inspect systemd unit status first; stop/restart requires explicit command approval.
+- **P2-MON-16 [L] Docker inspection:** authorized hosts only; containers, logs, resource figures, nonsecret status.
+- **P2-MON-17 [L] Disk explorer:** mountpoints, major directories by usage, large file detection with bounded sampling.
+- **P2-MON-18 [M] Smart quiet status:** if all servers are fine, show one calm line instead of a full screen of green cards.
+
+### 7.5 AI workflow intelligence and task ownership
+
+- **P2-AI-01 [L] Named workspaces/projects:** group servers, chats and files with explicit scope.
+- **P2-AI-02 [M] Context references:** attach a chosen metric snapshot, selected log lines or a file with user permission.
+- **P2-AI-03 [L] Session-aware memory for work:** summarize nonsecret working context, make it inspectable and deletable.
+- **P2-AI-04 [M] Intent-to-plan:** translate “why is this VPS slow?” into diagnostic steps without mutating anything.
+- **P2-AI-05 [M] Diff-first workflows:** display a safe minimal patch proposal before touching files.
+- **P2-AI-06 [M] Verification recipe:** each action declares “how success will be checked” before approval.
+- **P2-AI-07 [L] Draft runbooks:** AI converts observed steps into an editable, user-owned procedure, not an auto-run script.
+- **P2-AI-08 [L] Multi-step approvals:** group only bounded, enumerated actions; dangerous steps require separate confirmation.
+- **P2-AI-09 [M] Context-window management:** compact old tool results while preserving approvals and tool evidence.
+- **P2-AI-10 [M] Better model fallback UX:** transparently switch only when permitted; do not silently change capability or expense.
+- **P2-AI-11 [M] Provider usage dashboard:** show token/request counts and cost only where actual provider data exists.
+- **P2-AI-12 [L] Agent evaluation suite:** repeatable tasks for SSH diagnostics, malformed files, refusals and prompt-injection attempts.
+- **P2-AI-13 [M] Structured outputs:** typed tool-result schemas instead of extracting commands from free-form generated text.
+- **P2-AI-14 [L] Confidence calibration:** “verified by command,” “inferred,” “unknown” rather than misleading numeric confidence.
+- **P2-AI-15 [L] Parallel read-only diagnostics:** bounded fan-out, ordered result merging and cancellation.
+- **P2-AI-16 [M] Change review summary:** show exactly what changed and what was *not* verified.
+- **P2-AI-17 [M] Stop/rollback affordance:** offer only genuine supported recovery; don't claim universal undo.
+- **P2-AI-18 [L] Role-specific assistant modes:** Explorer (read-only), Operator (approval-only writes), Auditor (review only) enforced by backend.
+- **P2-AI-19 [L] Project document references:** reference explicit user-selected files, protect prompt boundary, show provenance.
+- **P2-AI-20 [M] Assistant accessibility:** streaming announcements throttled for screen readers; structured tool results.
+
+### 7.6 Automation with safety constraints
+
+- **P2-AUTO-01 [L] Read-only scheduled checks:** inspect status/disk/memory/cert expiry; no writes in first release.
+- **P2-AUTO-02 [M] Rule builder:** choose target servers, metric, threshold, duration, schedule and destination.
+- **P2-AUTO-03 [M] Dry-run mode:** show what would run and which data would be collected.
+- **P2-AUTO-04 [M] Run history:** success/failure, duration, trigger, sample timestamp, error code.
+- **P2-AUTO-05 [M] Notifications:** dedupe/quiet hours/snooze, redacted payload, per-device subscription.
+- **P2-AUTO-06 [L] Retry policy:** bounded retry, idempotency and rate limits; no uncontrolled loops.
+- **P2-AUTO-07 [L] Job queue:** durable queue with worker leasing, limits, cancellation and audit records.
+- **P2-AUTO-08 [M] Disconnected-server skip:** never queue potentially destructive “catch-up” changes without renewed approval.
+- **P2-AUTO-09 [L] Approval-at-execution for writes:** no indefinitely valid grants and no silent scheduled root commands.
+- **P2-AUTO-10 [M] Maintenance window:** rule suspension and timed re-enable with visible status.
+
+### 7.7 Native device integration
+
+- **P2-IOS-01 [L] Fully native design parity:** SwiftUI screens share architecture/labels, not hand-translated ad-hoc concepts.
+- **P2-IOS-02 [M] Offline read-only recent summary:** encrypted/redacted snapshots with timestamp; not offline terminal.
+- **P2-IOS-03 [M] Secure biometric app lock:** iOS authentication APIs with fallback to backend login.
+- **P2-IOS-04 [M] Spotlight and Siri shortcuts:** safe navigation to server detail or latest approved report, not root execution.
+- **P2-IOS-05 [L] iPad adaptive split views:** server list + detail + inspector when screen permits.
+- **P2-IOS-06 [M] Handoff/deep links:** authenticated navigation to server/chat/files; never embed credentials.
+- **P2-IOS-07 [M] System share sheet:** redacted reports and sanitized text, user-controlled.
+- **P2-IOS-08 [M] Local keyboard shortcut preferences:** external keyboard on iPad/macOS browser.
+- **P2-IOS-09 [M] Notifications controls:** opt-in per event, quiet hours and privacy-safe preview.
+- **P2-IOS-10 [L] On-device encrypted draft store:** terminal draft is *not* queued for execution offline.
+- **P2-IOS-11 [M] Native copy/paste safeguards:** warn when pasting multiple shell lines into live session.
+- **P2-IOS-12 [M] Home Screen quick actions:** open app chat/servers, no execution without authentication.
+- **P2-IOS-13 [L] Distribution build matrix:** document Apple SDK, signing, physical-device, TestFlight and permitted EU distribution realities before claiming an IPA route.
+- **P2-IOS-14 [M] Reachability and data-saving modes:** adaptive diagnostic refresh over cellular.
+- **P2-IOS-15 [M] Respect content-size category and Reduce Transparency/Motion:** test native and WebView behavior separately.
+
+## 8. P3 — innovative ideas to prototype, not blindly ship
+
+These are differentiators, not obligations. Each idea needs a prototype, a privacy/security review and a measured benefit before productization.
+
+| Idea | User value | Guardrail / experimental question |
+| --- | --- | --- |
+| **I-01: Server Pulse** | one-line “what changed since yesterday?” per host | only from real historical samples, label uncertainty |
+| **I-02: Explain-before-execute** | preview plain-language impact alongside literal SSH command | literal command remains authoritative; no hidden execution |
+| **I-03: Incident Story** | chronological narrative of alerts, changes and recovery | correlation must not be presented as proven cause |
+| **I-04: Smart Triage Queue** | rank servers by real severity rather than by raw CPU | explain scoring inputs, avoid misleading urgency |
+| **I-05: One-screen Health Snapshot** | swipeable overview with verified CPU/disk/network values | no decorative gauges or invented data |
+| **I-06: Guided Fix Cards** | user-selectable recovery recipes for common incidents | read-only diagnosis first; privileged fixes separately approved |
+| **I-07: Command Simulation** | preview estimated effects against a safe test environment | never claim simulation matches production perfectly |
+| **I-08: Risk-aware Approval** | confirmation depth scales with risk and reversibility | backend policy determines severity, not only AI output |
+| **I-09: Change Receipts** | signed, redacted record of each AI-assisted edit | verify integrity, retention and who can view |
+| **I-10: Session Time Machine** | replay sanitized terminal events to understand an incident | explicitly opt-in; avoid storing secrets/typed passwords |
+| **I-11: Daily Ops Digest** | small factual summary without opening each VPS | user-controlled cadence, cost and privacy |
+| **I-12: Auto-context Composer** | context bar suggests target based on selected screen | cannot silently change server on send |
+| **I-13: Universal Quick Switcher** | type a few letters to jump to server/chat/file | search entirely within authorized workspace |
+| **I-14: Human-readable SSH Failure Tree** | direct questions and fixes for the failed stage | never auto-rewrite sshd, firewall or root auth |
+| **I-15: Recovery Checklist** | a guided path after accidental config changes | backups and permissions verified before offering restore |
+| **I-16: Production Safety Mode** | stronger confirmations, read-only default for production | user cannot bypass security policy with UI-only toggle |
+| **I-17: Contextual Mobile Keystrip** | show Esc/Tab/CTRL based on real active terminal mode | no fake vim/bash mode guesses; let users customize |
+| **I-18: Pin Important Output** | bookmark nonsecret terminal lines inside a session | opt-in storage and redaction |
+| **I-19: “What did the agent do?”** | clear, terse command/file action digest | tool evidence attached to each step |
+| **I-20: AI Runbook Studio** | turn verified workflow into an editable reusable playbook | approval and validation at every later execution |
+| **I-21: Cross-server Comparison** | synchronized metrics for selected servers | compare same metric/time window, not unlike units |
+| **I-22: Dependency Impact View** | visualize manually supplied service relationships | do not pretend auto-discovered topology |
+| **I-23: Maintenance Compass** | track due backups, pending updates and certificate checks | only from inspected facts and configured targets |
+| **I-24: Work Session Journal** | optional private notes and actions grouped by task | end-to-end access controls and deletion |
+| **I-25: Permission Heatmap** | make SSH user/privilege scope easier to reason about | do not probe unrelated accounts or expose secrets |
+| **I-26: Incident Handoff Pack** | redacted report for trusted collaborators | explicit user preview and recipient |
+| **I-27: Safe Remote Screenshot** | inspect a service UI in a tightly scoped sandbox | never silently access arbitrary networks or private sites |
+| **I-28: Query-to-Chart** | ask “disk used last 48h?” and see sourced graph | don't invent samples; link source and timestamps |
+| **I-29: Confidence Through Evidence** | attach command/log/sample evidence to conclusions | qualitative states, not deceptive numerical certainty |
+| **I-30: Server Personality = Labels, Not Mascots** | easily distinguish work environments | no emoji-as-icon default or distracting avatars |
+| **I-31: Private On-call Mode** | lock to incidents, minimize chat noise | user opt-in; no endless notifications |
+| **I-32: Safe Follow-up Suggestions** | relevant next diagnostic after each result | read-only, evidence-based, no uncontrolled tool loop |
+| **I-33: Secret Exposure Guard** | warn before sending credentials in chat or exports | client + server validation, no secret copies for scanning |
+| **I-34: Scheduled Snapshot Compare** | show meaningful change between two known states | missing metrics stay missing |
+| **I-35: SSH Session Handoff** | continue a session from web to native iPhone | device-bound auth, no credential sharing in links |
+| **I-36: Explain Configuration** | parse a selected config and document what settings mean | treat config as data, not instructions; no writes |
+| **I-37: Minimal Safe Ops Widget** | quick glance at health without opening full app | cached data timestamp and locked disclosure |
+| **I-38: Feature Search Assistant** | help user discover actual supported commands | no hallucinated routes or unavailable features |
+| **I-39: Cost-aware Diagnostic Mode** | reduce polling/API usage on metered plans | clear controls, do not degrade security |
+| **I-40: Verified Fix Badge** | show proof after a change resolved an issue | only true when explicitly tested; not a cosmetic achievement |
+| **I-41: Draft-only Automations** | assistant proposes a monitoring rule, user approves it | no task created or armed automatically |
+| **I-42: Secure Command Collections** | reusable admin snippets with risk annotations | server side permission policy overrides snippets |
+| **I-43: Files-as-Context Preview** | attach selected lines into chat with exact source path | opt-in and size cap, redaction preview |
+| **I-44: Adaptive Density** | comfortable vs compact row height based on preference | accessibility wins over density |
+| **I-45: Terminal Focus Mode** | hide optional chrome while typing | never hide connection identity or critical warnings |
+| **I-46: Supporter Access Clock** | explicit expiry and action to review external access | not positioned as remote password revocation |
+| **I-47: Runbook Diff Review** | compare changes to a saved workflow before using it | prevents approving one plan and running another |
+| **I-48: User-owned Prompt Templates** | quick incident prompts with server variables | visible expansion before sending |
+| **I-49: Rootless-first Helper** | suggest least-privilege account and sudo workflows | no automatic elevation |
+| **I-50: Recovery Readiness Score** | show whether verified backups, snapshots and docs exist | transparent criteria; no fake scoring from insufficient data |
+
+### Innovation decision rubric
+
+For each idea, score 1–5 on user frequency, time saved, security risk, implementation complexity, maintenance burden, iPhone ergonomics and differentiation. Require a threat model for remote execution, a measurable hypothesis and an opt-out. Prototype the highest-value **read-only** ideas first: Server Pulse, Quick Switcher, Incident Story, sourced Query-to-Chart and Explain-before-execute.
+
+## 9. Content, interaction and voice guidelines
+
+### Microcopy
+
+- Prefer “Connected” or “Online · checked 18:31” to “Everything is perfect.”
+- Prefer “Unable to reach SSH service” + “Check host, port and network access” to “Something went wrong.”
+- Prefer “Awaiting your approval” to an ambiguous loading spinner.
+- Prefer “Executed with exit code 0; service health still unverified” to “Fixed!”
+- Prefer “Last sampled 9 minutes ago” to misleading live graph coloring.
+- Prefer “Remove saved connection” to “Delete server” when the operation does not delete the remote machine.
+- Prefer “Support access expires in 2 days” to “VM will be deleted in 2 days,” unless that is demonstrably true.
+
+### Interaction contracts
+
+- Every primary button tells the user *what* will happen.
+- Dangerous operations are named, reviewed and cannot be inferred from a decorative button.
+- Tapping a server row navigates to details/terminal according to a documented consistent rule; a trailing menu owns management actions.
+- Keyboard Enter must not send a multi-line shell paste unexpectedly; provide explicit controlled submission.
+- Search results must not reorder under a user who is about to tap.
+- The UI must remain stable during polling, especially server list status changes.
+- Live stats announce major changes politely to screen readers; do not announce every numerical refresh.
+- Links from untrusted terminal/file content always show safe target and open outside privileged application context when appropriate.
+- Confirmation for actions touching production should identify environment and actual user identity, not just a red title.
