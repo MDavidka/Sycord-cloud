@@ -56,6 +56,18 @@ Choose **Supporter VM** to connect using only an SSH account password. Configure
 
 Each saved host opens its own SSH terminal session at `/terminal?server=<id>`. When `tmux` is installed on the remote host, Airshell automatically attaches to a named `tmux` session for that server; this lets CLI processes continue and be reattached after a browser disconnect or an Airshell restart. Without `tmux`, the terminal falls back to a regular SSH shell and cannot promise process persistence across disconnects. The **Files** tab lists the remote directory and supports text previews up to 128 KiB per file. The Files API currently relies on GNU `find` and standard SSH tools on the remote Linux host.
 
+### VM Settings (web / PWA)
+
+On `/terminal?server=<id>`, the top-right **gear** replaces the old new-server shortcut and opens the compact VM Settings view. The gear toggles back to the previous Terminal/Files view without intentionally closing its SSH session. Settings can also open directly at `/terminal?server=<id>&view=settings`. No saved server selected shows a prompt to choose one.
+
+- **Overview:** CPU utilization, RAM and filesystem capacity/usage, uptime, load average, and received/sent network rates; expandable system, provider, access, connection, and preference rows. CPU and network rates are calculated from consecutive reads of Linux `/proc` and are initially unavailable until the next sample.
+- **System:** read-only Linux OS, hostname, kernel, architecture, CPU model, core count, timezone and performance data. Some fields may be unavailable on restricted systems.
+- **Access:** connection mode, temporary Supporter VM access expiration and remaining time. Standard connections can open the existing password-only Supporter VM flow. Removing a saved supporter connection deletes Airshell's stored credential but does **not** revoke or modify the remote SSH account or password.
+- **Editing:** rename a saved server and optionally enter a hosting provider name, region and plan. Infrastructure provider identity is **not** inferred from a host IP or the SSH connection method. These non-secret labels are persisted with the workspace server record.
+- **Preferences:** optional 5/15/30/60-second diagnostic refresh or manual-only mode, stored in this browser. VM diagnostics are read-only. If SSH fails, the UI marks the readings unavailable rather than labeling them online.
+
+Authenticated API additions: `GET /api/servers/:id/details` (read-only, fixed SSH diagnostic command with bounded response and timeout), `PATCH /api/servers/:id` (only `name` and `providerInfo`), and the existing `DELETE /api/servers/:id` to remove a saved connection. Browser pages use `Cache-Control: no-store` for the diagnostic API. No power management, provider billing APIs, remote password changes, or server-side historical metrics are implied by this interface.
+
 ### Persistent hosting
 
 - Set `AIRSHELL_DATA_DIR` to a **persistent, private volume** on the Airshell host. It stores each workspace's server registry and SSH keys. If the hosting platform's filesystem is ephemeral, saved servers and keys can disappear after a redeploy/restart.
