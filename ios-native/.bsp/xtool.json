@@ -1,0 +1,4 @@
+{
+  "name": "xtool",
+  "argv": ["/usr/bin/env", "xtool", "dev", "build-server"]
+}

@@ -12,3 +12,8 @@ This Expo app hosts the existing Airshell site in a native WebView. It keeps the
 The app needs a reachable HTTPS site URL. `localhost` on a phone points to the phone itself, not this development machine. For a local server, use an HTTPS tunnel or a host address reachable from the phone.
 
 Expo Go includes the WebView module. For store builds, configure the EAS project and submit with the Expo account that owns the app identifier `com.airshell.mobile`.
+
+
+## Native SwiftUI app
+
+A native iOS implementation is available in [`../ios-native`](../ios-native/README.md). Open `ios-native/Sycord.xcodeproj` in Xcode on macOS.
