@@ -1,0 +1,66 @@
+/* Airshell chat home — compact native-feeling iOS layout */
+.airshell-home .home-main.home-dashboard { background:#111112 !important; min-height:100dvh; }
+.airshell-home .home-dashboard > .page-tools,
+.airshell-home .home-dashboard > .account-grid { display:none !important; }
+.airshell-home .home-dashboard .home-conversation::before { display:none !important; }
+.airshell-home .home-dashboard > .home-conversation {
+  top:clamp(72px,11vh,112px) !important;
+  bottom:calc(var(--chat-composer-space, 128px) + env(safe-area-inset-bottom,0px)) !important;
+  left:max(20px,calc((100% - 760px)/2)) !important;
+  right:max(20px,calc((100% - 760px)/2)) !important;
+  scrollbar-width:thin;
+}
+.airshell-home .home-dashboard .chat-start {
+  position:absolute; top:34%; left:50%; transform:translate(-50%,-50%);
+  width:min(100% - 40px,570px); display:flex; flex-direction:column;
+  align-items:flex-start; gap:20px; z-index:2; padding:0 2px;
+}
+.airshell-home .home-dashboard .chat-start h1 { margin:0; font-size:clamp(26px,4vw,34px); line-height:1.18; letter-spacing:-.04em; font-weight:560; color:#f2f2f3; }
+.airshell-home .home-dashboard .chat-start p { margin:7px 0 0; font-size:14px; line-height:1.5; color:#96969a; }
+.airshell-home .home-dashboard .chat-suggestions { display:flex; flex-wrap:wrap; gap:9px; width:100%; }
+.airshell-home .home-dashboard .chat-suggestions button {
+  border:1px solid #303033; background:#1c1c1e; color:#d6d6d9; border-radius:999px;
+  padding:10px 14px; min-height:44px; font:450 13px Geist,system-ui,sans-serif;
+  transition:background .15s,border-color .15s,transform .15s;
+}
+.airshell-home .home-dashboard .chat-suggestions button:active {transform:scale(.98);}
+.airshell-home .home-dashboard .chat-suggestions button:hover {background:#29292b;border-color:#454548;}
+.airshell-home .home-dashboard.has-conversation .chat-start {display:none !important;}
+.airshell-home .home-dashboard > .home-composer {
+  left:max(16px,calc((100% - 760px)/2)) !important;
+  right:max(16px,calc((100% - 760px)/2)) !important;
+  bottom:max(14px,env(safe-area-inset-bottom,0px)) !important;
+  min-height:104px !important;
+  padding:16px 16px 12px !important;
+  display:grid !important;
+  grid-template-columns:44px 44px 1fr 44px !important;
+  grid-template-rows:minmax(28px,auto) 44px !important;
+  gap:8px !important;
+  border:1px solid #353537 !important;
+  border-radius:28px !important;
+  background:#222224 !important;
+  box-shadow:0 8px 32px rgba(0,0,0,.18) !important;
+}
+.airshell-home .home-dashboard > .home-composer #promptInput {
+  grid-column:1 / -1 !important; grid-row:1 !important; width:100% !important;
+  min-height:30px !important; max-height:140px !important; padding:0 4px !important;
+  margin:0 !important; font-size:16px !important; line-height:1.5 !important;
+}
+.airshell-home .home-dashboard > .home-composer .composer-add {grid-column:1;grid-row:2;width:44px;height:44px;min-width:44px;}
+.airshell-home .home-dashboard > .home-composer .model-select {grid-column:2;grid-row:2;width:44px;height:44px;min-width:44px;max-width:44px;padding:0;justify-content:center;}
+.airshell-home .home-dashboard > .home-composer .composer-send {grid-column:4;grid-row:2;width:44px;height:44px;min-width:44px;border-radius:50%;}
+.airshell-home .home-dashboard > .home-composer .mic-button {display:none !important;}
+.airshell-home .home-dashboard .home-message-actions {opacity:.8;}
+@media(max-width:600px) {
+  .airshell-home .home-dashboard .chat-start {top:35%;width:calc(100% - 48px);}
+  .airshell-home .home-dashboard .chat-start h1 {font-size:27px;}
+  .airshell-home .home-dashboard .chat-suggestions {gap:8px;}
+  .airshell-home .home-dashboard .chat-suggestions button {font-size:12px;padding:9px 12px;}
+  .airshell-home .home-dashboard > .home-composer {left:12px !important;right:12px !important;bottom:max(10px,env(safe-area-inset-bottom,0px)) !important;}
+}
+@media(max-height:620px) {
+  .airshell-home .home-dashboard .chat-start {top:28%;gap:10px;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .airshell-home .home-dashboard .chat-suggestions button {transition:none;}
+}
