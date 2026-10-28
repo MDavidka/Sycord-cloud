@@ -1,12 +1,13 @@
 "use strict";
 
 // Bump this whenever the app shell changes so installed PWAs fetch current styles.
-const CACHE_NAME = "airshell-static-v9";
+const CACHE_NAME = "airshell-static-v10";
 const STATIC_ASSETS = [
   "/assets/app.css",
   "/assets/app.js",
-  "/assets/home.js?v=home-reference-10",
+  "/assets/home.js?v=ios-chat-1",
   "/assets/home-reference.css?v=13",
+  "/assets/ios-chat-refinement.css?v=1",
   "/assets/favicon.svg",
   "/assets/favicon.png"
 ];
