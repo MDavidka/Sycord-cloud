@@ -50,6 +50,8 @@ function createSessionToken() {
 
 let activeTerminals = 0;
 const terminalSessions = new Map();
+// Consecutive remote /proc counters used to calculate real CPU and network rates.
+const remoteVmSamples = new Map();
 const TERMINAL_BUFFER_LIMIT = 512 * 1024;
 let cpuPrevious = process.cpuUsage();
 let cpuPreviousAt = process.hrtime.bigint();
@@ -249,7 +251,17 @@ async function writeWorkspaceServers(workspaceId, servers) {
   }
 }
 function publicServer(server) {
-  return { id: server.id, name: server.name, host: server.host, username: server.provider === "instabox" ? "Instabox" : server.username, port: server.port, addedAt: server.addedAt, provider: server.provider || "ssh", authMethod: server.authMethod || "key", connectionMode: server.connectionMode || "standard", expiresAt: server.connectionMode === "supporter" ? server.expiresAt : null, type: "ssh" };
+  const info = server.providerInfo && typeof server.providerInfo === "object" ? server.providerInfo : {};
+  return {
+    id: server.id, name: server.name, host: server.host,
+    username: server.provider === "instabox" ? "Instabox" : server.username,
+    port: server.port, addedAt: server.addedAt,
+    provider: server.provider || "ssh", authMethod: server.authMethod || "key",
+    connectionMode: server.connectionMode || "standard",
+    expiresAt: server.connectionMode === "supporter" ? server.expiresAt : null,
+    providerInfo: { name: typeof info.name === "string" ? info.name : "", region: typeof info.region === "string" ? info.region : "", plan: typeof info.plan === "string" ? info.plan : "" },
+    type: "ssh"
+  };
 }
 function sshBaseArgs(workspaceId, server) {
   const args = [];
@@ -471,6 +483,112 @@ app.get("/api/servers/:id/status", async (req, res) => {
     return res.json({ id, status: "online", metrics, checkedAt: new Date().toISOString() });
   } catch (error) {
     return res.json({ id, status: error && error.code === "ENOENT" ? "unknown" : "offline", metrics: null, checkedAt: new Date().toISOString() });
+  }
+});
+
+
+// Read-only VM diagnostics. The remote command is fixed and accepts no user input.
+// Counters are sampled across requests; the first sample has no CPU/network rate yet.
+app.get("/api/servers/:id/details", async (req, res) => {
+  if (!hasSession(req)) return res.status(401).json({ error: "Authentication required" });
+  const workspaceId = getWorkspaceId(req);
+  if (!workspaceId) return res.status(400).json({ error: "Workspace cookie missing." });
+  const id = req.params.id;
+  if (!/^[a-f0-9]{24}$/.test(id || "")) return res.status(400).json({ error: "Invalid server ID." });
+  const remote = findWorkspaceServer(workspaceId, id);
+  if (!remote) return res.status(404).json({ error: "Server not found." });
+  res.setHeader("Cache-Control", "no-store");
+  try {
+    const command = "printf 'VM_HOST\\t'; hostname 2>/dev/null; printf 'VM_OS\\t'; awk -F= '/^PRETTY_NAME=/{sub(/^\"/,\"\",$2);sub(/\"$/,\"\",$2);print $2;exit}' /etc/os-release 2>/dev/null; printf 'VM_KERNEL\\t'; uname -r 2>/dev/null; printf 'VM_ARCH\\t'; uname -m 2>/dev/null; printf 'VM_MODEL\\t'; awk -F: '/^model name|^Hardware/{sub(/^[[:space:]]+/,\"\",$2);print $2;exit}' /proc/cpuinfo 2>/dev/null; printf 'VM_CORES\\t'; getconf _NPROCESSORS_ONLN 2>/dev/null || nproc 2>/dev/null; printf 'VM_UPTIME\\t'; awk '{printf \"%.0f\\n\",$1}' /proc/uptime 2>/dev/null; printf 'VM_LOAD\\t'; awk '{print $1,$2,$3}' /proc/loadavg 2>/dev/null; printf 'VM_MEM\\t'; awk '/^MemTotal:/{t=$2} /^MemAvailable:/{a=$2} END{printf \"%.0f %.0f\\n\",t*1024,a*1024}' /proc/meminfo 2>/dev/null; printf 'VM_DISK\\t'; df -Pk / 2>/dev/null | awk 'NR==2{printf \"%.0f %.0f\\n\",$2*1024,$3*1024}'; printf 'VM_CPU\\t'; awk '/^cpu /{t=0;for(i=2;i<=9;i++)t+=$i;printf \"%.0f %.0f\\n\",t,$5+$6;exit}' /proc/stat 2>/dev/null; printf 'VM_NET\\t'; awk -F: 'NR>2 {iface=$1;gsub(/^[[:space:]]+|[[:space:]]+$/,\"\",iface);if(iface==\"lo\")next;gsub(/^[[:space:]]+|[[:space:]]+$/,\"\",$2);n=split($2,f,/[[:space:]]+/);if(n>=9){rx+=f[1];tx+=f[9]}}END{printf \"%.0f %.0f\\n\",rx,tx}' /proc/net/dev 2>/dev/null; printf 'VM_TIMEZONE\\t'; date +%Z 2>/dev/null";
+    const result = await execSSH(workspaceId, remote, command, { timeout: 15000, maxBuffer: 24 * 1024, windowsHide: true });
+    const values = Object.create(null);
+    for (const line of String(result.stdout || "").split(/\r?\n/)) {
+      const match = line.match(/^VM_([A-Z]+)\t(.*)$/);
+      if (match) values[match[1]] = match[2].trim().slice(0, 256);
+    }
+    const numeric = value => {
+      if (value === undefined || value === null || value === "") return null;
+      const n = Number(value);
+      return Number.isFinite(n) && n >= 0 ? n : null;
+    };
+    const pairs = key => String(values[key] || "").split(/\s+/).map(numeric);
+    const mem = pairs("MEM"), disk = pairs("DISK"), cpu = pairs("CPU"), net = pairs("NET"), load = pairs("LOAD");
+    const percentage = (used, total) => used !== null && total > 0 ? Math.round(Math.max(0, Math.min(100, used / total * 100))) : null;
+    const memoryUsed = mem[0] !== null && mem[1] !== null ? Math.max(0, mem[0] - mem[1]) : null;
+    const now = Date.now();
+    const key = workspaceId + ":" + id;
+    const previous = remoteVmSamples.get(key);
+    let cpuPercent = null, networkRxBytesPerSec = null, networkTxBytesPerSec = null;
+    if (previous && now > previous.at) {
+      const elapsed = (now - previous.at) / 1000;
+      const deltaTotal = cpu[0] - previous.cpuTotal;
+      const deltaIdle = cpu[1] - previous.cpuIdle;
+      if (Number.isFinite(deltaTotal) && deltaTotal > 0 && deltaIdle >= 0) cpuPercent = Math.round(Math.max(0, Math.min(100, (1 - deltaIdle / deltaTotal) * 100)));
+      if (elapsed > 0 && net[0] !== null && previous.rx !== null && net[0] >= previous.rx) networkRxBytesPerSec = Math.round((net[0] - previous.rx) / elapsed);
+      if (elapsed > 0 && net[1] !== null && previous.tx !== null && net[1] >= previous.tx) networkTxBytesPerSec = Math.round((net[1] - previous.tx) / elapsed);
+    }
+    remoteVmSamples.set(key, { at: now, cpuTotal: cpu[0], cpuIdle: cpu[1], rx: net[0], tx: net[1] });
+    if (remoteVmSamples.size > 512) for (const [sampleKey, sample] of remoteVmSamples) if (now - sample.at > 3600000) remoteVmSamples.delete(sampleKey);
+    return res.json({
+      server: publicServer(remote), status: "online", checkedAt: new Date(now).toISOString(),
+      performance: {
+        cpuPercent, memoryTotalBytes: mem[0], memoryUsedBytes: memoryUsed, memoryPercent: percentage(memoryUsed, mem[0]),
+        diskTotalBytes: disk[0], diskUsedBytes: disk[1], diskPercent: percentage(disk[1], disk[0]),
+        uptimeSeconds: numeric(values.UPTIME), load1: load[0], load5: load[1], load15: load[2],
+        networkRxBytesPerSec, networkTxBytesPerSec
+      },
+      system: {
+        hostname: values.HOST || null, operatingSystem: values.OS || null, kernel: values.KERNEL || null,
+        architecture: values.ARCH || null, cpuModel: values.MODEL || null,
+        cpuCores: numeric(values.CORES), timezone: values.TIMEZONE || null
+      },
+      provider: { connection: remote.provider === "instabox" ? "Instabox" : "SSH", infrastructure: publicServer(remote).providerInfo }
+    });
+  } catch (error) {
+    console.error("VM details unavailable:", error && (error.code || error.message) || "unknown");
+    return res.status(error && error.code === "ENOENT" ? 503 : 502).json({
+      server: publicServer(remote), status: "offline", checkedAt: new Date().toISOString(),
+      error: "Unable to read VM diagnostics. Check the SSH connection and try again."
+    });
+  }
+});
+
+// Only allow explicitly editable, non-secret VM metadata.
+app.patch("/api/servers/:id", async (req, res) => {
+  if (!hasSession(req)) return res.status(401).json({ error: "Authentication required" });
+  const workspaceId = getWorkspaceId(req);
+  if (!workspaceId) return res.status(400).json({ error: "Workspace cookie missing." });
+  const id = req.params.id;
+  if (!/^[a-f0-9]{24}$/.test(id || "")) return res.status(400).json({ error: "Invalid server ID." });
+  const body = req.body || {};
+  const keys = Object.keys(body);
+  if (!keys.length || keys.some(key => !["name", "providerInfo"].includes(key))) return res.status(400).json({ error: "Only name and providerInfo can be changed." });
+  const servers = readWorkspaceServers(workspaceId);
+  const current = servers.find(item => item.id === id);
+  if (!current) return res.status(404).json({ error: "Server not found." });
+  const update = {};
+  if (Object.prototype.hasOwnProperty.call(body, "name")) {
+    if (typeof body.name !== "string" || !body.name.trim() || body.name.trim().length > 48 || /[\x00-\x1F\x7F]/.test(body.name)) return res.status(400).json({ error: "Server name must be 1–48 characters." });
+    update.name = body.name.trim();
+  }
+  if (Object.prototype.hasOwnProperty.call(body, "providerInfo")) {
+    const input = body.providerInfo;
+    if (!input || Array.isArray(input) || typeof input !== "object" || Object.keys(input).some(key => !["name", "region", "plan"].includes(key))) return res.status(400).json({ error: "Invalid provider details." });
+    const providerInfo = {};
+    for (const field of ["name", "region", "plan"]) {
+      const value = input[field] === undefined ? "" : input[field];
+      if (typeof value !== "string" || value.trim().length > 80 || /[\x00-\x1F\x7F]/.test(value)) return res.status(400).json({ error: "Provider fields must be at most 80 characters." });
+      providerInfo[field] = value.trim();
+    }
+    update.providerInfo = providerInfo;
+  }
+  try {
+    await writeWorkspaceServers(workspaceId, servers.map(item => item.id === id ? { ...item, ...update } : item));
+    res.setHeader("Cache-Control", "no-store");
+    return res.json({ server: publicServer({ ...current, ...update }) });
+  } catch (error) {
+    console.error("Could not update server metadata:", error && error.message || "unknown");
+    return res.status(500).json({ error: "Could not save server settings." });
   }
 });
 
