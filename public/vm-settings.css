@@ -1,0 +1,148 @@
+/* Airshell VM settings — compact Codex / ChatGPT-inspired surfaces. */
+body.airshell-terminal {
+  --vm-surface:#171717;
+  --vm-text:#f5f5f5;
+  --vm-subtle:#a1a1a8;
+  --vm-quiet:#83838b;
+  --vm-hairline:#343436;
+  --vm-raised:#262626;
+  --vm-highlight:#353537;
+}
+body.airshell-terminal .vm-settings-panel {
+  position:absolute; inset:0; z-index:16; overflow-y:auto; overflow-x:hidden;
+  background:var(--vm-surface); color:var(--vm-text);
+  font:400 14px/1.5 Geist,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  -webkit-overflow-scrolling:touch; overscroll-behavior:contain;
+  scrollbar-color:#454548 transparent;
+}
+body.airshell-terminal .vm-settings-panel[hidden],
+body.airshell-terminal .vm-settings-view[hidden],
+body.airshell-terminal .vm-feedback[hidden] { display:none!important; }
+body.airshell-terminal[data-vm-view="settings"] .terminal-main > .terminal-command-composer,
+body.airshell-terminal[data-vm-view="settings"] .terminal-main > .terminal-keypad { display:none!important; }
+body.airshell-terminal .terminal-chat-new.active { background:#303033!important; color:#fff!important; }
+body.airshell-terminal .vm-settings-content {
+  width:100%; max-width:760px; margin:0 auto; box-sizing:border-box;
+  padding:clamp(23px,5vw,36px) 24px max(44px,env(safe-area-inset-bottom,0px));
+}
+.vm-settings-panel button, .vm-settings-panel input, .vm-settings-panel select {
+  font:inherit; -webkit-tap-highlight-color:transparent;
+}
+.vm-settings-panel button:focus-visible, .vm-settings-panel summary:focus-visible,
+.vm-settings-panel input:focus-visible, .vm-settings-panel select:focus-visible {
+  outline:2px solid #bdbdc5; outline-offset:3px;
+}
+.vm-settings-panel button {cursor:pointer;}
+.vm-settings-panel .vm-icon, .vm-dialog .vm-icon {
+  display:inline-block; width:19px; height:19px; flex:0 0 19px;
+  stroke:currentColor; stroke-width:1.75; stroke-linecap:round; stroke-linejoin:round; fill:none;
+}
+.vm-settings-panel .vm-settings-heading {display:flex; align-items:flex-start; justify-content:space-between; gap:18px; margin:0 0 25px;}
+.vm-settings-panel .vm-settings-heading h1 {margin:0; font-size:27px; font-weight:630; letter-spacing:-.045em; line-height:1.2;}
+.vm-settings-panel .vm-settings-heading p {margin:7px 0 0; color:var(--vm-subtle); font-size:13px;}
+.vm-settings-panel .vm-icon-button {
+  display:grid; place-items:center; flex:0 0 42px; width:42px; height:42px;
+  padding:0; border:0; border-radius:11px; background:transparent; color:var(--vm-subtle);
+}
+.vm-settings-panel .vm-icon-button:hover,.vm-settings-panel .vm-row-action:hover {background:var(--vm-raised); color:var(--vm-text);}
+.vm-settings-panel .vm-hero {display:flex; align-items:center; gap:13px; margin-bottom:23px; min-width:0;}
+.vm-settings-panel .vm-hero-mark {display:grid;place-items:center; flex:0 0 45px; width:45px;height:45px;border-radius:13px;background:var(--vm-raised);color:var(--vm-text);}
+.vm-settings-panel .vm-hero-mark svg {width:23px;height:23px;}
+.vm-settings-panel .vm-hero-identity {flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
+.vm-settings-panel .vm-hero-identity strong {font-size:16px; font-weight:600; letter-spacing:-.025em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.vm-settings-panel .vm-hero-identity span {color:var(--vm-subtle);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.vm-settings-panel .vm-status {display:inline-flex; align-items:center;gap:7px;white-space:nowrap; font-size:12px;color:var(--vm-subtle);}
+.vm-settings-panel .vm-status-dot {width:7px;height:7px;flex:none;border-radius:50%;background:#8c8c94;}
+.vm-settings-panel .vm-status[data-status="online"] .vm-status-dot {background:#4ade80;}
+.vm-settings-panel .vm-status[data-status="online"] {color:#b1dec0;}
+.vm-settings-panel .vm-status[data-status="offline"] .vm-status-dot {background:#e3a09e;}
+.vm-settings-panel .vm-subnav {display:inline-flex; align-items:center; gap:2px; margin-bottom:27px;padding:3px;border-radius:12px;background:var(--vm-raised);max-width:100%;}
+.vm-settings-panel .vm-subnav button {min-width:91px;min-height:36px;padding:7px 15px;border:0;border-radius:9px;background:transparent;color:var(--vm-subtle);font-size:13px;font-weight:530;}
+.vm-settings-panel .vm-subnav button[aria-current="page"] {color:var(--vm-text);background:var(--vm-highlight);box-shadow:0 1px 3px #0002;}
+.vm-settings-panel .vm-label {margin:0 0 12px; font-size:11px; font-weight:620; color:var(--vm-subtle);letter-spacing:.075em;}
+.vm-settings-panel .vm-stats {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;padding:3px 0 19px;}
+.vm-settings-panel .vm-stat {min-width:0;}
+.vm-settings-panel .vm-stat-label {display:block;color:var(--vm-subtle);font-size:12px;}
+.vm-settings-panel .vm-stat-value {display:block;color:var(--vm-text);font-size:29px;font-weight:590;line-height:1.3;letter-spacing:-.05em;font-variant-numeric:tabular-nums;}
+.vm-settings-panel .vm-stat-hint {display:block;min-height:17px;font-size:11px;color:var(--vm-quiet);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.vm-settings-panel .vm-stat-track {height:3px;overflow:hidden;margin-top:9px;background:#444449;border-radius:99px;}
+.vm-settings-panel .vm-stat-fill {height:100%;width:0;background:#d5d5d9;border-radius:inherit;transition:width .35s ease-out;}
+.vm-settings-panel .vm-secondary-stats {display:flex;flex-wrap:wrap;gap:6px 24px;margin:2px 0 12px;color:var(--vm-subtle);font-size:12px;}
+.vm-settings-panel .vm-secondary-stats strong {color:var(--vm-text);font-variant-numeric:tabular-nums;font-weight:550;}
+.vm-settings-panel .vm-updated {color:var(--vm-quiet);font-size:11px;margin:0 0 27px;}
+.vm-settings-panel .vm-divider {height:1px;background:var(--vm-hairline);margin:23px 0;}
+.vm-settings-panel .vm-list details {border-bottom:1px solid var(--vm-hairline);}
+.vm-settings-panel .vm-list summary {
+  display:flex;align-items:center;gap:13px;min-height:67px;padding:12px 2px;
+  cursor:pointer;list-style:none;user-select:none;
+}
+.vm-settings-panel .vm-list summary::-webkit-details-marker {display:none;}
+.vm-settings-panel .vm-list summary::marker {content:"";}
+.vm-settings-panel .vm-list summary > .vm-icon {color:#c2c2c7;width:20px;height:20px;flex:0 0 20px;}
+.vm-settings-panel .vm-list .vm-row-copy {min-width:0;flex:1;display:flex;flex-direction:column;gap:1px;}
+.vm-settings-panel .vm-row-copy strong {color:var(--vm-text);font-size:14px;font-weight:520;}
+.vm-settings-panel .vm-row-copy small {color:var(--vm-quiet);font-size:12px;line-height:1.3;}
+.vm-settings-panel .vm-list .vm-chevron {width:16px;height:16px;color:var(--vm-quiet);transition:transform .18s ease;}
+.vm-settings-panel .vm-list details[open] .vm-chevron {transform:rotate(90deg);}
+.vm-settings-panel .vm-expand-content {padding:2px 2px 19px 34px;min-width:0;color:var(--vm-subtle);}
+.vm-settings-panel .vm-data-rows {margin:0;}
+.vm-settings-panel .vm-data-rows > div {display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--vm-hairline);}
+.vm-settings-panel .vm-data-rows > div:last-child {border-bottom:0;}
+.vm-settings-panel .vm-data-rows dt {color:var(--vm-subtle);font-size:13px;}
+.vm-settings-panel .vm-data-rows dd {margin:0;max-width:65%;color:var(--vm-text);font-size:13px;text-align:right;overflow-wrap:anywhere;font-variant-numeric:tabular-nums;}
+.vm-settings-panel .vm-data-rows dd.vm-mono {font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;}
+.vm-settings-panel .vm-section-heading {margin:4px 0 8px;font-size:17px;font-weight:580;letter-spacing:-.025em;}
+.vm-settings-panel .vm-section-help {margin:0 0 16px;color:var(--vm-subtle);font-size:13px;line-height:1.6;}
+.vm-settings-panel .vm-text-button {border:0;background:transparent;padding:9px 0;color:var(--vm-text);font-weight:530;font-size:13px;text-align:left;text-decoration:underline;text-underline-offset:4px;}
+.vm-settings-panel .vm-text-button:disabled {opacity:.4;cursor:not-allowed;}
+.vm-settings-panel .vm-inline-actions {display:flex;flex-wrap:wrap;gap:18px;margin-top:10px;}
+.vm-settings-panel .vm-soft-button {
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-height:39px;padding:0 14px;border:1px solid #444448;border-radius:11px;
+  background:var(--vm-raised);color:var(--vm-text);font-size:13px;font-weight:530;
+}
+.vm-settings-panel .vm-soft-button .vm-icon {width:16px;height:16px;flex-basis:16px;}
+.vm-settings-panel .vm-danger {color:#e9a4a4!important;}
+.vm-settings-panel .vm-footer-actions {display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:28px;padding:20px 0 8px;border-top:1px solid var(--vm-hairline);}
+.vm-settings-panel .vm-refresh-select {width:100%;max-width:215px;min-height:39px;padding:7px 11px;margin:6px 0 7px;border:1px solid #414146;border-radius:10px;color:var(--vm-text);background:var(--vm-raised);font-size:14px;}
+.vm-settings-panel .vm-note {color:var(--vm-quiet);font-size:12px;line-height:1.5;}
+.vm-settings-panel .vm-feedback {margin:12px 0;padding:10px 12px;border:1px solid var(--vm-hairline);border-radius:10px;color:var(--vm-text);font-size:12px;}
+.vm-settings-panel .vm-empty {padding:30px 0;color:var(--vm-subtle);font-size:14px;}
+.vm-dialog {box-sizing:border-box;width:min(430px,calc(100vw - 32px));max-width:none;margin:auto;padding:24px;border:1px solid #454549;border-radius:19px;background:#29292b;color:#f5f5f5;box-shadow:0 22px 80px #0008;font:14px Geist,-apple-system,system-ui,sans-serif;}
+.vm-dialog::backdrop {background:rgba(0,0,0,.72);}
+.vm-dialog h2 {margin:0 0 8px;font-size:20px;letter-spacing:-.025em;font-weight:600;}
+.vm-dialog p {margin:0 0 21px;color:#b1b1b9;font-size:13px;line-height:1.6;}
+.vm-dialog label {display:flex;flex-direction:column;gap:6px;margin:12px 0;color:#dedee1;font-size:12px;}
+.vm-dialog input {width:100%;min-height:44px;box-sizing:border-box;padding:11px 12px;border:1px solid #505057;border-radius:11px;background:#202022;color:#f4f4f5;font-size:16px;}
+.vm-dialog .vm-dialog-actions {display:flex;justify-content:flex-end;gap:9px;margin-top:22px;}
+.vm-dialog .vm-dialog-actions button {min-height:40px;padding:0 16px;border:0;border-radius:10px;color:#f5f5f5;background:#424246;font-size:13px;font-weight:570;}
+.vm-dialog .vm-dialog-actions button[type="submit"] {background:#f1f1f1;color:#202022;}
+.vm-dialog .vm-dialog-actions button.vm-danger-button {background:#a33939;color:#fff;}
+.vm-dialog .vm-dialog-error {color:#ffadad;font-size:12px;line-height:1.4;}
+@media(max-width:600px) {
+  body.airshell-terminal .vm-settings-content {padding:25px 18px max(40px,env(safe-area-inset-bottom,0px));}
+  .vm-settings-panel .vm-settings-heading h1 {font-size:25px;}
+  .vm-settings-panel .vm-stats {gap:14px;}
+  .vm-settings-panel .vm-stat-value {font-size:27px;}
+  .vm-settings-panel .vm-subnav {display:flex;width:100%;box-sizing:border-box;}
+  .vm-settings-panel .vm-subnav button {min-width:0;flex:1;}
+  .vm-settings-panel .vm-status {font-size:11px;}
+  .vm-settings-panel .vm-data-rows dd {max-width:55%;}
+}
+@media(max-width:350px) {
+  body.airshell-terminal .vm-settings-content {padding-left:13px;padding-right:13px;}
+  .vm-settings-panel .vm-stats {gap:9px;}
+  .vm-settings-panel .vm-stat-value {font-size:24px;}
+  .vm-settings-panel .vm-hero-mark {width:39px;height:39px;flex-basis:39px;}
+}
+body.airshell-light-theme.airshell-terminal {
+  --vm-surface:#f7f7f8;--vm-text:#212125;--vm-subtle:#68686f;--vm-quiet:#85858b;
+  --vm-hairline:#dfdfe2;--vm-raised:#eaeaec;--vm-highlight:#fff;
+}
+body.airshell-light-theme.airshell-terminal .vm-status[data-status="online"] {color:#216437;}
+body.airshell-light-theme.airshell-terminal .vm-stat-track {background:#d7d7dd;}
+body.airshell-light-theme.airshell-terminal .vm-stat-fill {background:#626269;}
+body.airshell-light-theme.airshell-terminal .vm-soft-button {border-color:#d2d2d7;}
+@media(prefers-reduced-motion:reduce) {
+  body.airshell-terminal .vm-stat-fill, body.airshell-terminal .vm-chevron {transition:none!important;}
+}
