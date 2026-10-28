@@ -373,6 +373,39 @@ app.get("/dashboard", (req, res) => {
 });
 
 
+// Supporter connections are managed separately from the visible server picker.
+// Responses contain metadata only; passwords and private keys are never returned.
+app.get("/api/supporters", (req, res) => {
+  if (!hasSession(req)) return res.status(401).json({ error: "Authentication required" });
+  const workspaceId = getWorkspaceId(req);
+  if (!workspaceId) return res.status(400).json({ error: "Workspace cookie missing." });
+  res.setHeader("Cache-Control", "no-store");
+  const servers = readWorkspaceServers(workspaceId);
+  const supporters = servers.filter(item => item.connectionMode === "supporter").map(item => {
+    const info = publicServer(item);
+    const main = servers.find(candidate => candidate.id === item.supporterMainId && candidate.connectionMode !== "supporter");
+    return { ...info, mainServer: main ? { id: main.id, name: main.name, host: main.host, provider: main.provider } : null,
+      remainingSeconds: Math.max(0, Math.floor((Date.parse(item.expiresAt || "") - Date.now()) / 1000)) || 0 };
+  });
+  return res.json({ supporters, count: supporters.length, transport: "ssh", note: "Saved supporter connections are not shown in the standard server picker." });
+});
+
+app.get("/api/supporters/:id", (req, res) => {
+  if (!hasSession(req)) return res.status(401).json({ error: "Authentication required" });
+  const workspaceId = getWorkspaceId(req);
+  if (!workspaceId) return res.status(400).json({ error: "Workspace cookie missing." });
+  const id = req.params.id;
+  if (!/^[a-f0-9]{24}$/.test(id)) return res.status(400).json({ error: "Invalid supporter ID" });
+  const servers = readWorkspaceServers(workspaceId);
+  const supporter = servers.find(item => item.id === id && item.connectionMode === "supporter");
+  if (!supporter) return res.status(404).json({ error: "Supporter connection not found" });
+  const main = servers.find(item => item.id === supporter.supporterMainId && item.connectionMode !== "supporter");
+  res.setHeader("Cache-Control", "no-store");
+  return res.json({ supporter: publicServer(supporter),
+    mainServer: main ? { id: main.id, name: main.name, host: main.host, provider: main.provider } : null,
+    remainingSeconds: Math.max(0, Math.floor((Date.parse(supporter.expiresAt || "") - Date.now()) / 1000)) || 0 });
+});
+
 app.get("/api/servers", (req, res) => {
   if (!hasSession(req)) return res.status(401).json({ error: "Authentication required" });
   const workspaceId = getWorkspaceId(req);
