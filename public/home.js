@@ -183,6 +183,23 @@
       const data = await response.json();
       const servers = Array.isArray(data.servers) ? data.servers : [];
       homeServers = servers;
+      const supporterMainSelect = $("supporterMainServer");
+      if (supporterMainSelect) {
+        const chosen = supporterMainSelect.value;
+        supporterMainSelect.replaceChildren();
+        const prompt = document.createElement("option");
+        prompt.value = "";
+        prompt.textContent = "Choose a saved main VM";
+        supporterMainSelect.append(prompt);
+        servers.filter(item => item.connectionMode !== "supporter").forEach(item => {
+          const option = document.createElement("option");
+          option.value = item.id;
+          option.textContent = item.name + " · " + item.host;
+          supporterMainSelect.append(option);
+        });
+        if (Array.from(supporterMainSelect.options).some(item => item.value === chosen)) supporterMainSelect.value = chosen;
+        else if (supporterMainSelect.options.length === 2) supporterMainSelect.selectedIndex = 1;
+      }
       renderMobileServers();
       const selectedId = new URLSearchParams(location.search).get("server");
       list.innerHTML = servers.length ? servers.map((server) => {
