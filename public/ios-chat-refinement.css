@@ -16,21 +16,21 @@ body.airshell-home.airshell-light-theme {
   --ios-chat-secondary: #6d6e73;
 }
 /* A continuous neutral canvas, with no blue glow behind the composer. */
-body.airshell-home .home-topbar,
-body.airshell-home .home-main.home-dashboard {
+body.airshell-home .home-shell .home-topbar,
+body.airshell-home .home-shell .home-main.home-dashboard {
   background: var(--ios-chat-canvas) !important;
   color: var(--ios-chat-text) !important;
 }
-body.airshell-home .home-main.home-dashboard::before {
+body.airshell-home .home-shell .home-main.home-dashboard::before {
   display: none !important;
 }
-body.airshell-home .home-topbar::after {
+body.airshell-home .home-shell .home-topbar::after {
   right: 20px;
   left: 20px;
   background: var(--ios-chat-stroke);
   opacity: .55;
 }
-body.airshell-home .home-topbar .home-brand h1 {
+body.airshell-home .home-shell .home-topbar .home-brand h1 {
   font-size: 18px !important;
   font-weight: 600 !important;
   letter-spacing: -.035em !important;
@@ -45,12 +45,12 @@ body.airshell-home .home-title-toggle svg {
   color: var(--ios-chat-secondary);
 }
 body.airshell-home .home-new-chat svg,
-body.airshell-home .home-topbar #menuToggle svg {
+body.airshell-home .home-shell .home-topbar #menuToggle svg {
   width: 22px !important;
   height: 22px !important;
   stroke-width: 1.7 !important;
 }
-body.airshell-home .home-topbar #menuToggle {
+body.airshell-home .home-shell .home-topbar #menuToggle {
   border: 0 !important;
   border-radius: 12px !important;
   box-shadow: none !important;
@@ -59,7 +59,7 @@ body.airshell-home .home-topbar #menuToggle {
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
 }
-body.airshell-home .home-topbar :is(#menuToggle, .home-new-chat, .home-title-toggle):focus-visible,
+body.airshell-home .home-shell .home-topbar :is(#menuToggle, .home-new-chat, .home-title-toggle):focus-visible,
 body.airshell-home .home-empty-shortcut:focus-visible,
 body.airshell-home .home-composer button:focus-visible {
   outline: 2px solid var(--ios-chat-secondary);
@@ -76,7 +76,7 @@ body.airshell-home:not(.chat-active) .home-topbar .home-profile-button {
 }
 /* The quick-start surface is not a fake chat reply: it only exists before a
    conversation starts. All response feedback controls remain on real replies. */
-body.airshell-home .home-main.home-dashboard > .home-empty-state {
+body.airshell-home .home-shell .home-main.home-dashboard > .home-empty-state {
   position: absolute;
   z-index: 3;
   inset: 0 0 var(--chat-composer-space, 146px);
@@ -89,8 +89,8 @@ body.airshell-home .home-main.home-dashboard > .home-empty-state {
   padding: 24px 22px;
   -webkit-overflow-scrolling: touch;
 }
-body.airshell-home.chat-active .home-main.home-dashboard > .home-empty-state,
-body.airshell-home .home-main.home-dashboard.has-conversation > .home-empty-state,
+body.airshell-home.chat-active .home-shell .home-main.home-dashboard > .home-empty-state,
+body.airshell-home .home-shell .home-main.home-dashboard.has-conversation > .home-empty-state,
 body.airshell-home.composer-keyboard-open .home-main.home-dashboard > .home-empty-state {
   display: none !important;
 }
@@ -156,7 +156,7 @@ body.airshell-home .home-empty-shortcut:active {
   transform: scale(.99);
 }
 /* A compact two-level composer: prompt above controls, not a giant pill. */
-body.airshell-home .home-main.home-dashboard > .home-composer {
+body.airshell-home .home-shell .home-main.home-dashboard > .home-composer {
   display: grid !important;
   grid-template-columns: 44px 44px minmax(0,1fr) 44px !important;
   grid-template-rows: minmax(34px,auto) 44px !important;
@@ -173,11 +173,11 @@ body.airshell-home .home-main.home-dashboard > .home-composer {
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
 }
-body.airshell-home .home-main.home-dashboard > .home-composer:focus-within {
+body.airshell-home .home-shell .home-main.home-dashboard > .home-composer:focus-within {
   border-color: var(--ios-chat-stroke) !important;
   box-shadow: none !important;
 }
-body.airshell-home .home-main.home-dashboard > .home-composer > #promptInput {
+body.airshell-home .home-shell .home-main.home-dashboard > .home-composer > #promptInput {
   display: block !important;
   grid-column: 1 / -1 !important;
   grid-row: 1 !important;
@@ -196,14 +196,14 @@ body.airshell-home .home-main.home-dashboard > .home-composer > #promptInput {
   overflow-y: auto;
   resize: none;
 }
-body.airshell-home .home-main.home-dashboard > .home-composer > #promptInput::placeholder {
+body.airshell-home .home-shell .home-main.home-dashboard > .home-composer > #promptInput::placeholder {
   color: var(--ios-chat-secondary) !important;
   opacity: 1;
 }
-body.airshell-home .home-main.home-dashboard > .home-composer > .composer-add,
-body.airshell-home .home-main.home-dashboard > .home-composer > .model-select,
-body.airshell-home .home-main.home-dashboard > .home-composer > .mic-button,
-body.airshell-home .home-main.home-dashboard > .home-composer > .composer-send {
+body.airshell-home .home-shell .home-main.home-dashboard > .home-composer > .composer-add,
+body.airshell-home .home-shell .home-main.home-dashboard > .home-composer > .model-select,
+body.airshell-home .home-shell .home-main.home-dashboard > .home-composer > .mic-button,
+body.airshell-home .home-shell .home-main.home-dashboard > .home-composer > .composer-send {
   display: grid !important;
   place-items: center;
   width: 44px !important;
@@ -215,57 +215,57 @@ body.airshell-home .home-main.home-dashboard > .home-composer > .composer-send {
   border-radius: 50% !important;
   box-shadow: none !important;
 }
-body.airshell-home .home-main.home-dashboard > .home-composer > .composer-add {
+body.airshell-home .home-shell .home-main.home-dashboard > .home-composer > .composer-add {
   grid-column: 1 !important;
   grid-row: 2 !important;
 }
-body.airshell-home .home-main.home-dashboard > .home-composer > .model-select {
+body.airshell-home .home-shell .home-main.home-dashboard > .home-composer > .model-select {
   grid-column: 2 !important;
   grid-row: 2 !important;
   max-width: none !important;
   color: var(--ios-chat-text) !important;
 }
-body.airshell-home .home-main.home-dashboard > .home-composer > .mic-button {
+body.airshell-home .home-shell .home-main.home-dashboard > .home-composer > .mic-button {
   grid-column: 3 !important;
   grid-row: 2 !important;
   justify-self: end !important;
 }
-body.airshell-home .home-main.home-dashboard > .home-composer > .composer-add,
-body.airshell-home .home-main.home-dashboard > .home-composer > .mic-button {
+body.airshell-home .home-shell .home-main.home-dashboard > .home-composer > .composer-add,
+body.airshell-home .home-shell .home-main.home-dashboard > .home-composer > .mic-button {
   color: var(--ios-chat-text) !important;
   background: transparent !important;
 }
-body.airshell-home .home-main.home-dashboard > .home-composer > .mic-button:disabled {
+body.airshell-home .home-shell .home-main.home-dashboard > .home-composer > .mic-button:disabled {
   color: var(--ios-chat-secondary) !important;
   opacity: .6;
 }
-body.airshell-home .home-main.home-dashboard > .home-composer > .composer-send {
+body.airshell-home .home-shell .home-main.home-dashboard > .home-composer > .composer-send {
   grid-column: 4 !important;
   grid-row: 2 !important;
   background: var(--ios-chat-text) !important;
   color: var(--ios-chat-canvas) !important;
 }
-body.airshell-home .home-main.home-dashboard > .home-composer > .composer-send:disabled {
+body.airshell-home .home-shell .home-main.home-dashboard > .home-composer > .composer-send:disabled {
   opacity: .65;
 }
-body.airshell-home .home-main.home-dashboard > .home-composer > .composer-send.ready {
+body.airshell-home .home-shell .home-main.home-dashboard > .home-composer > .composer-send.ready {
   background: var(--ios-chat-text) !important;
   color: var(--ios-chat-canvas) !important;
   opacity: 1;
 }
-body.airshell-home .home-main.home-dashboard > .home-composer :is(.composer-add,.model-select,.mic-button) svg { width: 22px !important; height: 22px !important; }
-body.airshell-home .home-main.home-dashboard > .home-composer .composer-send svg { width: 21px !important; height: 21px !important; }
-body.airshell-home .home-main.home-dashboard > .home-composer .mic-button[hidden],
-body.airshell-home .home-main.home-dashboard > .home-composer .composer-send[hidden] { display:none !important; }
-body.airshell-home .home-main.home-dashboard > .home-model-menu:not([hidden]) {
+body.airshell-home .home-shell .home-main.home-dashboard > .home-composer :is(.composer-add,.model-select,.mic-button) svg { width: 22px !important; height: 22px !important; }
+body.airshell-home .home-shell .home-main.home-dashboard > .home-composer .composer-send svg { width: 21px !important; height: 21px !important; }
+body.airshell-home .home-shell .home-main.home-dashboard > .home-composer .mic-button[hidden],
+body.airshell-home .home-shell .home-main.home-dashboard > .home-composer .composer-send[hidden] { display:none !important; }
+body.airshell-home .home-shell .home-main.home-dashboard > .home-model-menu:not([hidden]) {
   bottom: calc(var(--chat-composer-space, 146px) + 5px) !important;
 }
-body.airshell-home .home-main.home-dashboard.has-conversation > .home-conversation {
+body.airshell-home .home-shell .home-main.home-dashboard.has-conversation > .home-conversation {
   bottom: var(--chat-composer-space, 146px) !important;
 }
 @media (min-width: 601px) {
-  body.airshell-home .home-main.home-dashboard > .home-empty-state { padding: 42px 30px; }
-  body.airshell-home .home-main.home-dashboard > .home-composer {
+  body.airshell-home .home-shell .home-main.home-dashboard > .home-empty-state { padding: 42px 30px; }
+  body.airshell-home .home-shell .home-main.home-dashboard > .home-composer {
     left: 50% !important;
     right: auto !important;
     width: min(calc(100% - 48px), 768px) !important;
@@ -274,28 +274,28 @@ body.airshell-home .home-main.home-dashboard.has-conversation > .home-conversati
   }
 }
 @media (max-width: 600px) {
-  body.airshell-home .home-topbar {
+  body.airshell-home .home-shell .home-topbar {
     height: calc(60px + env(safe-area-inset-top, 0px)) !important;
     min-height: calc(60px + env(safe-area-inset-top, 0px)) !important;
     padding: calc(env(safe-area-inset-top, 0px) + 4px) 16px 0 !important;
     gap: 0 !important;
   }
-  body.airshell-home .home-topbar::after { left: 16px; right: 16px; }
-  body.airshell-home .home-main.home-dashboard {
+  body.airshell-home .home-shell .home-topbar::after { left: 16px; right: 16px; }
+  body.airshell-home .home-shell .home-main.home-dashboard {
     inset: calc(60px + env(safe-area-inset-top, 0px)) 0 0 !important;
   }
-  body.airshell-home .home-topbar #menuToggle,
-  body.airshell-home .home-topbar .home-new-chat {
+  body.airshell-home .home-shell .home-topbar #menuToggle,
+  body.airshell-home .home-shell .home-topbar .home-new-chat {
     width: 44px !important;
     height: 44px !important;
     flex: 0 0 44px !important;
   }
-  body.airshell-home .home-main.home-dashboard > .home-empty-state {
+  body.airshell-home .home-shell .home-main.home-dashboard > .home-empty-state {
     padding: 16px 24px 22px;
   }
   body.airshell-home .home-empty-description { margin-bottom: 16px; }
   body.airshell-home .home-empty-shortcut { min-height: 52px; }
-  body.airshell-home .home-main.home-dashboard > .home-composer {
+  body.airshell-home .home-shell .home-main.home-dashboard > .home-composer {
     left: 12px !important;
     right: 12px !important;
     width: auto !important;
@@ -303,7 +303,7 @@ body.airshell-home .home-main.home-dashboard.has-conversation > .home-conversati
     bottom: calc(12px + env(safe-area-inset-bottom, 0px) + var(--keyboard-offset, 0px)) !important;
     padding: 9px 10px !important;
   }
-  body.airshell-home .home-main.home-dashboard.has-conversation > .home-conversation {
+  body.airshell-home .home-shell .home-main.home-dashboard.has-conversation > .home-conversation {
     top: 0 !important;
     right: 18px !important;
     left: 18px !important;
@@ -311,7 +311,7 @@ body.airshell-home .home-main.home-dashboard.has-conversation > .home-conversati
   }
 }
 @media (max-height: 610px) {
-  body.airshell-home .home-main.home-dashboard > .home-empty-state {
+  body.airshell-home .home-shell .home-main.home-dashboard > .home-empty-state {
     align-items: flex-start;
     padding-top: 12px;
     padding-bottom: 8px;
