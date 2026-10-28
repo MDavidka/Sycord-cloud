@@ -942,3 +942,363 @@ For each golden state, compare against baseline *after* design review. A visual 
 - No regression to credentials displayed in client responses or logged.
 - Every PR includes before/after screenshots for visual changes and smoke evidence for behavior changes.
 - Feature flags and rollback strategy for migrations/experimental functionality.
+
+
+## 14. Step-by-step delivery roadmap
+
+Deliver vertical slices that can be verified on a real phone rather than redesigning the entire UI and backend in one risky commit.
+
+| Phase | Focus | Depends on | Ship evidence |
+| --- | --- | --- | --- |
+| **0 — Baseline** | tests, screenshots, design freeze, current capability audit | none | reproducible app and issue inventory |
+| **1 — Stabilize UI** | tokens, sidebar, colors, typography, responsive states | 0 | iPhone screenshots, no glow/shade regression |
+| **2 — Security foundation** | sessions, SSH trust, scoped approvals, secrets | 0 | auth tests, audit threat-model signoff |
+| **3 — Core product polish** | server list, details, connection wizard, terminal | 1 + 2 | end-to-end first-server and reconnect passes |
+| **4 — Chat + file workflow** | conversation UX, AI approval receipt, file diffs | 2 + 3 | safe read/approve/write/verify test |
+| **5 — Real monitoring** | source timestamps, histories, incidents and alerts | 2 + 3 | truthful sample + failure state tests |
+| **6 — Native parity** | SwiftUI app UX, authentication, files/terminal reliability | 2 + 3 + 4 | physical-device acceptance matrix |
+| **7 — Automations** | read-only watch rules, jobs, push preferences | 2 + 5 | safe recurring test + opt-out |
+| **8 — Advanced studio** | snippets, runbooks, file history, splits, integrations | stable phases 3–7 | scoped beta validation |
+| **9 — Experiments** | high-scoring innovative concepts | measurements from shipped features | evidence-led prototype review |
+
+### Phase 0: baseline and decisions
+
+1. List actual routes and live deployment versions, compare to README.
+2. Inventory all CSS sources and identify which override wins per page.
+3. Capture screenshots on Home, Terminal, Files, Settings and sidebar.
+4. Record an iPhone video of opening drawer, scrolling, search and keyboard.
+5. Add deterministic demo fixtures with no real server addresses or secrets.
+6. Define current auth/session/SSH credential storage threat model.
+7. Confirm the source-of-truth project among web, Expo and SwiftUI, and how each is distributed.
+8. Establish smoke tests before structural refactors.
+
+**Exit:** current behavior reproducible; known defects filed with screenshots and severity.
+
+### Phase 1: eliminate weird-looking UI
+
+1. Create design token sheet with dark/light semantic colors.
+2. Replace the scattered CSS overrides with one ordered component stylesheet/module structure.
+3. Remove unwanted shadow, gray wash, gradient mask and glowing connectivity status markers.
+4. Normalize sidebar icon size, wordmark, search actions, rows, section headings and footer.
+5. Hide raw remove-X on each server; use accessible context menu.
+6. Normalize server row heights and selected state throughout web app.
+7. Fix keyboard/composer and safe-area interplay.
+8. Screenshot at 320/360/390/430 and compare.
+9. Ensure terminal and dashboard use exactly the same sidebar component.
+10. Reject any PR that reintroduces random palettes, decorative gradients or dead actions.
+
+**Exit:** premium neutral iPhone sidebar; no duplicate nav, clipped names, halo dots or inaccessible footer.
+
+### Phase 2: harden the security boundary
+
+1. Make security behavior explicit and test existing auth/session/WS flows.
+2. Introduce bounded/session-revocable authentication with recovery path.
+3. Add rate limits, strict origin handling, permission-bound WebSocket auth.
+4. Separate workspace/role/credential/access concepts.
+5. Bind approvals to exact command/diff/server/user, expiry and one-time use.
+6. Add event audit records and redaction.
+7. Verify SSH host fingerprints, remote path restrictions and command timeouts.
+8. Update Supporter VM docs to accurately describe preflight, direct access and expiry.
+9. Run negative tests: 401/403, stale approvals, injections, host change and revoked sessions.
+10. Publish accurate security limitations.
+
+**Exit:** security-sensitive write paths cannot bypass policy or reuse someone else's approval.
+
+### Phase 3: flawless core iPhone operation
+
+1. Streamline “add server” wizard and step-by-step error handling.
+2. Add real server details and honest last-checked state.
+3. Add pin/reorder/group/filter with stable selected host context.
+4. Fix WebSocket terminal reconnect and visible interruption states.
+5. Add terminal shortcut bar, font controls, copy/search and session tabs.
+6. Make terminal xterm viewport reliably fit when keyboard opens.
+7. Treat session close and remote process termination as distinct actions.
+8. Add meaningful empty/loading/retry states.
+9. Add tests on both Safari PWA and native WebView.
+10. Recheck all navigation/back behavior and focus.
+
+**Exit:** server -> terminal -> disconnect -> reconnect succeeds, with no lost user context or accidental replay.
+
+### Phase 4: assistant and files without fear
+
+1. Require target selection and show current context.
+2. Standardize read-only diagnostic outputs and safety labels.
+3. Show inspection, proposed edit/command, approval and verification in one timeline.
+4. Add file preview, editable draft and diff-before-save.
+5. Implement scoped atomic save/revision/backup flow.
+6. Display actual exit codes, changed file hashes and post-change checks.
+7. Make retry/cancel behavior unambiguous; don't re-execute writes after transport errors without checking.
+8. Test malicious logs/files/prompts and incomplete operations.
+9. Add accessible approval review on phone.
+10. Store concise redacted receipts, not arbitrary raw secrets.
+
+**Exit:** user can understand and verify every AI-assisted server change, including partial failure.
+
+### Phase 5: monitoring and trusted intelligence
+
+1. Decide sampling/retention policy and how data is obtained from remote host.
+2. Add timestamped metrics and unknown/stale states.
+3. Build graph history with gaps and consistent units.
+4. Add basic alerts and Activity timeline.
+5. Add redacted notifications and opt-in consent.
+6. Track actual provider/host uncertainty honestly.
+7. Prototype Server Pulse / Incident Story only after a real data history exists.
+
+**Exit:** no graph implies live data when stale, and alert records link to real samples.
+
+### Phase 6: mature native distribution
+
+1. Agree on shared API contracts and feature parity.
+2. Polish native SwiftUI screens with actual iOS navigation, native sheet and keyboard behavior.
+3. Secure local storage, background reattachment and app-lock preferences.
+4. Test on actual iPhone over cellular and when moving foreground/background.
+5. Document xtool/Apple SDK requirements and device signing constraints honestly.
+6. Provide PWA as stable distribution fallback without implying it is an IPA.
+
+**Exit:** native has documented limitations, usable account security and the essential web workflows.
+
+### Phase 7 and later: careful product expansion
+
+Add read-only automation, history, rich runbooks, desktop split views and scored innovation prototypes. Require opt-in and explicit cost/privacy notes for features that monitor continuously or transmit data externally.
+
+## 15. Prioritization by impact
+
+### 15.1 Highest immediate return
+
+| Rank | Work package | Why it comes first |
+| --- | --- | --- |
+| 1 | Security: sessions, scoped approvals, secret handling | protect a product that can execute remote commands |
+| 2 | CSS consolidation + consistent neutral palette | remove recurring visual regressions and duplicated effort |
+| 3 | iPhone terminal typing/reconnect | app is unusable if remote work breaks on keyboard or weak network |
+| 4 | Server connection wizard + diagnostics | reduces failure and user confusion |
+| 5 | AI plan/approve/verify UX | turns AI feature into something explainable and safe |
+| 6 | Real activity and error states | operational trust depends on historical evidence |
+| 7 | File diff/backup before save | reduces risk of production configuration errors |
+| 8 | Native/PWA compatibility testing | prevents an attractive prototype from failing to install/use |
+
+### 15.2 Product impact model
+
+When choosing between two features, evaluate:
+
+- **Frequency:** how often a real target user will invoke it.
+- **Severity:** does it prevent outage/security/data loss, or mainly add convenience?
+- **Time saved:** clicks, context switching, investigation minutes avoided.
+- **Trust gain:** clearer evidence, less uncertainty, safer approval.
+- **iPhone utility:** does it solve something difficult on a phone?
+- **Implementation complexity and upkeep:** number of systems changed and long-term cost.
+- **Capability truthfulness:** can the backend verify its claims?
+- **Privacy exposure:** any new persisted data or third-party model transfer?
+- **Reversibility:** can failed feature deployment be rolled back cleanly?
+
+Sample weighted score (modify after product testing): Value = 3×frequency + 3×severity + 2×time saved + 2×trust + 2×mobile utility − 2×complexity − 3×security risk − 2×privacy risk. Do not use a score to overrule mandatory P0 safety work.
+
+## 16. Detailed acceptance checklists
+
+### 16.1 Sidebar / app shell
+
+- [ ] Only one drawer opens; outside tap/Escape closes it.
+- [ ] At 320px and 390px widths, every row/host displays without horizontal overflow.
+- [ ] Header branding and actions have consistent alignment and touch area.
+- [ ] Exactly one active navigation state is visible.
+- [ ] Section headings are plain text; no random chips/shaded strips.
+- [ ] Server status dots are flat, static, and do not glow.
+- [ ] Connected/unknown/disconnected appear as verified source state with text or accessible label.
+- [ ] Status updates do not shift list rows while a user is tapping.
+- [ ] Hostnames truncate with full accessible text available.
+- [ ] Account footer stays visible above iPhone safe area.
+- [ ] Search does not trap focus or leave empty server-row wrappers.
+- [ ] Destructive remove is not a small always-visible X.
+- [ ] No default shadow or gradient on the drawer.
+- [ ] Dark and light theme share structural layout and selection rules.
+- [ ] Terminal and Home sidebar share implementation and visual tokens.
+
+### 16.2 Terminal
+
+- [ ] Current server identity is never ambiguous.
+- [ ] User can type, scroll and use Esc/Tab/Ctrl on iPhone.
+- [ ] Terminal remains usable while on-screen keyboard is visible.
+- [ ] xterm columns/rows match rendered viewport after rotation.
+- [ ] Network loss shows a clear banner; input is not silently queued.
+- [ ] Reconnect does not resend previous terminal input.
+- [ ] Resumed terminal shows missing output gap when needed.
+- [ ] No unsupported claim that process persists without remote tmux.
+- [ ] Close viewer and terminate remote session are distinct.
+- [ ] Copy/paste of multiple shell lines has an intentional safe path.
+- [ ] Long output does not exhaust memory or freeze phone.
+- [ ] Screen-reader limitations and accessible alternatives are documented.
+
+### 16.3 AI operations
+
+- [ ] Tool output is untrusted and never upgrades permission.
+- [ ] Target server and exact operation shown before approval.
+- [ ] Approval expires and is bound to one hash/actor/target.
+- [ ] Reject/reuse/expiry actually blocks the backend operation.
+- [ ] Explicit risk disclosure for production and root operations.
+- [ ] All writes are followed by real, separately checked verification where applicable.
+- [ ] Failed and partial outcomes are not labeled successful.
+- [ ] Sensitive strings redacted from chat/log/audit output.
+- [ ] Stop/retry does not unknowingly duplicate a write.
+- [ ] Every completed action has an accessible receipt.
+
+### 16.4 Files
+
+- [ ] Canonical path validation and symlink policy on server.
+- [ ] File preview size/encoding limits.
+- [ ] No script executes from preview.
+- [ ] Editor warns before losing unsaved changes.
+- [ ] Every proposed save shows a diff and exact host/path.
+- [ ] Save detects concurrent modifications.
+- [ ] Backup/restore evidence for edits according to defined policy.
+- [ ] Permission failures are explained without unsafe bypass instructions.
+- [ ] Large/binary files have explicit unsupported state.
+- [ ] No protected content enters static PWA cache.
+
+### 16.5 Native/PWA
+
+- [ ] Web/PWA navigation and native screens don't duplicate toolbars.
+- [ ] Real iPhone tested with Wi-Fi -> cellular -> background -> foreground.
+- [ ] Account theme applied before main UI is visible.
+- [ ] Status bar and safe areas follow iPhone hardware.
+- [ ] Native local state has proper device protection.
+- [ ] PWA update isn't forced during active terminal/input.
+- [ ] PWA's offline pages clearly say SSH requires network.
+- [ ] Native build/distribution instructions distinguish free development, paid official distribution, third-party sideloading and PWA.
+- [ ] No download/installation link without a real verified build.
+
+## 17. Product analytics without surveillance
+
+### 17.1 Useful aggregate metrics
+
+- First-server connection success rate, broken down by safe error category (not host value).
+- Median time from onboarding to first verified server status.
+- Rate of terminal reconnect recovery after network loss.
+- Number of failed vs successful AI approval executions; specifically false-success incidents.
+- Ratio of approvals reviewed vs denied; do not optimize toward accepting more privileged actions.
+- Accessibility task completion and keyboard navigation success.
+- Mobile performance, UI crash, JS error and backend 5xx rates.
+- Percentage of viewers with stale metric timestamps.
+- PWA update/reload recovery success and cache mismatch incidents.
+- Support tickets caused by SSH fingerprints, provider auth, expired temporary access and broken cookies.
+
+### 17.2 Forbidden default analytics
+
+- Raw terminal keystrokes, stdout/stderr contents, SSH command strings, private paths, secret values, full chat content, browser cookies, SSH hostnames/IPs, exact personal identifiers or remote file contents.
+- “Session replay” that records a user's terminal without informed consent.
+- Unnecessary precise location, device fingerprinting or silent push enrollment.
+- Linking usage analytics across workspaces without a user-visible need.
+
+### 17.3 Feedback and experimentation
+
+- Add private “Report issue” that previews a redacted diagnostics bundle.
+- Add a simple “Was this diagnosis helpful?” action separate from execution approval.
+- Use opt-in beta flags; publish capability changes in a changelog.
+- Compare usability measures and safety outcomes before and after each redesign, not only screenshot aesthetics.
+
+## 18. Documentation, design reviews and maintenance
+
+### 18.1 Documents to maintain
+
+| Document | Required content |
+| --- | --- |
+| plan.md | master feature roadmap, priority, accepted changes |
+| README.md | accurate current capabilities and setup |
+| DESIGN_SYSTEM.md | tokens, spacing, typography, radius, colors, icon and animation rules |
+| COMPONENTS.md | UI component contracts and examples |
+| SECURITY.md | threat model, session policy, SSH trust and responsible disclosure |
+| API.md / OpenAPI | only actually implemented endpoints with versioned schemas |
+| SUPPORTER_ACCESS.md | preflight vs direct SSH vs true jump-host behavior |
+| MOBILE.md | PWA/Expo/native differences, build and distribution limits |
+| TESTING.md | unit/integration/e2e/visual/mobile checklists |
+| RUNBOOKS.md | safe deployment/recovery instructions |
+| CHANGELOG.md | release notes, migrations and breaking changes |
+| ADR/ | architectural decisions, considered alternatives and rationale |
+
+### 18.2 Implementation PR template
+
+Each development PR should answer:
+
+1. Which plan IDs does this implement?
+2. Is it existing code refactor, new feature, or experiment?
+3. What user journey or risk does it improve?
+4. What changes on web/PWA/Expo/native?
+5. Which API/permission/data fields changed?
+6. Are there any new secrets, logs or retention implications?
+7. Where is the before/after screenshot or test output?
+8. Which viewport and VoiceOver states were tested?
+9. What happens offline, when disconnected or when API fails?
+10. How can we roll back safely?
+11. Was documentation updated to describe reality rather than proposed behavior?
+12. What still cannot be verified?
+
+### 18.3 Release checklist
+
+- [ ] Latest main branch passes unit, integration and security smoke tests.
+- [ ] No new high-severity vulnerability or secret exposure.
+- [ ] Backend-compatible version tested with currently installed clients.
+- [ ] App still launches without AI provider when only server tools are needed.
+- [ ] iPhone visual regression screenshots approved.
+- [ ] Active terminal survives/update behavior is understood.
+- [ ] Auth and workspace scope enforced on any new endpoint.
+- [ ] PWA static asset cache version updated only as necessary.
+- [ ] Feature flag default and rollout audience documented.
+- [ ] Database migrations include recovery and rollback.
+- [ ] No unfinished UI placeholder shown as working feature.
+- [ ] Readme and changelog match implemented functionality.
+- [ ] Real deployment verified before saying “shipped” or “live.”
+
+### 18.4 Suggested Codex execution strategy
+
+Do not ask a coding agent to “implement all of plan.md” in a single pass. Use small explicit tickets, ordered by dependency, with screenshots and precise stop conditions.
+
+**Example scoped ticket A — unify sidebar styles:** read current styles; remove conflicting selectors; consolidate neutral tokens; preserve all navigation, search, server and profile actions; test at 320/390/430; ensure no status glow; provide before/after screenshot; commit.
+
+**Example scoped ticket B — improve connection wizard:** audit POST /api/servers and error mapping; display staged validation for SSH and Instabox; no secret logging; keep supporter access separate; cover auth/network errors; test successful/non-successful saves; commit.
+
+**Example scoped ticket C — safe AI change receipt:** trace approval APIs end to end; add exact target/arguments binding, one-time expiry and redacted audit record; prevent replay and changed arguments; test reject/expired/replay; implement accessible frontend display; commit.
+
+**Example scoped ticket D — native terminal layout:** inspect SwiftUI terminal and keyboard behavior; test physical device landscape/portrait; preserve WebSocket logic; fix safe areas/key strip/resize; add snapshots and native tests; commit.
+
+**Example scoped ticket E — honest monitoring:** preserve current read-only metrics, add sampledAt + stale/unknown states, bounded refresh; do not invent provider identity or history; test slow and unavailable hosts; commit.
+
+### 18.5 Open product decisions
+
+- **Audience:** is Airshell for one trusted owner or a proper multi-user team? This determines authentication, sharing, billing and RBAC.
+- **Primary application:** is the PWA main, or does native SwiftUI become the flagship interface? Maintain both without divergent semantics.
+- **Session policy:** what absolute and inactivity limits make sense for remote administration, and what actions require reauthentication?
+- **Secrets location:** MongoDB, local volume, dedicated encrypted store or managed vault?
+- **SSH host keys:** how will trusted-first-connect fingerprints be collected and confirmed?
+- **Automation boundaries:** read-only always, or separately authenticated and time-bounded writes?
+- **Retention:** how long may logs, chat, telemetry, audit and backups live?
+- **Cost:** how much polling, storage and AI inference can a personal VPS afford?
+- **Notifications:** web push only, native push, email or user-selected combination?
+- **User-visible brand:** Airshell vs Sycord names; choose one primary product name and use consistent casing.
+- **Languages:** begin with complete English; add Hungarian/Romanian with localized strings and tests, not mixed labels.
+- **Supporter VM:** exact intended meaning of “temporary” and process for remote credential revocation.
+- **Production monitoring:** which hosts/paths are authorized, and how will those scopes be enforced?
+- **Design ownership:** who approves exceptions to neutral palette, rounded geometry and no-glow policy?
+
+## 19. External standards and references
+
+These are research inputs, not claims that the current application complies with them:
+
+1. Apple Human Interface Guidelines — Layout: https://developer.apple.com/design/human-interface-guidelines/layout
+2. Apple Human Interface Guidelines — Sidebars (updated 2026): https://developer.apple.com/design/human-interface-guidelines/sidebars
+3. Apple Human Interface Guidelines — Tab bars: https://developer.apple.com/design/human-interface-guidelines/tab-bars
+4. Apple Human Interface Guidelines — Design fundamentals: https://developer.apple.com/design/human-interface-guidelines/
+5. W3C WCAG 2.2: https://www.w3.org/TR/WCAG22/
+6. OWASP ASVS 5.0: https://asvs.owasp.org/
+7. OWASP Web Security Testing Guide: https://owasp.org/www-project-web-security-testing-guide/
+8. xterm.js overview and addons: https://xtermjs.org/docs/guides/using-addons/
+9. xterm.js maintained repository: https://github.com/xtermjs/xterm.js
+10. Apple Web Push guidance: https://developer.apple.com/documentation/usernotifications/sending-web-push-notifications-in-web-apps-and-browsers
+11. Current project README, connection guide, supporter API reference, terminal/home scripts, SwiftUI and Expo project files in MDavidka/Sycord-cloud.
+
+## 20. Final product quality bar
+
+Airshell should not feel like “a website with a terminal button.” It should feel like a coherent private operations workspace. The user should know **which server**, **which action**, **which permission**, **what evidence**, **what changed**, and **what remains uncertain**—without fighting nested menus, inconsistent colors, broken reconnects, or misleading claims.
+
+**Immediate next action:** execute Phase 0 and Phase 1 visual/UX stabilization while planning Phase 2 security hardening in parallel. Then build P1 features as small, tested, end-to-end vertical slices. Treat P2/P3 as a menu of opportunities to validate, not a license to bloat the first usable release.
+
+---
+
+*This document is a living proposal. Mark entries as IMPLEMENTED only after code, test, documentation and deployment verification. Preserve a changelog when priorities or assumptions change.*
