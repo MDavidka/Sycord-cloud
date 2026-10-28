@@ -191,11 +191,15 @@
           <img src="/assets/airshell-sidebar-icon.svg" alt="">
           <span>airshell</span>
         </a>
+        <div class="sidebar-header-actions">
+          <button class="sidebar-header-action" id="sidebarSearchToggle" type="button" aria-label="Search workspace" aria-controls="sidebarSearch" aria-expanded="false" title="Search workspace"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.9"/><path d="m16 16 5 5"/></svg></button>
+          <button class="sidebar-header-action" id="sidebarCompose" type="button" aria-label="New chat" title="New chat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg></button>
+        </div>
         <button class="home-icon-button home-sidebar-close" id="sidebarClose" type="button" aria-label="Close navigation">×</button>
       </div>
 
       <label class="home-sidebar-search-wrap" for="sidebarSearch">
-        <input id="sidebarSearch" class="home-sidebar-search" type="search" placeholder="Arc launch" autocomplete="off" aria-label="Search workspace">
+        <input id="sidebarSearch" class="home-sidebar-search" type="search" placeholder="Search servers and workspace" autocomplete="off" aria-label="Search workspace">
       </label>
 
       <div class="home-sidebar-scroll">
@@ -210,14 +214,17 @@
           </button>
         </nav>
 
+        <section class="home-sidebar-section home-sidebar-server-section" data-sidebar-section="servers" aria-label="Your servers">
+          <div class="home-sidebar-section-heading">
+            <button class="sidebar-section-title" type="button" id="serversNavToggle" data-sidebar-search="servers" aria-expanded="true" aria-controls="sidebarServers">
+              <span>Your servers</span><svg class="sidebar-section-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <button class="sidebar-section-add" id="addServerButton" type="button" aria-label="Add server" title="Add server"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+          </div>
+          <div class="home-sidebar-servers" id="sidebarServers"><p class="servers-empty" id="serversEmpty">No servers added yet</p></div>
+        </section>
         <section class="home-sidebar-section" data-sidebar-section="workspace" aria-labelledby="workspaceLabel">
           <div class="home-nav-label" id="workspaceLabel">Workspace</div>
-          <button class="sidebar-item" type="button" id="serversNavToggle" data-sidebar-search="servers" aria-expanded="true" aria-controls="sidebarServers">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="7" rx="2"/><rect x="3" y="14" width="18" height="7" rx="2"/><path d="M7 6.5h.01M7 17.5h.01M11 6.5h6M11 17.5h6"/></svg>
-            <span>Servers</span>
-          </button>
-          <div class="home-sidebar-servers" id="sidebarServers"><p class="servers-empty" id="serversEmpty">No servers added yet</p></div>
-          <button class="sidebar-item server-add-trigger" id="addServerButton" type="button" aria-label="Add server"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span>Add server</span></button>
           <button class="sidebar-item" type="button" data-sidebar-action="Roadmap" data-sidebar-search="roadmap">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="5" r="3"/><path d="M6 8v8a3 3 0 0 0 3 3h6"/><circle cx="18" cy="19" r="3"/><circle cx="18" cy="5" r="3"/><path d="M9 5h6"/></svg>
             <span>Roadmap</span>
@@ -239,6 +246,13 @@
             <span>Q4 launch plan</span>
           </button>
         </section>
+      </div>
+      <div class="home-sidebar-account">
+        <button class="home-sidebar-account-button" id="sidebarAccountToggle" type="button" aria-label="Open account and settings">
+          <span class="sidebar-account-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></svg></span>
+          <span class="sidebar-account-details"><strong>My account</strong><small>Settings &amp; preferences</small></span>
+          <svg class="sidebar-account-ellipsis" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="5" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="19" cy="12" r="1" fill="currentColor"/></svg>
+        </button>
       </div>
     </aside>
 
@@ -456,5 +470,7 @@
     body.airshell-light-theme.airshell-terminal .home-topbar button:hover { background:rgba(0,0,0,.04)!important; }
     @media(prefers-reduced-motion:reduce) { body.airshell-terminal .home-topbar button { transition:none!important; } }
   </style>
-  </body>
+    <link rel="stylesheet" href="/assets/sidebar-modern.css?v=1">
+  <script src="/assets/sidebar-modern.js?v=1" defer></script>
+</body>
 </html>
