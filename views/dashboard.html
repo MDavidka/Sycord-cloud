@@ -456,7 +456,7 @@
 
   <link rel="stylesheet" href="/assets/home-reference.css?v=13">
 
-  <link rel="stylesheet" href="/assets/connection-redesign.css?v=2">
+  <link rel="stylesheet" href="/assets/connection-redesign.css?v=ssh-diagnostics-1">
 
 </head>
 <body class="airshell-home">
@@ -579,7 +579,7 @@
           <label>Main VM<select name="mainServerId" id="supporterMainServer" aria-label="Main VM for connection helper"><option value="">Choose a saved main VM</option></select></label>
           <div class="server-dialog-grid"><label>Supporter VM host or IP<input name="rootHost" id="supporterRootHost" placeholder="203.0.113.20" autocapitalize="off" spellcheck="false"></label><label>SSH port<input name="rootPort" id="supporterRootPort" type="number" min="1" max="65535" value="22"></label></div>
           <label>Root username<input value="root" readonly aria-label="Root username"></label>
-          <label>Root password<input name="rootPassword" id="supporterRootPassword" type="password" autocomplete="new-password" placeholder="Root SSH password"></label>
+          <div class="server-password-field"><label>Root password<input name="rootPassword" id="supporterRootPassword" type="password" autocomplete="new-password" autocapitalize="off" spellcheck="false" placeholder="Root SSH password"></label><button type="button" class="server-password-toggle" data-password-visibility="supporterRootPassword" aria-pressed="false" aria-label="Show root password">Show</button></div>
           <label>Access duration<select name="expiresInDays" id="supporterExpiresIn"><option value="7">7 days</option><option value="30" selected>30 days</option></select></label>
           <p class="server-dialog-note">The helper checks SSH reachability only. It does not copy root credentials or create a tunnel. <a href="https://github.com/MDavidka/Sycord-cloud/blob/main/connection_guide.md" target="_blank" rel="noopener noreferrer">Connection guide</a></p>
         </div>
@@ -594,14 +594,14 @@
           <p class="server-dialog-note">The key is stored securely on the Sycord host and never returned to the browser.</p>
         </div>
         <div id="sshPasswordFields" hidden>
-          <label>SSH account password<input name="password" id="serverPassword" type="password" autocomplete="new-password" required></label>
+          <div class="server-password-field"><label>SSH account password<input name="password" id="serverPassword" type="password" autocomplete="new-password" autocapitalize="off" spellcheck="false" required></label><button type="button" class="server-password-toggle" data-password-visibility="serverPassword" aria-pressed="false" aria-label="Show SSH password">Show</button></div>
           <p class="server-dialog-note">The password is encrypted on the Sycord host. SSH password login must be enabled on the remote VM.</p>
         </div>
         <div id="instaboxFields" hidden>
           <label>Instabox SSH / Mosh command<input name="command" id="instaboxCommand" type="text" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="ssh -p 2222 TOKEN@ssh.instabox.sh"></label>
           <p class="server-dialog-note">Paste the command from Instabox. Its token stays private on the Sycord host.</p>
         </div>
-        <p class="server-dialog-error" id="serverFormError" role="alert" hidden></p>
+        <div class="server-dialog-error" id="serverFormError" role="alert" hidden></div>
         <div class="server-dialog-actions"><button type="button" class="server-dialog-cancel" id="cancelServerDialog">Cancel</button><button type="submit" class="server-dialog-submit" id="saveServerButton">Test and add server</button></div>
       </form>
     </dialog>
@@ -710,7 +710,7 @@
       <p class="home-disclaimer" id="composerHint" hidden>Airshell workspace · terminal access available</p>
     </main>
   </div>
-  <script src="/assets/home.js?v=native-12" defer></script>
+  <script src="/assets/home.js?v=ssh-diagnostics-1" defer></script>
   <style id="profile-popup-compact-overrides">
     .airshell-home .home-topbar .home-profile-menu { border-radius:24px !important; }
     .profile-sheet-handle { height:22px !important; flex-basis:22px !important; }
