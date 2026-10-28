@@ -243,10 +243,16 @@
 
     <dialog class="server-dialog" id="addServerDialog" aria-labelledby="addServerTitle">
       <form id="addServerForm" class="server-dialog-form" autocomplete="off">
-        <div class="server-dialog-head"><div><p class="server-dialog-eyebrow">SERVER CONNECTION</p><h2 id="addServerTitle">Add a server</h2><p>Connect an SSH host or grant temporary access to a supporter VM.</p></div><button type="button" class="server-dialog-close" id="closeServerDialog" aria-label="Close">×</button></div>
+        <div class="server-dialog-head"><div><p class="server-dialog-eyebrow">AIRSHELL · CONNECTION</p><h2 id="addServerTitle">Add a server</h2><p>Connect an SSH host or link a temporary root supporter VM.</p></div><button type="button" class="server-dialog-close" id="closeServerDialog" aria-label="Close">×</button></div>
         <label>Access<select name="connectionMode" id="serverConnectionMode"><option value="standard">Standard server</option><option value="supporter">Supporter VM · temporary access</option></select></label>
         <div id="supporterDurationFields" hidden>
-          <p class="server-dialog-note">Enter only the VM's SSH password. The administrator configures the server address and SSH account. Access automatically expires after 30 days.</p>
+          <p class="server-dialog-note">Connect as root. First, Airshell runs a network helper on your selected main VM; then it verifies the root SSH credentials from the Airshell host. The password is never sent to the main VM.</p>
+          <label>Main VM<select name="mainServerId" id="supporterMainServer" aria-label="Main VM for connection helper"><option value="">Choose a saved main VM</option></select></label>
+          <div class="server-dialog-grid"><label>Supporter VM host or IP<input name="rootHost" id="supporterRootHost" placeholder="203.0.113.20" autocapitalize="off" spellcheck="false"></label><label>SSH port<input name="rootPort" id="supporterRootPort" type="number" min="1" max="65535" value="22"></label></div>
+          <label>Root username<input value="root" readonly aria-label="Root username"></label>
+          <label>Root password<input name="rootPassword" id="supporterRootPassword" type="password" autocomplete="new-password" placeholder="Root SSH password"></label>
+          <label>Access duration<select name="expiresInDays" id="supporterExpiresIn"><option value="7">7 days</option><option value="30" selected>30 days</option></select></label>
+          <p class="server-dialog-note">The helper checks SSH reachability only. It does not copy root credentials or create a tunnel. <a href="https://github.com/MDavidka/Sycord-cloud/blob/main/connection_guide.md" target="_blank" rel="noopener noreferrer">Connection guide</a></p>
         </div>
         <div id="serverConnectionTypeFields"><label>Connection type<select name="connectionType" id="serverConnectionType"><option value="ssh-key">SSH · private key</option><option value="ssh-password">SSH · password</option><option value="instabox">Instabox · token command</option></select></label></div>
         <div id="serverNameFields"><label>Server name<input name="name" maxlength="48" required placeholder="My server"></label></div>
