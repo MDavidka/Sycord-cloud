@@ -362,7 +362,7 @@
   }
   if (serverForm) serverForm.addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (serverFormError) { serverFormError.hidden = true; serverFormError.textContent = ""; }
+    if (serverFormError) { serverFormError.hidden = true; serverFormError.replaceChildren(); }
     const isSupporter = connectionModeSelect?.value === "supporter";
     const payload = isSupporter
       ? { connectionMode: "supporter", mainServerId: $("supporterMainServer").value,
@@ -374,7 +374,11 @@
     try {
       const response = await fetch("/api/servers", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || "Could not add server.");
+      if (!response.ok) {
+        const failure = new Error(data.error || "Could not add server.");
+        failure.diagnostic = data;
+        throw failure;
+      }
       serverForm.reset();
       const port = serverForm.elements.namedItem("port"); if (port) port.value = "22";
       if (connectionTypeSelect) connectionTypeSelect.value = "ssh-key";
@@ -384,10 +388,60 @@
       await loadServers();
       showToolFeedback(payload.connectionType === "instabox" ? "Instabox connected · server added" : payload.connectionMode === "supporter" ? "Supporter VM connected · temporary access started" : "SSH connection verified · server added");
     } catch (error) {
-      if (serverFormError) { serverFormError.textContent = error.message || "Could not add server."; serverFormError.hidden = false; }
+      if (serverFormError) {
+        const detail = error.diagnostic && typeof error.diagnostic === "object" ? error.diagnostic : {};
+        serverFormError.replaceChildren();
+        const heading = document.createElement("strong");
+        heading.textContent = error.message || "Could not add server.";
+        serverFormError.appendChild(heading);
+        if (typeof detail.hint === "string" && detail.hint) {
+          const hint = document.createElement("p");
+          hint.textContent = detail.hint;
+          serverFormError.appendChild(hint);
+        }
+        if (Array.isArray(detail.authMethods) && detail.authMethods.length) {
+          const methods = document.createElement("p");
+          methods.className = "ssh-methods";
+          methods.textContent = "SSH methods offered: " + detail.authMethods.join(", ");
+          serverFormError.appendChild(methods);
+        }
+        if (detail.code === "SSH_PASSWORD_NOT_OFFERED" || detail.code === "SSH_KEY_REJECTED") {
+          const action = document.createElement("button");
+          action.type = "button";
+          action.className = "server-dialog-fix-action";
+          action.textContent = "Use SSH key instead";
+          action.addEventListener("click", () => {
+            if (connectionModeSelect?.value === "supporter") {
+              serverFormError.appendChild(document.createTextNode(" Supporter VM setup currently requires root password authentication. Add a standard SSH-key server instead."));
+              return;
+            }
+            if (connectionTypeSelect) {
+              connectionTypeSelect.value = "ssh-key";
+              updateProviderFields();
+              serverFormError.hidden = true;
+              $("serverPrivateKey")?.focus({ preventScroll: true });
+            }
+          }, { once: true });
+          serverFormError.appendChild(action);
+        }
+        serverFormError.hidden = false;
+        serverFormError.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }
     } finally {
       if (saveServerButton) { saveServerButton.disabled = false; updateProviderFields(); }
     }
+  });
+  // Visibility control never writes credentials to storage or request logs.
+  document.querySelectorAll("[data-password-visibility]").forEach((button) => {
+    const input = $(button.dataset.passwordVisibility);
+    if (!input) return;
+    button.addEventListener("click", () => {
+      const show = input.type === "password";
+      input.type = show ? "text" : "password";
+      button.textContent = show ? "Hide" : "Show";
+      button.setAttribute("aria-pressed", String(show));
+      button.setAttribute("aria-label", (show ? "Hide" : "Show") + " SSH password");
+    });
   });
   loadServers();
 
