@@ -1,0 +1,66 @@
+/* Shared ChatGPT/Codex-inspired workspace color and connection sheets. */
+body.airshell-terminal {
+  --chat-bg:#212121; --vm-surface:#212121;
+  --background:#212121; --surface:#212121;
+}
+body.airshell-terminal .home-topbar.terminal-chat-header,
+body.airshell-terminal .home-main.terminal-main,
+body.airshell-terminal .vm-settings-panel,
+body.airshell-terminal .server-files-panel {background:#212121!important;}
+body.airshell-terminal .terminal-main #terminal {
+  box-sizing:border-box!important;
+  inset:20px 18px 112px!important;
+  padding:14px 12px!important;
+  background:#212121!important;
+  border-radius:12px!important;
+}
+body.airshell-terminal .terminal-main .terminal-keypad,
+body.airshell-terminal .terminal-main .terminal-command-composer {
+  margin-top:10px!important;
+}
+body.airshell-terminal .terminal-chat-new svg,
+body.airshell-terminal #menuToggle svg {stroke-width:1.8!important;}
+.server-dialog {
+  width:min(460px,calc(100vw - 24px))!important;
+  max-width:460px!important;max-height:min(88dvh,820px)!important;
+  box-sizing:border-box!important;
+  padding:0!important;border:1px solid #414143!important;
+  border-radius:22px!important;background:#252525!important;
+  color:#f4f4f5!important;box-shadow:0 24px 80px #0009!important;
+  overflow-y:auto!important;overscroll-behavior:contain;
+  font-family:Geist,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+}
+.server-dialog::backdrop {background:#000b!important;backdrop-filter:blur(5px);}
+.server-dialog .server-dialog-form {padding:25px!important;display:flex;flex-direction:column;gap:14px;}
+.server-dialog .server-dialog-head {display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:4px;}
+.server-dialog .server-dialog-eyebrow {font-size:10px!important;letter-spacing:.1em!important;color:#99999f!important;font-weight:600!important;margin:0 0 8px!important;}
+.server-dialog .server-dialog-head h2 {font-size:24px!important;line-height:1.2!important;letter-spacing:-.04em!important;color:#fafafa!important;margin:0 0 7px!important;font-weight:620!important;}
+.server-dialog .server-dialog-head p:not(.server-dialog-eyebrow) {font-size:13px!important;line-height:1.5!important;color:#a7a7ac!important;margin:0!important;}
+.server-dialog .server-dialog-close {width:40px!important;height:40px!important;flex:0 0 40px;border-radius:10px!important;background:transparent!important;color:#d4d4d8!important;border:0!important;font-size:24px!important;cursor:pointer;}
+.server-dialog label {display:flex!important;flex-direction:column!important;gap:7px!important;color:#dadade!important;font-size:12px!important;font-weight:500!important;margin:0!important;min-width:0;}
+.server-dialog input,.server-dialog textarea,.server-dialog select {
+  display:block!important;box-sizing:border-box!important;width:100%!important;min-height:45px!important;
+  border:1px solid #454548!important;border-radius:11px!important;
+  padding:10px 12px!important;background:#1c1c1d!important;color:#f5f5f5!important;
+  font-size:16px!important;line-height:1.4!important;box-shadow:none!important;outline:none;
+}
+.server-dialog input:focus,.server-dialog textarea:focus,.server-dialog select:focus {border-color:#a1a1aa!important;outline:1px solid #a1a1aa!important;}
+.server-dialog input[readonly] {opacity:.65;cursor:default;}
+.server-dialog textarea {min-height:108px!important;resize:vertical;}
+.server-dialog .server-dialog-grid {display:grid!important;grid-template-columns:minmax(0,1fr) 105px!important;gap:10px!important;}
+.server-dialog .server-dialog-note {font-size:12px!important;line-height:1.55!important;color:#a7a7ac!important;margin:0!important;}
+.server-dialog .server-dialog-note a {color:#e5e5e7;text-decoration:underline;text-underline-offset:3px;}
+.server-dialog .server-dialog-actions {display:flex!important;gap:10px!important;justify-content:flex-end!important;margin-top:8px!important;padding-top:17px!important;border-top:1px solid #38383a!important;}
+.server-dialog .server-dialog-actions button {min-height:43px!important;padding:0 16px!important;border-radius:11px!important;font-size:13px!important;font-weight:560!important;}
+.server-dialog .server-dialog-cancel {background:#333335!important;color:#ededee!important;border:1px solid #49494c!important;}
+.server-dialog .server-dialog-submit {background:#f3f3f3!important;color:#202020!important;border:0!important;}
+.server-dialog .server-dialog-submit:disabled {opacity:.6!important;}
+.server-dialog [hidden] {display:none!important;}
+.server-dialog .server-dialog-error {color:#ffb5b5!important;font-size:12px!important;line-height:1.5!important;}
+@media(max-width:600px) {
+  body.airshell-terminal .terminal-main #terminal {inset:17px 13px 120px!important;padding:11px 9px!important;}
+  .server-dialog {max-height:calc(100dvh - 24px)!important;border-radius:20px!important;}
+  .server-dialog .server-dialog-form {padding:21px!important;}
+  .server-dialog .server-dialog-grid {grid-template-columns:minmax(0,1fr) 90px!important;}
+}
+@media(prefers-reduced-motion:reduce) {.server-dialog * {scroll-behavior:auto!important;}}
