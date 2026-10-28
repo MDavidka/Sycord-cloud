@@ -258,6 +258,7 @@ function publicServer(server) {
     port: server.port, addedAt: server.addedAt,
     provider: server.provider || "ssh", authMethod: server.authMethod || "key",
     connectionMode: server.connectionMode || "standard",
+    supporterMainId: server.connectionMode === "supporter" ? server.supporterMainId || null : null,
     expiresAt: server.connectionMode === "supporter" ? server.expiresAt : null,
     providerInfo: { name: typeof info.name === "string" ? info.name : "", region: typeof info.region === "string" ? info.region : "", plan: typeof info.plan === "string" ? info.plan : "" },
     type: "ssh"
@@ -392,24 +393,23 @@ app.post("/api/servers", async (req, res) => {
   const body = req.body || {};
   const connectionMode = body.connectionMode === "supporter" ? "supporter" : "standard";
   const isSupporter = connectionMode === "supporter";
-  // A supporter connection always targets the administrator-configured VM.
-  // Never accept a caller-supplied destination or SSH identity in this mode.
+  // Supporter root details are supplied explicitly. A saved standard main VM runs
+  // a bounded network-only preflight. Root credentials never go to that main VM.
   const name = isSupporter ? "Supporter VM" : typeof body.name === "string" ? body.name.trim().slice(0, 48) : "";
   const connectionType = isSupporter ? "ssh-password" : typeof body.connectionType === "string" ? body.connectionType : "";
   const provider = isSupporter ? "ssh" : body.provider === "instabox" || connectionType === "instabox" ? "instabox" : "ssh";
   const authMethod = isSupporter ? "password" : provider === "instabox" ? "token" : connectionType === "ssh-password" || body.authMethod === "password" ? "password" : "key";
-  const expiresInDays = isSupporter ? 30 : Number(body.expiresInDays || 7);
-  if (connectionMode === "supporter" && ![7, 30].includes(expiresInDays)) {
-    return res.status(400).json({ error: "Supporter access must last 7 or 30 days." });
-  }
-  let host = isSupporter ? (process.env.SUPPORTER_VM_HOST || "").trim().toLowerCase() : typeof body.host === "string" ? body.host.trim().toLowerCase() : "";
-  let username = isSupporter ? (process.env.SUPPORTER_VM_USERNAME || "").trim() : typeof body.username === "string" ? body.username.trim() : "";
-  let port = isSupporter ? Number(process.env.SUPPORTER_VM_PORT || 22) : body.port === undefined || body.port === "" ? 22 : Number(body.port);
-  if (isSupporter && (!/^[a-zA-Z0-9.-]{1,253}$/.test(host) || !/^[a-zA-Z0-9_][a-zA-Z0-9._-]{0,127}$/.test(username) || !Number.isInteger(port) || port < 1 || port > 65535)) {
-    return res.status(503).json({ error: "Supporter VM is not configured. Ask the administrator to set SUPPORTER_VM_HOST, SUPPORTER_VM_USERNAME and optionally SUPPORTER_VM_PORT." });
-  }
+  const expiresInDays = isSupporter ? Number(body.expiresInDays || 30) : 0;
+  if (isSupporter && ![7, 30].includes(expiresInDays)) return res.status(400).json({ error: "Supporter access must last 7 or 30 days." });
+  const supporterMainId = isSupporter && typeof body.mainServerId === "string" ? body.mainServerId : "";
+  const mainVM = isSupporter && /^[a-f0-9]{24}$/.test(supporterMainId) ? findWorkspaceServer(workspaceId, supporterMainId) : null;
+  if (isSupporter && (!mainVM || mainVM.connectionMode === "supporter")) return res.status(400).json({ error: "Choose a saved standard main VM." });
+  let host = isSupporter ? typeof body.rootHost === "string" ? body.rootHost.trim().toLowerCase() : "" : typeof body.host === "string" ? body.host.trim().toLowerCase() : "";
+  let username = isSupporter ? "root" : typeof body.username === "string" ? body.username.trim() : "";
+  let port = isSupporter ? Number(body.rootPort || 22) : Number(body.port || 22);
+  if (isSupporter && (!/^[a-zA-Z0-9.-]{1,253}$/.test(host) || !Number.isInteger(port) || port < 1 || port > 65535)) return res.status(400).json({ error: "Enter a valid supporter VM root host and SSH port." });
   const privateKey = authMethod === "key" && typeof body.privateKey === "string" ? body.privateKey.trim() + "\n" : "";
-  const sshPassword = authMethod === "password" && typeof body.password === "string" ? body.password : "";
+  const sshPassword = isSupporter ? typeof body.rootPassword === "string" ? body.rootPassword : "" : authMethod === "password" && typeof body.password === "string" ? body.password : "";
   if (provider === "instabox") {
     const command = typeof body.command === "string" ? body.command.trim() : "";
     const match = command.match(/(?:^|\s)(?:\S+\s+)*(?:-p\s+(\d+)\s+)?([A-Za-z0-9._-]+)@(ssh|mosh)\.instabox\.sh(?:\s|$)/i)
@@ -437,6 +437,7 @@ app.post("/api/servers", async (req, res) => {
   }
   const id = crypto.randomBytes(12).toString("hex");
   const record = { id, name, host, username, port, provider, authMethod, connectionMode, addedAt: new Date().toISOString() };
+  if (isSupporter) record.supporterMainId = supporterMainId;
   let keyPath;
   try {
     if (provider !== "instabox" && authMethod === "key") {
@@ -445,6 +446,17 @@ app.post("/api/servers", async (req, res) => {
       try { fs.chmodSync(keyPath, 0o600); } catch {}
     }
     if (authMethod === "password") record.passwordEncrypted = encryptSecret(sshPassword);
+    if (isSupporter) {
+      const connect = "exec 3<>/dev/tcp/" + host + "/" + port + "; exec 3<&-; exec 3>&-";
+      const helper = "timeout 8 bash -c " + shellQuote(connect) + " && printf AIRSHELL_SUPPORT_ROUTE_OK";
+      let result;
+      try {
+        result = await execSSH(workspaceId, mainVM, helper, { timeout: 12000, maxBuffer: 2048, windowsHide: true });
+      } catch (_) {
+        return res.status(422).json({ error: "The main VM could not reach the supporter VM SSH port. Check the host, port, network, and bash/timeout tools.", stage: "main-helper" });
+      }
+      if (!String(result.stdout || "").includes("AIRSHELL_SUPPORT_ROUTE_OK")) return res.status(422).json({ error: "The main VM helper could not verify SSH reachability.", stage: "main-helper" });
+    }
     await execSSH(workspaceId, record, "printf AIRSHELL_SSH_OK", { timeout: 12000, maxBuffer: 4096, windowsHide: true });
     if (connectionMode === "supporter") record.expiresAt = new Date(Date.now() + expiresInDays * 86400000).toISOString();
     if (authMethod === "key") record.privateKeyEncrypted = encryptSecret(privateKey);
@@ -459,7 +471,7 @@ app.post("/api/servers", async (req, res) => {
     const detail = missingSsh ? authMethod === "password" ? "The host running Sycord Cloud needs both ssh and sshpass installed for password logins." : "The host running Sycord Cloud does not have the SSH client installed." :
       error && error.killed ? "SSH connection timed out. Check the host, port, network, and SSH service." :
       provider === "instabox" ? "Instabox SSH authentication failed or the endpoint could not be reached. Use the SSH command shown in Instabox and ensure the session is still running." :
-      authMethod === "password" ? isSupporter ? "Supporter VM connection failed. Verify the SSH password and the administrator-configured VM, or check whether SSH password login is enabled." : "SSH password authentication failed or is disabled on the remote VM. Check the username, password, host, port, and SSH password-login settings." :
+      authMethod === "password" ? isSupporter ? "Supporter VM root SSH authentication failed. Check the root password, SSH root-login settings, and direct network access from Airshell. The main VM helper does not create a tunnel." : "SSH password authentication failed or is disabled on the remote VM. Check the username, password, host, port, and SSH password-login settings." :
       "SSH authentication failed or the host could not be reached. Check the username, key, host, port, and server's authorized_keys.";
     console.error("SSH server add failed:", error && (error.code || error.message) || "unknown");
     return res.status(missingSsh ? 503 : 422).json({ error: detail });
