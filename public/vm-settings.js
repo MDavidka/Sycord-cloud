@@ -74,11 +74,6 @@
     '<div class="vm-settings-content">',
       '<div class="vm-settings-heading"><div><h1>Server settings</h1><p>Manage your machine and connections.</p></div>',
         '<button class="vm-icon-button" id="vmRefresh" type="button" aria-label="Refresh server information" title="Refresh server information">' + icon('refresh') + '</button></div>',
-      '<div class="vm-hero">',
-        '<span class="vm-hero-mark">' + icon('server') + '</span>',
-        '<span class="vm-hero-identity"><strong id="vmServerName">Select a server</strong><span id="vmServerSubtitle">Choose a saved server to continue</span></span>',
-        '<span class="vm-status" id="vmLiveStatus" data-status="checking" aria-live="polite"><span class="vm-status-dot"></span><span id="vmStatusText">Checking</span></span>',
-      '</div>',
       '<p class="vm-feedback" id="vmFeedback" role="status" hidden></p>',
       '<div id="vmEmpty" class="vm-empty" hidden><p>Choose a saved server to view its settings and performance.</p>',
         '<button class="vm-soft-button" id="vmChooseServer" type="button">' + icon('server') + 'Choose server</button></div>',
@@ -199,13 +194,13 @@
     feedbackTimer = setTimeout(function () { node.hidden = true; }, 5500);
   }
   function status(text, state) {
-    $("vmStatusText").textContent = text;
-    $("vmLiveStatus").dataset.status = state || "checking";
+    if ($("vmStatusText")) $("vmStatusText").textContent = text;
+    if ($("vmLiveStatus")) $("vmLiveStatus").dataset.status = state || "checking";
   }
   function renderServer() {
     if (!server) return;
-    $("vmServerName").textContent = server.name || "Saved server";
-    $("vmServerSubtitle").textContent = (server.provider === "instabox" ? "Instabox" : "SSH") + " · " +
+    if ($("vmServerName")) $("vmServerName").textContent = server.name || "Saved server";
+    if ($("vmServerSubtitle")) $("vmServerSubtitle").textContent = (server.provider === "instabox" ? "Instabox" : "SSH") + " · " +
       (server.connectionMode === "supporter" ? "Supporter VM" : "Linux server");
     putField("host", server.host);
     putField("port", server.port);
