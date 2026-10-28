@@ -152,12 +152,20 @@
       const href = "/terminal?server=" + encodeURIComponent(server.id) + (homeTab === "files" ? "&view=files" : "");
       const description = homeTab === "files" ? "Browse server files" : "Open server terminal";
       const meta = homeTab === "activity" ? "Checking connection…" : escapeHtml(server.username) + '@' + escapeHtml(server.host);
+      const expiry = supporterExpiryLabel(server);
       return '<a class="mobile-server" href="' + href + '" aria-label="' + description + ': ' + escapeHtml(server.name) + '">' +
         '<span class="mobile-server-number">' + index + '<span class="server-status-dot status-checking" data-server-status="' + escapeHtml(server.id) + '" role="status" aria-label="Checking server status"></span></span>' +
         '<span class="mobile-server-copy"><span class="mobile-server-name">' + escapeHtml(server.name) + '</span>' +
-        '<span class="mobile-server-meta" data-home-server-meta="' + escapeHtml(server.id) + '">' + meta + '</span></span></a>';
+        '<span class="mobile-server-meta" data-home-server-meta="' + escapeHtml(server.id) + '">' + meta + '</span>' +
+        (expiry ? '<span class="mobile-server-expiry">' + escapeHtml(expiry) + '</span>' : '') + '</span></a>';
     }).join("");
     updateServerStatuses(servers);
+  }
+  function supporterExpiryLabel(server) {
+    if (!server || server.connectionMode !== "supporter" || !server.expiresAt) return "";
+    const date = new Date(server.expiresAt);
+    if (!Number.isFinite(date.getTime())) return "Supporter access";
+    return "Supporter · until " + date.toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
   }
   if (mobileHomeSearch) mobileHomeSearch.addEventListener("input", renderMobileServers);
   $("mobileHomeAdd")?.addEventListener("click", openServerDialog);
@@ -177,21 +185,23 @@
       homeServers = servers;
       renderMobileServers();
       const selectedId = new URLSearchParams(location.search).get("server");
-      list.innerHTML = servers.length ? servers.map((server) =>
-        '<div class="sidebar-server-row" data-server-row="' + escapeHtml(server.id) + '">' +
-        '<button class="sidebar-server-item' + (selectedId === server.id ? " current" : "") + '" type="button" data-server-open="' + escapeHtml(server.id) + '" data-sidebar-search="servers ' + escapeHtml(server.name) + ' ' + escapeHtml(server.host) + '">' +
-        '<svg class="server-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="7" rx="2"/><rect x="3" y="14" width="18" height="7" rx="2"/><path d="M7 6.5h.01M7 17.5h.01M11 6.5h6M11 17.5h6"/></svg>' +
-        '<span class="sidebar-server-label"><span class="sidebar-server-name">' + escapeHtml(server.name) + '<span class="server-status-dot status-checking" data-server-status="' + escapeHtml(server.id) + '" role="status" aria-label="Checking server status" title="Checking connection"></span></span><span class="sidebar-server-host">' + escapeHtml(server.username) + '@' + escapeHtml(server.host) + '</span></span>' +
-        '<svg class="sidebar-server-sparkline" viewBox="0 0 100 24" preserveAspectRatio="none" role="img" data-server-telemetry="' + escapeHtml(server.id) + '" aria-label="Server load telemetry unavailable" title="Waiting for telemetry"><path d="M1 18 L99 18"/></svg></button>' +
-        '<button class="sidebar-server-remove" type="button" data-server-remove="' + escapeHtml(server.id) + '" aria-label="Remove ' + escapeHtml(server.name) + '" title="Remove server">×</button></div>'
-      ).join("") : '<p class="servers-empty" id="serversEmpty">No servers added yet</p>';
+      list.innerHTML = servers.length ? servers.map((server) => {
+        const expiry = supporterExpiryLabel(server);
+        return '<div class="sidebar-server-row" data-server-row="' + escapeHtml(server.id) + '">' +
+          '<button class="sidebar-server-item' + (selectedId === server.id ? " current" : "") + '" type="button" data-server-open="' + escapeHtml(server.id) + '" data-sidebar-search="servers ' + escapeHtml(server.name) + ' ' + escapeHtml(server.host) + '">' +
+          '<svg class="server-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="7" rx="2"/><rect x="3" y="14" width="18" height="7" rx="2"/><path d="M7 6.5h.01M7 17.5h.01M11 6.5h6M11 17.5h6"/></svg>' +
+          '<span class="sidebar-server-label"><span class="sidebar-server-name">' + escapeHtml(server.name) + '<span class="server-status-dot status-checking" data-server-status="' + escapeHtml(server.id) + '" role="status" aria-label="Checking server status" title="Checking connection"></span></span><span class="sidebar-server-host">' + escapeHtml(server.username) + '@' + escapeHtml(server.host) + '</span>' +
+          (expiry ? '<span class="sidebar-server-expiry">' + escapeHtml(expiry) + '</span>' : '') + '</span>' +
+          '<svg class="sidebar-server-sparkline" viewBox="0 0 100 24" preserveAspectRatio="none" role="img" data-server-telemetry="' + escapeHtml(server.id) + '" aria-label="Server load telemetry unavailable" title="Waiting for telemetry"><path d="M1 18 L99 18"/></svg></button>' +
+          '<button class="sidebar-server-remove" type="button" data-server-remove="' + escapeHtml(server.id) + '" aria-label="Remove ' + escapeHtml(server.name) + '" title="Remove server">×</button></div>';
+      }).join("") : '<p class="servers-empty" id="serversEmpty">No servers added yet</p>';
       list.querySelectorAll("[data-server-open]").forEach((button) => button.addEventListener("click", () => {
         location.href = "/terminal?server=" + encodeURIComponent(button.dataset.serverOpen);
       }));
       updateServerStatuses(servers);
       list.querySelectorAll("[data-server-remove]").forEach((button) => button.addEventListener("click", async () => {
         const id = button.dataset.serverRemove;
-        if (!window.confirm("Remove this saved server and its stored SSH key?")) return;
+        if (!window.confirm("Remove this saved server and its stored credential?")) return;
         button.disabled = true;
         try {
           const response = await fetch("/api/servers/" + encodeURIComponent(id), { method: "DELETE", credentials: "same-origin" });
@@ -214,8 +224,10 @@
       if (!server) return;
       const dots = document.querySelectorAll('[data-server-status="' + CSS.escape(server.id) + '"]');
       if (dots.length) {
+        let statusCode = 0;
         try {
           const response = await fetch("/api/servers/" + encodeURIComponent(server.id) + "/status", { credentials: "same-origin", cache: "no-store" });
+          statusCode = response.status;
           if (!response.ok) throw new Error("Status unavailable");
           const data = await response.json();
           const status = ["online", "offline", "unknown"].includes(data.status) ? data.status : "unknown";
@@ -251,6 +263,11 @@
             sparkline.classList.remove("has-telemetry");
           }
         } catch (_) {
+          if (statusCode === 404) {
+            await loadServers();
+            await checkNext();
+            return;
+          }
           dots.forEach((dot) => {
             dot.className = "server-status-dot status-unknown";
             dot.setAttribute("aria-label", "Status unavailable");
@@ -282,23 +299,33 @@
   if ($("closeServerDialog")) $("closeServerDialog").addEventListener("click", closeServerDialog);
   if ($("cancelServerDialog")) $("cancelServerDialog").addEventListener("click", closeServerDialog);
   if (serverDialog) serverDialog.addEventListener("click", (event) => { if (event.target === serverDialog) closeServerDialog(); });
-    const providerSelect = $("serverProvider");
+  const connectionTypeSelect = $("serverConnectionType");
+  const connectionModeSelect = $("serverConnectionMode");
   const sshFields = $("sshFields");
+  const sshKeyFields = $("sshKeyFields");
+  const sshPasswordFields = $("sshPasswordFields");
   const instaboxFields = $("instaboxFields");
+  const supporterDurationFields = $("supporterDurationFields");
   function updateProviderFields() {
-    const isInstabox = providerSelect && providerSelect.value === "instabox";
+    const connectionType = connectionTypeSelect ? connectionTypeSelect.value : "ssh-key";
+    const isInstabox = connectionType === "instabox";
+    const usesPassword = connectionType === "ssh-password";
+    const isSupporter = connectionModeSelect && connectionModeSelect.value === "supporter";
     if (sshFields) sshFields.hidden = isInstabox;
+    if (sshKeyFields) sshKeyFields.hidden = isInstabox || usesPassword;
+    if (sshPasswordFields) sshPasswordFields.hidden = isInstabox || !usesPassword;
     if (instaboxFields) instaboxFields.hidden = !isInstabox;
-    ["serverHost","serverPort","serverUsername","serverPrivateKey"].forEach((id) => {
-      const field = $(id);
-      if (field) field.required = !isInstabox;
-    });
+    if (supporterDurationFields) supporterDurationFields.hidden = !isSupporter;
+    ["serverHost","serverPort","serverUsername"].forEach((id) => { const field = $(id); if (field) field.required = !isInstabox; });
+    const key = $("serverPrivateKey"); if (key) key.required = !isInstabox && !usesPassword;
+    const password = $("serverPassword"); if (password) password.required = !isInstabox && usesPassword;
     const command = $("instaboxCommand");
     if (command) command.required = Boolean(isInstabox);
-    if (saveServerButton) saveServerButton.textContent = isInstabox ? "Connect Instabox" : "Test and add server";
+    if (saveServerButton) saveServerButton.textContent = isInstabox ? "Connect Instabox" : isSupporter ? "Connect supporter VM" : "Test and add server";
   }
-  if (providerSelect) {
-    providerSelect.addEventListener("change", updateProviderFields);
+  if (connectionTypeSelect || connectionModeSelect) {
+    connectionTypeSelect?.addEventListener("change", updateProviderFields);
+    connectionModeSelect?.addEventListener("change", updateProviderFields);
     updateProviderFields();
   }
   if (serverForm) serverForm.addEventListener("submit", async (event) => {
@@ -306,18 +333,19 @@
     if (serverFormError) { serverFormError.hidden = true; serverFormError.textContent = ""; }
     const payload = Object.fromEntries(new FormData(serverForm).entries());
     payload.port = Number(payload.port || 22);
-    if (saveServerButton) { saveServerButton.disabled = true; saveServerButton.textContent = payload.provider === "instabox" ? "Connecting…" : "Testing SSH…"; }
+    if (saveServerButton) { saveServerButton.disabled = true; saveServerButton.textContent = payload.connectionType === "instabox" ? "Connecting…" : "Testing SSH…"; }
     try {
       const response = await fetch("/api/servers", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || "Could not add server.");
       serverForm.reset();
       const port = serverForm.elements.namedItem("port"); if (port) port.value = "22";
-      if (providerSelect) providerSelect.value = "ssh";
+      if (connectionTypeSelect) connectionTypeSelect.value = "ssh-key";
+      if (connectionModeSelect) connectionModeSelect.value = "standard";
       updateProviderFields();
       closeServerDialog();
       await loadServers();
-      showToolFeedback(payload.provider === "instabox" ? "Instabox connected · server added" : "SSH connection verified · server added");
+      showToolFeedback(payload.connectionType === "instabox" ? "Instabox connected · server added" : payload.connectionMode === "supporter" ? "Supporter VM connected · temporary access started" : "SSH connection verified · server added");
     } catch (error) {
       if (serverFormError) { serverFormError.textContent = error.message || "Could not add server."; serverFormError.hidden = false; }
     } finally {

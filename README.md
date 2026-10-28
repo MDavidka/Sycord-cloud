@@ -50,7 +50,9 @@ Airshell is configured as a standalone Progressive Web App (PWA). Open it in Saf
 
 ## SSH servers, per-server terminals, and files
 
-The sidebar's **Servers** section is populated only from SSH hosts saved by the signed-in workspace. Use **Add server** to provide a display name, host/IP, SSH port, Linux username, and a private key. Airshell verifies the SSH connection before adding the entry. Passphrase-protected private keys are not currently supported. The private key is kept server-side with restrictive file permissions and is never returned by the API.
+The sidebar's **Servers** section is populated only from hosts saved by the signed-in workspace. Use **Add server** to connect with an SSH key, an SSH account password, or an Instabox command. Sycord tests the connection before adding the entry. SSH keys and passwords are encrypted at rest and never returned by the API. Passphrase-protected private keys are not currently supported.
+
+Choose **Supporter VM** to grant Sycord temporary access to an existing VM for 7 or 30 days. The connection appears in the server list and can be used by the terminal, files view, and assistant like other servers. At expiry Sycord removes the saved connection and credential and disconnects its terminal; the VM and its own login settings remain unchanged. Password authentication requires SSH password login to be enabled on the supporter VM.
 
 Each saved host opens its own SSH terminal session at `/terminal?server=<id>`. When `tmux` is installed on the remote host, Airshell automatically attaches to a named `tmux` session for that server; this lets CLI processes continue and be reattached after a browser disconnect or an Airshell restart. Without `tmux`, the terminal falls back to a regular SSH shell and cannot promise process persistence across disconnects. The **Files** tab lists the remote directory and supports text previews up to 128 KiB per file. The Files API currently relies on GNU `find` and standard SSH tools on the remote Linux host.
 
@@ -58,7 +60,7 @@ Each saved host opens its own SSH terminal session at `/terminal?server=<id>`. W
 
 - Set `AIRSHELL_DATA_DIR` to a **persistent, private volume** on the Airshell host. It stores each workspace's server registry and SSH keys. If the hosting platform's filesystem is ephemeral, saved servers and keys can disappear after a redeploy/restart.
 - Keep the Airshell service on an always-on host/container. A GitHub commit does not keep a sleeping/free hosting instance alive. Configure your host's restart policy and, if supported, use `/healthz` for health checks.
-- Install an OpenSSH client (`ssh`) on the Airshell host, and allow outbound SSH connections to your remote hosts. Install `tmux` on each remote Linux host for long-running CLI sessions to survive SSH/Airshell restarts.
+- Install OpenSSH (`ssh`) on the Sycord host and allow outbound SSH connections to remote hosts. Install `sshpass` too when password-based SSH is enabled; the app passes the password through the child process environment, not its command line. Install `tmux` on each remote Linux host for long-running CLI sessions to survive browser disconnects or service restarts.
 - Use SSH keys dedicated to this app with least-privilege accounts. Removing a server from the sidebar deletes the saved record and its stored key from the configured data directory.
 - WebSocket ping/pong keepalive is enabled. This improves connection stability, but cannot prevent downtime caused by host sleep, restarts, network outages, or a remote server going offline.
 
@@ -67,7 +69,7 @@ The server registry is workspace-cookie scoped. Clearing browser site data creat
 
 ## MongoDB persistence
 
-Set `MONGO_URI` as a private deployment environment variable to enable persistent storage. The app creates `workspaces` and `terminal_logs` collections automatically. Saved server records, encrypted SSH private keys, profile preferences, and the latest 500 terminal output chunks per workspace/server are stored in MongoDB. SSH keys are encrypted using a key derived from `TERMINAL_SESSION_SECRET` (or `TERMINAL_PASSWORD` when no separate secret is configured); keep that secret stable across redeployments or encrypted keys cannot be restored. Never commit `MONGO_URI` or database credentials. Without `MONGO_URI`, the app falls back to local filesystem storage, which is not durable on ephemeral hosts.
+Set `MONGO_URI` as a private deployment environment variable to enable persistent storage. The app creates `workspaces` and `terminal_logs` collections automatically. Saved server records, encrypted SSH private keys and passwords, profile preferences, and the latest 500 terminal output chunks per workspace/server are stored in MongoDB. Credentials are encrypted using a key derived from `TERMINAL_SESSION_SECRET` (or `TERMINAL_PASSWORD` when no separate secret is configured); keep that secret stable across redeployments or encrypted credentials cannot be restored. Never commit `MONGO_URI` or database credentials. Without `MONGO_URI`, the app falls back to local filesystem storage, which is not durable on ephemeral hosts.
 
 
 ## Airshell AI agent tools

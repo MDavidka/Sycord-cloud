@@ -11,16 +11,23 @@ struct ServersView: View {
         NavigationStack {
             List {
                 if let error { Text(error).foregroundStyle(.red) }
-                if api.servers.isEmpty { ContentUnavailableView("No servers connected", systemImage: "server.rack", description: Text("Add an SSH server or Instabox to get started.")) }
-                ForEach(api.servers) { server in NavigationLink(value: server) { VStack(alignment: .leading, spacing: 5) { Text(server.name).font(.headline); Text("\(server.username)@\(server.host):\(server.port)").font(.subheadline).foregroundStyle(.secondary) } } }
+                if api.servers.isEmpty { VStack(spacing: 8) { Image(systemName: "server.rack").font(.largeTitle).foregroundStyle(.secondary); Text("No servers connected").font(.headline); Text("Add an SSH server or Instabox to get started.").font(.subheadline).foregroundStyle(.secondary) }.frame(maxWidth: .infinity).padding(.vertical, 28) }
+                ForEach(api.servers) { server in NavigationLink(value: server) { VStack(alignment: .leading, spacing: 5) { Text(server.name).font(.headline); Text("\(server.username)@\(server.host):\(server.port)").font(.subheadline).foregroundStyle(.secondary); if let expiry = server.supporterExpiryDate { Text("Supporter access until \(expiry.formatted(date: .abbreviated, time: .shortened))").font(.footnote).foregroundStyle(.secondary) } } } }
             }
             .navigationTitle("Servers")
-            .toolbar { ToolbarItem(placement: .topBarTrailing) { Button { adding = true } label: { Image(systemName: "plus") } } }
+            .toolbar { ToolbarItem(placement: .navigationBarTrailing) { Button { adding = true } label: { Image(systemName: "plus") } } }
             .navigationDestination(for: Server.self) { server in ServerDetailView(server: server) }
             .sheet(isPresented: $adding) { AddServerView() }
             .refreshable { await refresh() }
             .overlay { if busy { ProgressView() } }
-            .task { await refresh() }
+            .task {
+                await refresh()
+                while !Task.isCancelled {
+                    try? await Task.sleep(nanoseconds: 60_000_000_000)
+                    guard !Task.isCancelled else { break }
+                    try? await api.refreshServers()
+                }
+            }
         }
     }
     private func refresh() async { busy = true; defer { busy = false }; do { try await api.refreshServers(); error = nil } catch { self.error = error.localizedDescription } }
@@ -30,11 +37,15 @@ struct AddServerView: View {
     @EnvironmentObject private var api: APIClient
     @Environment(\.dismiss) private var dismiss
     @State private var provider = "ssh"
+    @State private var authMethod = "key"
+    @State private var connectionMode = "standard"
+    @State private var expiresInDays = "7"
     @State private var name = ""
     @State private var host = ""
     @State private var username = ""
     @State private var port = "22"
     @State private var privateKey = ""
+    @State private var sshPassword = ""
     @State private var command = ""
     @State private var error: String?
     @State private var busy = false
@@ -42,18 +53,27 @@ struct AddServerView: View {
         NavigationStack {
             Form {
                 Picker("Provider", selection: $provider) { Text("SSH server").tag("ssh"); Text("Instabox").tag("instabox") }.pickerStyle(.segmented)
+                Picker("Access", selection: $connectionMode) { Text("Standard").tag("standard"); Text("Supporter VM").tag("supporter") }
+                if connectionMode == "supporter" {
+                    Section("Temporary access") {
+                        Picker("Access lasts", selection: $expiresInDays) { Text("7 days").tag("7"); Text("30 days").tag("30") }
+                        Text("At expiry Sycord deletes its saved credential and disconnects. The VM and its own login settings are unchanged.").font(.footnote).foregroundStyle(.secondary)
+                    }
+                }
                 Section("Connection") {
                     TextField("Server name", text: $name).textInputAutocapitalization(.words)
                     if provider == "instabox" { TextField("Instabox SSH command or token username", text: $command).textInputAutocapitalization(.never).autocorrectionDisabled() }
                     else {
+                        Picker("Authentication", selection: $authMethod) { Text("SSH key").tag("key"); Text("Password").tag("password") }.pickerStyle(.segmented)
                         TextField("Hostname or IP", text: $host).textInputAutocapitalization(.never).autocorrectionDisabled()
                         TextField("Username", text: $username).textInputAutocapitalization(.never).autocorrectionDisabled()
                         TextField("Port", text: $port).keyboardType(.numberPad)
-                        SecureField("SSH private key", text: $privateKey, prompt: Text("Paste private key")).textInputAutocapitalization(.never).autocorrectionDisabled()
+                        if authMethod == "key" { SecureField("SSH private key", text: $privateKey, prompt: Text("Paste private key")).textInputAutocapitalization(.never).autocorrectionDisabled() }
+                        else { SecureField("SSH account password", text: $sshPassword).textInputAutocapitalization(.never).autocorrectionDisabled() }
                     }
                 }
                 if let error { Text(error).foregroundStyle(.red) }
-                Section { Text("The key is sent securely to your workspace and is never shown again.").font(.footnote).foregroundStyle(.secondary) }
+                Section { Text(provider == "instabox" ? "The Instabox token stays private on the Sycord host." : authMethod == "key" ? "The key is stored securely on your workspace and never shown again." : "The password is encrypted on the Sycord host. SSH password login must be enabled on the remote VM.").font(.footnote).foregroundStyle(.secondary) }
             }
             .navigationTitle("Add server")
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }; ToolbarItem(placement: .confirmationAction) { Button(busy ? "Connecting…" : "Connect") { Task { await save() } }.disabled(busy || name.isEmpty) } }
@@ -61,9 +81,13 @@ struct AddServerView: View {
     }
     private func save() async {
         busy = true; error = nil; defer { busy = false }
-        var payload: [String: String] = ["provider": provider, "name": name]
+        var payload: [String: String] = ["provider": provider, "name": name, "connectionMode": connectionMode, "expiresInDays": expiresInDays]
         if provider == "instabox" { payload["command"] = command }
-        else { payload.merge(["host": host, "username": username, "port": port, "privateKey": privateKey]) { _, new in new } }
+        else {
+            payload.merge(["host": host, "username": username, "port": port, "authMethod": authMethod]) { _, new in new }
+            if authMethod == "key" { payload["privateKey"] = privateKey }
+            else { payload["password"] = sshPassword }
+        }
         do { let body = try JSONSerialization.data(withJSONObject: payload); let _: AddedServer = try await api.request("/api/servers", method: "POST", body: body); try await api.refreshServers(); dismiss() }
         catch { self.error = error.localizedDescription }
     }
@@ -82,7 +106,7 @@ struct ServerDetailView: View {
     @State private var busy = false
     var body: some View {
         List {
-            Section("Connection") { LabeledContent("Host", value: "\(server.username)@\(server.host):\(server.port)"); LabeledContent("Status", value: status?.status.capitalized ?? "Checking…"); if let metrics = status?.metrics { LabeledContent("Load", value: String(format: "%.2f", metrics.load1)); LabeledContent("Memory used", value: "\(metrics.memoryPercent)%") } }
+            Section("Connection") { LabeledContent("Host", value: "\(server.username)@\(server.host):\(server.port)"); if let expiry = server.supporterExpiryDate { LabeledContent("Supporter access until", value: expiry.formatted(date: .abbreviated, time: .shortened)) }; LabeledContent("Status", value: status?.status.capitalized ?? "Checking…"); if let metrics = status?.metrics { LabeledContent("Load", value: String(format: "%.2f", metrics.load1)); LabeledContent("Memory used", value: "\(metrics.memoryPercent)%") } }
             if let error { Text(error).foregroundStyle(.red) }
             Section {
                 Button { terminal = true } label: { Label("Open terminal", systemImage: "terminal") }

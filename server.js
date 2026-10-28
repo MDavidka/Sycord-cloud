@@ -93,6 +93,7 @@ const mongoClient = MONGO_URI ? new MongoClient(MONGO_URI, { serverSelectionTime
 let mongoDb = null;
 let mongoReady = false;
 const workspaceCache = new Map();
+const workspaceWriteQueues = new Map();
 const profileDefaults = { displayName: "Airshell User", email: "", theme: "dark", themeVersion: 3, avatarDataUrl: "" };
 function encryptionKey() {
   return crypto.createHash("sha256").update("airshell-mongo-secrets:v1:").update(sessionSecret).digest();
@@ -212,29 +213,65 @@ function readWorkspaceServersFromDisk(workspaceId) {
 }
 function readWorkspaceServers(workspaceId) {
   const cached = workspaceCache.get(workspaceId);
-  return cached ? cached.servers : readWorkspaceServersFromDisk(workspaceId);
+  const servers = cached ? cached.servers : readWorkspaceServersFromDisk(workspaceId);
+  const now = Date.now();
+  const active = servers.filter(server => {
+    if (server.connectionMode !== "supporter") return true;
+    const expiresAt = Date.parse(server.expiresAt || "");
+    return Number.isFinite(expiresAt) && expiresAt > now;
+  });
+  if (active.length === servers.length) return servers;
+  for (const expired of servers.filter(server => !active.includes(server))) {
+    try { fs.unlinkSync(serverKeyPath(workspaceId, expired.id)); } catch {}
+  }
+  if (cached) cached.servers = active;
+  void writeWorkspaceServers(workspaceId, active).catch(error => {
+    console.error("Could not remove expired supporter connections:", error.message);
+  });
+  return active;
 }
 async function writeWorkspaceServers(workspaceId, servers) {
   const target = serverConfigPath(workspaceId);
   const temp = target + "." + crypto.randomBytes(6).toString("hex") + ".tmp";
   const cleanForDisk = servers.map(({ privateKeyEncrypted, ...item }) => item);
   const cached = workspaceCache.get(workspaceId) || { servers: [], profile: { ...profileDefaults } };
-  if (mongoReady) await persistWorkspaceDocument(workspaceId, { servers, profile: cached.profile });
+  cached.servers = servers;
+  workspaceCache.set(workspaceId, cached);
   fs.writeFileSync(temp, JSON.stringify(cleanForDisk, null, 2), { mode: 0o600 });
   try { fs.chmodSync(temp, 0o600); } catch {}
   fs.renameSync(temp, target);
-  cached.servers = servers;
-  workspaceCache.set(workspaceId, cached);
+  if (mongoReady) {
+    const previous = workspaceWriteQueues.get(workspaceId) || Promise.resolve();
+    const write = previous.catch(() => {}).then(() => persistWorkspaceDocument(workspaceId, { servers, profile: cached.profile }));
+    workspaceWriteQueues.set(workspaceId, write);
+    try { await write; }
+    finally { if (workspaceWriteQueues.get(workspaceId) === write) workspaceWriteQueues.delete(workspaceId); }
+  }
 }
 function publicServer(server) {
-  return { id: server.id, name: server.name, host: server.host, username: server.provider === "instabox" ? "Instabox" : server.username, port: server.port, addedAt: server.addedAt, provider: server.provider || "ssh", type: "ssh" };
+  return { id: server.id, name: server.name, host: server.host, username: server.provider === "instabox" ? "Instabox" : server.username, port: server.port, addedAt: server.addedAt, provider: server.provider || "ssh", authMethod: server.authMethod || "key", connectionMode: server.connectionMode || "standard", expiresAt: server.connectionMode === "supporter" ? server.expiresAt : null, type: "ssh" };
 }
 function sshBaseArgs(workspaceId, server) {
   const args = [];
-  if (server.provider !== "instabox") args.push("-i", serverKeyPath(workspaceId, server.id), "-o", "IdentitiesOnly=yes");
-  else args.push("-o", "PubkeyAuthentication=no", "-o", "PasswordAuthentication=no", "-o", "KbdInteractiveAuthentication=no");
-  args.push("-p", String(server.port), "-o", "BatchMode=yes", "-o", "ConnectTimeout=8", "-o", "ServerAliveInterval=30", "-o", "ServerAliveCountMax=3", "-o", "UserKnownHostsFile=" + path.join(workspaceDataDir(workspaceId), "known_hosts"), "-o", "StrictHostKeyChecking=accept-new", server.username + "@" + server.host);
+  if (server.provider === "instabox") args.push("-o", "PubkeyAuthentication=no", "-o", "PasswordAuthentication=no", "-o", "KbdInteractiveAuthentication=no", "-o", "BatchMode=yes");
+  else if (server.authMethod === "password") args.push("-o", "PubkeyAuthentication=no", "-o", "PreferredAuthentications=password,keyboard-interactive", "-o", "BatchMode=no", "-o", "NumberOfPasswordPrompts=1");
+  else args.push("-i", serverKeyPath(workspaceId, server.id), "-o", "IdentitiesOnly=yes", "-o", "BatchMode=yes");
+  args.push("-p", String(server.port), "-o", "ConnectTimeout=8", "-o", "ServerAliveInterval=30", "-o", "ServerAliveCountMax=3", "-o", "UserKnownHostsFile=" + path.join(workspaceDataDir(workspaceId), "known_hosts"), "-o", "StrictHostKeyChecking=accept-new", server.username + "@" + server.host);
   return args;
+}
+function sshInvocation(workspaceId, server, remoteCommand) {
+  const args = sshBaseArgs(workspaceId, server);
+  if (remoteCommand) args.push(remoteCommand);
+  if (server.provider !== "instabox" && server.authMethod === "password") {
+    const password = decryptSecret(server.passwordEncrypted);
+    if (!password) throw new Error("The saved SSH password is unavailable. Re-add this server.");
+    return { command: "sshpass", args: ["-e", "ssh", ...args], env: { ...process.env, SSHPASS: password } };
+  }
+  return { command: "ssh", args, env: process.env };
+}
+function execSSH(workspaceId, server, remoteCommand, options = {}) {
+  const invocation = sshInvocation(workspaceId, server, remoteCommand);
+  return execFileAsync(invocation.command, invocation.args, { ...options, env: invocation.env });
 }
 function shellQuote(value) { return "'" + String(value).replace(/'/g, "'\\''") + "'"; }
 function findWorkspaceServer(workspaceId, id) { return readWorkspaceServers(workspaceId).find(server => server.id === id) || null; }
@@ -342,11 +379,19 @@ app.post("/api/servers", async (req, res) => {
   if (!workspaceId) return res.status(400).json({ error: "Workspace cookie missing. Reload the page and try again." });
   const body = req.body || {};
   const name = typeof body.name === "string" ? body.name.trim().slice(0, 48) : "";
-  const provider = body.provider === "instabox" ? "instabox" : "ssh";
+  const connectionType = typeof body.connectionType === "string" ? body.connectionType : "";
+  const provider = body.provider === "instabox" || connectionType === "instabox" ? "instabox" : "ssh";
+  const authMethod = provider === "instabox" ? "token" : connectionType === "ssh-password" || body.authMethod === "password" ? "password" : "key";
+  const connectionMode = body.connectionMode === "supporter" ? "supporter" : "standard";
+  const expiresInDays = Number(body.expiresInDays || 7);
+  if (connectionMode === "supporter" && ![7, 30].includes(expiresInDays)) {
+    return res.status(400).json({ error: "Supporter access must last 7 or 30 days." });
+  }
   let host = typeof body.host === "string" ? body.host.trim().toLowerCase() : "";
   let username = typeof body.username === "string" ? body.username.trim() : "";
   let port = body.port === undefined || body.port === "" ? 22 : Number(body.port);
-  const privateKey = typeof body.privateKey === "string" ? body.privateKey.trim() + "\n" : "";
+  const privateKey = authMethod === "key" && typeof body.privateKey === "string" ? body.privateKey.trim() + "\n" : "";
+  const sshPassword = authMethod === "password" && typeof body.password === "string" ? body.password : "";
   if (provider === "instabox") {
     const command = typeof body.command === "string" ? body.command.trim() : "";
     const match = command.match(/(?:^|\s)(?:\S+\s+)*(?:-p\s+(\d+)\s+)?([A-Za-z0-9._-]+)@(ssh|mosh)\.instabox\.sh(?:\s|$)/i)
@@ -366,20 +411,25 @@ app.post("/api/servers", async (req, res) => {
   if (!name || !/^[a-zA-Z0-9.-]{1,253}$/.test(host) || !/^[a-zA-Z0-9_][a-zA-Z0-9._-]{0,127}$/.test(username) || !Number.isInteger(port) || port < 1 || port > 65535) {
     return res.status(400).json({ error: "Enter a server name, valid hostname/IP, username, and port (1–65535)." });
   }
-  if (provider !== "instabox" && (privateKey.length > 20000 || !/-----BEGIN (?:OPENSSH |RSA |EC |DSA )?PRIVATE KEY-----/.test(privateKey))) {
+  if (provider !== "instabox" && authMethod === "key" && (privateKey.length > 20000 || !/-----BEGIN (?:OPENSSH |RSA |EC |DSA )?PRIVATE KEY-----/.test(privateKey))) {
     return res.status(400).json({ error: "Paste a valid SSH private key. Passphrase-protected keys are not supported yet." });
   }
+  if (provider !== "instabox" && authMethod === "password" && (!sshPassword || Buffer.byteLength(sshPassword) > 1024 || sshPassword.includes("\0"))) {
+    return res.status(400).json({ error: "Enter an SSH password up to 1,024 bytes. NUL characters are not supported." });
+  }
   const id = crypto.randomBytes(12).toString("hex");
-  const record = { id, name, host, username, port, provider, addedAt: new Date().toISOString() };
+  const record = { id, name, host, username, port, provider, authMethod, connectionMode, addedAt: new Date().toISOString() };
   let keyPath;
   try {
-    if (provider !== "instabox") {
+    if (provider !== "instabox" && authMethod === "key") {
       keyPath = serverKeyPath(workspaceId, id);
       fs.writeFileSync(keyPath, privateKey, { mode: 0o600, flag: "wx" });
       try { fs.chmodSync(keyPath, 0o600); } catch {}
     }
-    await execFileAsync("ssh", [...sshBaseArgs(workspaceId, record), "printf AIRSHELL_SSH_OK"], { timeout: 12000, maxBuffer: 4096, windowsHide: true });
-    if (provider !== "instabox") record.privateKeyEncrypted = encryptSecret(privateKey);
+    if (authMethod === "password") record.passwordEncrypted = encryptSecret(sshPassword);
+    await execSSH(workspaceId, record, "printf AIRSHELL_SSH_OK", { timeout: 12000, maxBuffer: 4096, windowsHide: true });
+    if (connectionMode === "supporter") record.expiresAt = new Date(Date.now() + expiresInDays * 86400000).toISOString();
+    if (authMethod === "key") record.privateKeyEncrypted = encryptSecret(privateKey);
     const servers = readWorkspaceServers(workspaceId);
     servers.push(record);
     await writeWorkspaceServers(workspaceId, servers);
@@ -388,9 +438,10 @@ app.post("/api/servers", async (req, res) => {
   } catch (error) {
     if (keyPath) { try { fs.unlinkSync(keyPath); } catch {} }
     const missingSsh = error && error.code === "ENOENT";
-    const detail = missingSsh ? "The host running Airshell does not have the SSH client installed." :
+    const detail = missingSsh ? authMethod === "password" ? "The host running Sycord Cloud needs both ssh and sshpass installed for password logins." : "The host running Sycord Cloud does not have the SSH client installed." :
       error && error.killed ? "SSH connection timed out. Check the host, port, network, and SSH service." :
       provider === "instabox" ? "Instabox SSH authentication failed or the endpoint could not be reached. Use the SSH command shown in Instabox and ensure the session is still running." :
+      authMethod === "password" ? "SSH password authentication failed or is disabled on the remote VM. Check the username, password, host, port, and SSH password-login settings." :
       "SSH authentication failed or the host could not be reached. Check the username, key, host, port, and server's authorized_keys.";
     console.error("SSH server add failed:", error && (error.code || error.message) || "unknown");
     return res.status(missingSsh ? 503 : 422).json({ error: detail });
@@ -408,7 +459,7 @@ app.get("/api/servers/:id/status", async (req, res) => {
   res.setHeader("Cache-Control", "no-store");
   try {
     const command = "printf 'AIRSHELL_METRICS '; awk '{printf \"%s \", $1}' /proc/loadavg; awk '/MemTotal:/ {t=$2} /MemAvailable:/ {a=$2} END {if(t>0) printf \"%.0f\", 100*(t-a)/t}' /proc/meminfo";
-    const result = await execFileAsync("ssh", [...sshBaseArgs(workspaceId, server), command], { timeout: 10000, maxBuffer: 1024, windowsHide: true });
+    const result = await execSSH(workspaceId, server, command, { timeout: 10000, maxBuffer: 1024, windowsHide: true });
     const match = String(result.stdout || "").match(/AIRSHELL_METRICS\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)\s+(\d{1,3})/);
     const metrics = match ? { load1: Number(match[1]), load5: Number(match[2]), load15: Number(match[3]), memoryPercent: Math.min(100, Number(match[4])) } : null;
     return res.json({ id, status: "online", metrics, checkedAt: new Date().toISOString() });
@@ -448,7 +499,7 @@ app.get("/api/servers/:id/files", async (req, res) => {
   if (!remote) return res.status(404).json({ error: "Server not found." });
   try {
     const command = "find " + shellQuote(remotePath) + " -maxdepth 1 -mindepth 1 -printf '%f\\t%y\\t%s\\t%T@\\n' 2>/dev/null";
-    const result = await execFileAsync("ssh", [...sshBaseArgs(workspaceId, remote), command], { timeout: 15000, maxBuffer: 256 * 1024, windowsHide: true });
+    const result = await execSSH(workspaceId, remote, command, { timeout: 15000, maxBuffer: 256 * 1024, windowsHide: true });
     const entries = String(result.stdout || "").split("\n").filter(Boolean).map(line => {
       const parts = line.split("\t");
       return { name: parts[0] || "", type: parts[1] === "d" ? "directory" : "file", size: Number(parts[2]) || 0, modified: Number(parts[3]) || 0 };
@@ -472,7 +523,7 @@ app.get("/api/servers/:id/file", async (req, res) => {
   if (!remote) return res.status(404).json({ error: "Server not found." });
   try {
     const command = "if [ -f " + shellQuote(remotePath) + " ]; then head -c 131072 -- " + shellQuote(remotePath) + "; else exit 3; fi";
-    const result = await execFileAsync("ssh", [...sshBaseArgs(workspaceId, remote), command], { timeout: 15000, maxBuffer: 140 * 1024, encoding: "utf8", windowsHide: true });
+    const result = await execSSH(workspaceId, remote, command, { timeout: 15000, maxBuffer: 140 * 1024, encoding: "utf8", windowsHide: true });
     res.setHeader("Cache-Control", "no-store");
     return res.json({ path: remotePath, content: String(result.stdout || ""), truncated: Buffer.byteLength(String(result.stdout || "")) >= 131072 });
   } catch (error) {
@@ -551,18 +602,18 @@ async function executeAgentTool(workspaceId, name, args, sendEvent) {
     const remote = agentServer(workspaceId, args.serverId);
     if (name === "serverstats") {
       const cmd = "printf 'HOST '; hostname; printf '\\nUPTIME '; uptime; printf '\\nMEMORY\\n'; free -b; printf '\\nDISK\\n'; df -h /; printf '\\nCPUS '; nproc";
-      const result = await execFileAsync("ssh", [...sshBaseArgs(workspaceId, remote), cmd], { timeout: 18000, maxBuffer: 64 * 1024, windowsHide: true });
+      const result = await execSSH(workspaceId, remote, cmd, { timeout: 18000, maxBuffer: 64 * 1024, windowsHide: true });
       return String(result.stdout || "").slice(0, 12000);
     }
     if (name === "terminalREAD") {
       if (!agentReadOnlyCommand(args.command)) return "Blocked: command is not on the read-only allowlist. Use terminalWRITE for changes; it requires confirmation.";
-      const result = await execFileAsync("ssh", [...sshBaseArgs(workspaceId, remote), args.command.trim()], { timeout: 15000, maxBuffer: 128 * 1024, windowsHide: true });
+      const result = await execSSH(workspaceId, remote, args.command.trim(), { timeout: 15000, maxBuffer: 128 * 1024, windowsHide: true });
       return String(result.stdout || "").slice(0, 20000) || "(Command completed with no output.)";
     }
     if (name === "getFILES") {
       const p = agentSafePath(args.path || ".");
       const cmd = "find " + shellQuote(p) + " -maxdepth 1 -mindepth 1 -printf '%f\\t%y\\t%s\\n' 2>/dev/null";
-      const result = await execFileAsync("ssh", [...sshBaseArgs(workspaceId, remote), cmd], { timeout: 15000, maxBuffer: 128 * 1024, windowsHide: true });
+      const result = await execSSH(workspaceId, remote, cmd, { timeout: 15000, maxBuffer: 128 * 1024, windowsHide: true });
       const entries = String(result.stdout || "").split("\n").filter(Boolean).map(line => { const parts = line.split("\t"); return { name: parts[0], type: parts[1] === "d" ? "directory" : "file", size: Number(parts[2]) || 0 }; });
       return JSON.stringify({ path: p, entries: entries.slice(0, 250) });
     }
@@ -574,17 +625,17 @@ async function executeAgentTool(workspaceId, name, args, sendEvent) {
     const approved = await waitForAgentApproval(workspaceId, { tool: name, summary: agentApprovalSummary(name, args, remote) }, sendEvent);
     if (!approved) return "The user declined or approval expired. No changes were made.";
     if (name === "terminalWRITE") {
-      const result = await execFileAsync("ssh", [...sshBaseArgs(workspaceId, remote), "bash -lc " + shellQuote(args.command)], { timeout: 60000, maxBuffer: 128 * 1024, windowsHide: true });
+      const result = await execSSH(workspaceId, remote, "bash -lc " + shellQuote(args.command), { timeout: 60000, maxBuffer: 128 * 1024, windowsHide: true });
       return "Command completed.\n" + String(result.stdout || "").slice(0, 16000) + (result.stderr ? "\nSTDERR:\n" + String(result.stderr).slice(0, 4000) : "");
     }
     if (name === "editFILES") {
       const encoded = Buffer.from(args.content, "utf8").toString("base64");
       const cmd = "printf %s " + shellQuote(encoded) + " | base64 -d > " + shellQuote(args.path);
-      await execFileAsync("ssh", [...sshBaseArgs(workspaceId, remote), cmd], { timeout: 20000, maxBuffer: 32 * 1024, windowsHide: true });
+      await execSSH(workspaceId, remote, cmd, { timeout: 20000, maxBuffer: 32 * 1024, windowsHide: true });
       return "File updated: " + args.path + " (" + Buffer.byteLength(args.content, "utf8") + " bytes).";
     }
     const cmd = "mv -- " + shellQuote(args.source) + " " + shellQuote(args.destination);
-    await execFileAsync("ssh", [...sshBaseArgs(workspaceId, remote), cmd], { timeout: 20000, maxBuffer: 32 * 1024, windowsHide: true });
+    await execSSH(workspaceId, remote, cmd, { timeout: 20000, maxBuffer: 32 * 1024, windowsHide: true });
     return "Moved " + args.source + " to " + args.destination + ".";
   } catch (error) { return "Tool failed: " + String(error && error.message || error).slice(0, 1200); }
 }
@@ -817,12 +868,15 @@ function spawnTerminalSession(workspaceId, serverId) {
   const sessionKey = workspaceId + ":" + (serverId || "local");
   let command = process.env.SHELL || "/bin/bash";
   let args = ["--login"];
+  let connectionEnv = process.env;
   let cwd = process.env.HOME || "/app";
   if (serverId) {
     const remote = findWorkspaceServer(workspaceId, serverId);
     if (!remote) throw new Error("This server is not saved in your workspace.");
-    command = "ssh";
-    args = sshBaseArgs(workspaceId, remote);
+    const invocation = sshInvocation(workspaceId, remote);
+    command = invocation.command;
+    args = invocation.args;
+    connectionEnv = invocation.env;
     args.splice(args.length - 1, 0, "-tt");
     const remoteCommand = "if command -v tmux >/dev/null 2>&1; then exec tmux new-session -A -s airshell_" + serverId + "; else printf '\\n[Airshell] tmux is not installed; this shell will not survive an SSH disconnect. Install tmux for persistent sessions.\\n'; exec \"\${SHELL:-/bin/bash}\" -l; fi";
     args.push(remoteCommand);
@@ -832,11 +886,12 @@ function spawnTerminalSession(workspaceId, serverId) {
     cols: 100,
     rows: 30,
     cwd,
-    env: { ...process.env, TERM: "xterm-256color", COLORTERM: "truecolor" }
+    env: { ...connectionEnv, TERM: "xterm-256color", COLORTERM: "truecolor" }
   });
   const session = {
     id: sessionKey,
     sessionKey,
+    workspaceId,
     serverId: serverId || null,
     terminal,
     socket: null,
@@ -876,6 +931,19 @@ function spawnTerminalSession(workspaceId, serverId) {
   });
   return session;
 }
+
+const supporterSessionReaper = setInterval(() => {
+  for (const workspaceId of workspaceCache.keys()) readWorkspaceServers(workspaceId);
+  for (const session of terminalSessions.values()) {
+    if (!session.serverId || session.exited) continue;
+    if (findWorkspaceServer(session.workspaceId, session.serverId)) continue;
+    if (session.socket && session.socket.readyState === WebSocket.OPEN) {
+      try { session.socket.send(JSON.stringify({ type: "notice", message: "This server connection expired or was removed." })); } catch {}
+    }
+    try { session.terminal.kill(); } catch {}
+  }
+}, 30000);
+supporterSessionReaper.unref();
 
 const websocketHeartbeat = setInterval(() => {
   for (const ws of wss.clients) {
@@ -957,6 +1025,10 @@ wss.on("connection", async (ws, req) => {
 
   ws.on("message", raw => {
     if (session.socket !== ws || session.exited) return;
+    if (serverId && !findWorkspaceServer(workspaceId, serverId)) {
+      try { session.terminal.kill(); } catch {}
+      return;
+    }
     let msg;
     try { msg = JSON.parse(raw.toString()); } catch { return; }
     if (msg.type === "input" && typeof msg.data === "string" && msg.data.length <= 4096) {

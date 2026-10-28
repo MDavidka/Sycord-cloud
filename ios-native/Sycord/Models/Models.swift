@@ -25,8 +25,16 @@ struct Server: Codable, Identifiable, Hashable {
     var port: Int
     var username: String
     var provider: String
+    var authMethod: String?
+    var connectionMode: String?
+    var expiresAt: String?
     static func == (lhs: Server, rhs: Server) -> Bool { lhs.id == rhs.id }
     func hash(into hasher: inout Hasher) { hasher.combine(id) }
+
+    var supporterExpiryDate: Date? {
+        guard connectionMode == "supporter", let expiresAt else { return nil }
+        return ISO8601DateFormatter().date(from: expiresAt)
+    }
 }
 
 struct ServerStatus: Codable {

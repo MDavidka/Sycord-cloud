@@ -185,6 +185,16 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  .mobile-server-expiry {
+    display: block;
+    overflow: hidden;
+    margin-top: 2px;
+    color: #a7a6ab;
+    font-size: 10px;
+    line-height: 1.3;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
   .mobile-home-empty {
     grid-column: 1 / -1;
     margin: 0;
@@ -757,6 +767,7 @@ body.airshell-home,
 .airshell-light-theme .mobile-server-number { color: #202126 !important; background: #ededf0 !important; }
 .airshell-light-theme .mobile-server-number .server-status-dot { border-color: #ffffff !important; }
 .airshell-light-theme .mobile-server-meta,
+.airshell-light-theme .mobile-server-expiry,
 .airshell-light-theme .mobile-home-empty { color: #777980 !important; }
 @media (max-width: 600px) {
   .airshell-light-theme:not(.chat-active) .home-topbar { background: rgba(255,255,255,.94) !important; }

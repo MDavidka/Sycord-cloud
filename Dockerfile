@@ -6,7 +6,7 @@ ENV HOME=/home/app
 ENV PATH="/home/app/.local/bin:${PATH}"
 
 RUN apt-get update \
- && apt-get install -y --no-install-recommends bash ca-certificates curl git python3 python3-pip tini \
+ && apt-get install -y --no-install-recommends bash ca-certificates curl git openssh-client sshpass python3 python3-pip tini \
  && rm -rf /var/lib/apt/lists/* \
  && useradd --create-home --home-dir /home/app --shell /bin/bash app
 

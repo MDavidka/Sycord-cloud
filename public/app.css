@@ -2302,6 +2302,7 @@ body.airshell-home .home-main.home-dashboard {
 .sidebar-server-label { display:flex; flex-direction:column; min-width:0; gap:2px; }
 .sidebar-server-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .sidebar-server-host { display:block; overflow:hidden; max-width:145px; color:#77777e; font-size:10px; text-overflow:ellipsis; white-space:nowrap; }
+.sidebar-server-expiry { display:block; overflow:hidden; max-width:165px; color:#a4a4aa; font-size:10px; text-overflow:ellipsis; white-space:nowrap; }
 .sidebar-server-remove { flex:0 0 24px; width:24px; height:28px; border:0; border-radius:6px; background:transparent; color:#707076; font-size:18px; opacity:0; }
 .sidebar-server-row:hover .sidebar-server-remove, .sidebar-server-remove:focus-visible { opacity:1; }
 .sidebar-server-remove:hover { background:#2b2223; color:#f19b9b; }

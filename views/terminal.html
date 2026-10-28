@@ -231,18 +231,29 @@
 
     <dialog class="server-dialog" id="addServerDialog" aria-labelledby="addServerTitle">
       <form id="addServerForm" class="server-dialog-form" autocomplete="off">
-        <div class="server-dialog-head"><div><p class="server-dialog-eyebrow">SERVER CONNECTION</p><h2 id="addServerTitle">Add a server</h2><p>Connect with an SSH key or Instabox quick connect.</p></div><button type="button" class="server-dialog-close" id="closeServerDialog" aria-label="Close">×</button></div>
-        <label>Connection type<select name="provider" id="serverProvider"><option value="ssh">SSH · private key</option><option value="instabox">Instabox · token command</option></select></label>
+        <div class="server-dialog-head"><div><p class="server-dialog-eyebrow">SERVER CONNECTION</p><h2 id="addServerTitle">Add a server</h2><p>Connect an SSH host or grant temporary access to a supporter VM.</p></div><button type="button" class="server-dialog-close" id="closeServerDialog" aria-label="Close">×</button></div>
+        <label>Access<select name="connectionMode" id="serverConnectionMode"><option value="standard">Standard server</option><option value="supporter">Supporter VM · temporary access</option></select></label>
+        <div id="supporterDurationFields" hidden>
+          <label>Access duration<select name="expiresInDays"><option value="7">7 days</option><option value="30">30 days</option></select></label>
+          <p class="server-dialog-note">At expiry Sycord deletes its saved credential and disconnects. The VM and its own login settings are unchanged.</p>
+        </div>
+        <label>Connection type<select name="connectionType" id="serverConnectionType"><option value="ssh-key">SSH · private key</option><option value="ssh-password">SSH · password</option><option value="instabox">Instabox · token command</option></select></label>
         <label>Server name<input name="name" maxlength="48" required placeholder="My server"></label>
         <div id="sshFields">
           <div class="server-dialog-grid"><label>Host or IP<input name="host" id="serverHost" required autocapitalize="off" spellcheck="false" placeholder="203.0.113.10"></label><label>SSH port<input name="port" id="serverPort" type="number" min="1" max="65535" value="22" required></label></div>
           <label>Linux username<input name="username" id="serverUsername" required autocapitalize="off" spellcheck="false" placeholder="ubuntu"></label>
+        </div>
+        <div id="sshKeyFields">
           <label>SSH private key<textarea name="privateKey" id="serverPrivateKey" required rows="5" spellcheck="false" autocapitalize="off" placeholder="-----BEGIN OPENSSH PRIVATE KEY-----"></textarea></label>
-          <p class="server-dialog-note">The private key is stored on the Airshell host with restricted file permissions and is never sent back to the browser.</p>
+          <p class="server-dialog-note">The key is stored securely on the Sycord host and never returned to the browser.</p>
+        </div>
+        <div id="sshPasswordFields" hidden>
+          <label>SSH account password<input name="password" id="serverPassword" type="password" autocomplete="new-password" required></label>
+          <p class="server-dialog-note">The password is encrypted on the Sycord host. SSH password login must be enabled on the remote VM.</p>
         </div>
         <div id="instaboxFields" hidden>
           <label>Instabox SSH / Mosh command<input name="command" id="instaboxCommand" type="text" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="ssh -p 2222 TOKEN@ssh.instabox.sh"></label>
-          <p class="server-dialog-note">Paste the command from Instabox. The token is saved privately as the SSH username; no password or private key is required.</p>
+          <p class="server-dialog-note">Paste the command from Instabox. Its token stays private on the Sycord host.</p>
         </div>
         <p class="server-dialog-error" id="serverFormError" role="alert" hidden></p>
         <div class="server-dialog-actions"><button type="button" class="server-dialog-cancel" id="cancelServerDialog">Cancel</button><button type="submit" class="server-dialog-submit" id="saveServerButton">Test and add server</button></div>
