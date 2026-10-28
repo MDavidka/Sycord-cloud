@@ -9,6 +9,7 @@ const http = require("node:http");
 const pty = require("node-pty");
 const { WebSocketServer, WebSocket } = require("ws");
 const { MongoClient } = require("mongodb");
+const { classifySSHFailure } = require("./lib/ssh-diagnostics");
 
 const app = express();
 app.disable("x-powered-by");
@@ -264,16 +265,19 @@ function publicServer(server) {
     type: "ssh"
   };
 }
-function sshBaseArgs(workspaceId, server) {
+function sshBaseArgs(workspaceId, server, diagnostic = false) {
   const args = [];
+  // OpenSSH debug output reveals which authentication methods the server offers.
+  // Use it only for the initial connection test, and never expose raw stderr.
+  if (diagnostic) args.push("-v");
   if (server.provider === "instabox") args.push("-o", "PubkeyAuthentication=no", "-o", "PasswordAuthentication=no", "-o", "KbdInteractiveAuthentication=no", "-o", "BatchMode=yes");
   else if (server.authMethod === "password") args.push("-o", "PubkeyAuthentication=no", "-o", "PreferredAuthentications=password,keyboard-interactive", "-o", "BatchMode=no", "-o", "NumberOfPasswordPrompts=1");
   else args.push("-i", serverKeyPath(workspaceId, server.id), "-o", "IdentitiesOnly=yes", "-o", "BatchMode=yes");
   args.push("-p", String(server.port), "-o", "ConnectTimeout=8", "-o", "ServerAliveInterval=30", "-o", "ServerAliveCountMax=3", "-o", "UserKnownHostsFile=" + path.join(workspaceDataDir(workspaceId), "known_hosts"), "-o", "StrictHostKeyChecking=accept-new", server.username + "@" + server.host);
   return args;
 }
-function sshInvocation(workspaceId, server, remoteCommand) {
-  const args = sshBaseArgs(workspaceId, server);
+function sshInvocation(workspaceId, server, remoteCommand, diagnostic = false) {
+  const args = sshBaseArgs(workspaceId, server, diagnostic);
   if (remoteCommand) args.push(remoteCommand);
   if (server.provider !== "instabox" && server.authMethod === "password") {
     const password = decryptSecret(server.passwordEncrypted);
@@ -283,8 +287,9 @@ function sshInvocation(workspaceId, server, remoteCommand) {
   return { command: "ssh", args, env: process.env };
 }
 function execSSH(workspaceId, server, remoteCommand, options = {}) {
-  const invocation = sshInvocation(workspaceId, server, remoteCommand);
-  return execFileAsync(invocation.command, invocation.args, { ...options, env: invocation.env });
+  const { sshDiagnostic = false, ...execOptions } = options;
+  const invocation = sshInvocation(workspaceId, server, remoteCommand, sshDiagnostic);
+  return execFileAsync(invocation.command, invocation.args, { ...execOptions, env: invocation.env });
 }
 function shellQuote(value) { return "'" + String(value).replace(/'/g, "'\\''") + "'"; }
 function findWorkspaceServer(workspaceId, id) { return readWorkspaceServers(workspaceId).find(server => server.id === id) || null; }
@@ -490,7 +495,7 @@ app.post("/api/servers", async (req, res) => {
       }
       if (!String(result.stdout || "").includes("AIRSHELL_SUPPORT_ROUTE_OK")) return res.status(422).json({ error: "The main VM helper could not verify SSH reachability.", stage: "main-helper" });
     }
-    await execSSH(workspaceId, record, "printf AIRSHELL_SSH_OK", { timeout: 12000, maxBuffer: 4096, windowsHide: true });
+    await execSSH(workspaceId, record, "printf AIRSHELL_SSH_OK", { timeout: 15000, maxBuffer: 48 * 1024, windowsHide: true, sshDiagnostic: true });
     if (connectionMode === "supporter") record.expiresAt = new Date(Date.now() + expiresInDays * 86400000).toISOString();
     if (authMethod === "key") record.privateKeyEncrypted = encryptSecret(privateKey);
     const servers = readWorkspaceServers(workspaceId);
@@ -500,14 +505,11 @@ app.post("/api/servers", async (req, res) => {
     return res.status(201).json({ server: publicServer(record) });
   } catch (error) {
     if (keyPath) { try { fs.unlinkSync(keyPath); } catch {} }
-    const missingSsh = error && error.code === "ENOENT";
-    const detail = missingSsh ? authMethod === "password" ? "The host running Sycord Cloud needs both ssh and sshpass installed for password logins." : "The host running Sycord Cloud does not have the SSH client installed." :
-      error && error.killed ? "SSH connection timed out. Check the host, port, network, and SSH service." :
-      provider === "instabox" ? "Instabox SSH authentication failed or the endpoint could not be reached. Use the SSH command shown in Instabox and ensure the session is still running." :
-      authMethod === "password" ? isSupporter ? "Supporter VM root SSH authentication failed. Check the root password, SSH root-login settings, and direct network access from Airshell. The main VM helper does not create a tunnel." : "SSH password authentication failed or is disabled on the remote VM. Check the username, password, host, port, and SSH password-login settings." :
-      "SSH authentication failed or the host could not be reached. Check the username, key, host, port, and server's authorized_keys.";
-    console.error("SSH server add failed:", error && (error.code || error.message) || "unknown");
-    return res.status(missingSsh ? 503 : 422).json({ error: detail });
+    const diagnostic = classifySSHFailure(error, { authMethod, provider, username });
+    // Never log raw ssh -v stderr or a supplied password: the client only
+    // receives a stable code, safe hint and advertised authentication methods.
+    console.error("SSH server add failed:", diagnostic.code, "provider:", provider, "auth:", authMethod);
+    return res.status(diagnostic.code === "SSH_CLIENT_MISSING" ? 503 : 422).json(diagnostic);
   }
 });
 
