@@ -378,18 +378,24 @@ app.post("/api/servers", async (req, res) => {
   const workspaceId = getWorkspaceId(req);
   if (!workspaceId) return res.status(400).json({ error: "Workspace cookie missing. Reload the page and try again." });
   const body = req.body || {};
-  const name = typeof body.name === "string" ? body.name.trim().slice(0, 48) : "";
-  const connectionType = typeof body.connectionType === "string" ? body.connectionType : "";
-  const provider = body.provider === "instabox" || connectionType === "instabox" ? "instabox" : "ssh";
-  const authMethod = provider === "instabox" ? "token" : connectionType === "ssh-password" || body.authMethod === "password" ? "password" : "key";
   const connectionMode = body.connectionMode === "supporter" ? "supporter" : "standard";
-  const expiresInDays = Number(body.expiresInDays || 7);
+  const isSupporter = connectionMode === "supporter";
+  // A supporter connection always targets the administrator-configured VM.
+  // Never accept a caller-supplied destination or SSH identity in this mode.
+  const name = isSupporter ? "Supporter VM" : typeof body.name === "string" ? body.name.trim().slice(0, 48) : "";
+  const connectionType = isSupporter ? "ssh-password" : typeof body.connectionType === "string" ? body.connectionType : "";
+  const provider = isSupporter ? "ssh" : body.provider === "instabox" || connectionType === "instabox" ? "instabox" : "ssh";
+  const authMethod = isSupporter ? "password" : provider === "instabox" ? "token" : connectionType === "ssh-password" || body.authMethod === "password" ? "password" : "key";
+  const expiresInDays = isSupporter ? 30 : Number(body.expiresInDays || 7);
   if (connectionMode === "supporter" && ![7, 30].includes(expiresInDays)) {
     return res.status(400).json({ error: "Supporter access must last 7 or 30 days." });
   }
-  let host = typeof body.host === "string" ? body.host.trim().toLowerCase() : "";
-  let username = typeof body.username === "string" ? body.username.trim() : "";
-  let port = body.port === undefined || body.port === "" ? 22 : Number(body.port);
+  let host = isSupporter ? (process.env.SUPPORTER_VM_HOST || "").trim().toLowerCase() : typeof body.host === "string" ? body.host.trim().toLowerCase() : "";
+  let username = isSupporter ? (process.env.SUPPORTER_VM_USERNAME || "").trim() : typeof body.username === "string" ? body.username.trim() : "";
+  let port = isSupporter ? Number(process.env.SUPPORTER_VM_PORT || 22) : body.port === undefined || body.port === "" ? 22 : Number(body.port);
+  if (isSupporter && (!/^[a-zA-Z0-9.-]{1,253}$/.test(host) || !/^[a-zA-Z0-9_][a-zA-Z0-9._-]{0,127}$/.test(username) || !Number.isInteger(port) || port < 1 || port > 65535)) {
+    return res.status(503).json({ error: "Supporter VM is not configured. Ask the administrator to set SUPPORTER_VM_HOST, SUPPORTER_VM_USERNAME and optionally SUPPORTER_VM_PORT." });
+  }
   const privateKey = authMethod === "key" && typeof body.privateKey === "string" ? body.privateKey.trim() + "\n" : "";
   const sshPassword = authMethod === "password" && typeof body.password === "string" ? body.password : "";
   if (provider === "instabox") {
@@ -441,7 +447,7 @@ app.post("/api/servers", async (req, res) => {
     const detail = missingSsh ? authMethod === "password" ? "The host running Sycord Cloud needs both ssh and sshpass installed for password logins." : "The host running Sycord Cloud does not have the SSH client installed." :
       error && error.killed ? "SSH connection timed out. Check the host, port, network, and SSH service." :
       provider === "instabox" ? "Instabox SSH authentication failed or the endpoint could not be reached. Use the SSH command shown in Instabox and ensure the session is still running." :
-      authMethod === "password" ? "SSH password authentication failed or is disabled on the remote VM. Check the username, password, host, port, and SSH password-login settings." :
+      authMethod === "password" ? isSupporter ? "Supporter VM connection failed. Verify the SSH password and the administrator-configured VM, or check whether SSH password login is enabled." : "SSH password authentication failed or is disabled on the remote VM. Check the username, password, host, port, and SSH password-login settings." :
       "SSH authentication failed or the host could not be reached. Check the username, key, host, port, and server's authorized_keys.";
     console.error("SSH server add failed:", error && (error.code || error.message) || "unknown");
     return res.status(missingSsh ? 503 : 422).json({ error: detail });
