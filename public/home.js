@@ -291,7 +291,7 @@
     if (serverFormError) { serverFormError.hidden = true; serverFormError.textContent = ""; }
     if (typeof serverDialog.showModal === "function") serverDialog.showModal();
     else serverDialog.setAttribute("open", "");
-    const first = serverForm && serverForm.elements.namedItem(connectionModeSelect?.value === "supporter" ? "password" : "name");
+    const first = serverForm && serverForm.elements.namedItem(connectionModeSelect?.value === "supporter" ? "rootHost" : "name");
     if (first) window.setTimeout(() => first.focus({ preventScroll: true }), 50);
   }
   function closeServerDialog() { if (serverDialog && serverDialog.open) serverDialog.close(); }
@@ -322,14 +322,18 @@
     if (serverNameFields) serverNameFields.hidden = isSupporter;
     if (sshFields) sshFields.hidden = isSupporter || isInstabox;
     if (sshKeyFields) sshKeyFields.hidden = isSupporter || isInstabox || usesPassword;
-    if (sshPasswordFields) sshPasswordFields.hidden = !isSupporter && (isInstabox || !usesPassword);
+    if (sshPasswordFields) sshPasswordFields.hidden = isSupporter || isInstabox || !usesPassword;
     if (instaboxFields) instaboxFields.hidden = isSupporter || !isInstabox;
     if (supporterDurationFields) supporterDurationFields.hidden = !isSupporter;
     const nameField = serverForm?.elements.namedItem("name");
     if (nameField) nameField.required = !isSupporter;
     ["serverHost","serverPort","serverUsername"].forEach((id) => { const field = $(id); if (field) field.required = !isSupporter && !isInstabox; });
     const key = $("serverPrivateKey"); if (key) key.required = !isSupporter && !isInstabox && !usesPassword;
-    const password = $("serverPassword"); if (password) password.required = isSupporter || (!isInstabox && usesPassword);
+    const password = $("serverPassword"); if (password) password.required = !isSupporter && !isInstabox && usesPassword;
+    const rootHost = $("supporterRootHost"); if (rootHost) rootHost.required = isSupporter;
+    const rootPort = $("supporterRootPort"); if (rootPort) rootPort.required = isSupporter;
+    const rootPassword = $("supporterRootPassword"); if (rootPassword) rootPassword.required = isSupporter;
+    const mainServer = $("supporterMainServer"); if (mainServer) mainServer.required = isSupporter;
     const command = $("instaboxCommand");
     if (command) command.required = !isSupporter && isInstabox;
     if (saveServerButton) saveServerButton.textContent = isSupporter ? "Connect supporter VM" : isInstabox ? "Connect Instabox" : "Test and add server";
@@ -344,7 +348,9 @@
     if (serverFormError) { serverFormError.hidden = true; serverFormError.textContent = ""; }
     const isSupporter = connectionModeSelect?.value === "supporter";
     const payload = isSupporter
-      ? { connectionMode: "supporter", password: $("serverPassword").value }
+      ? { connectionMode: "supporter", mainServerId: $("supporterMainServer").value,
+          rootHost: $("supporterRootHost").value.trim(), rootPort: Number($("supporterRootPort").value || 22),
+          rootPassword: $("supporterRootPassword").value, expiresInDays: Number($("supporterExpiresIn").value || 30) }
       : Object.fromEntries(new FormData(serverForm).entries());
     if (!isSupporter) payload.port = Number(payload.port || 22);
     if (saveServerButton) { saveServerButton.disabled = true; saveServerButton.textContent = isSupporter ? "Connecting…" : payload.connectionType === "instabox" ? "Connecting…" : "Testing SSH…"; }
