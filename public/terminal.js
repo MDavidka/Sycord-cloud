@@ -16,6 +16,17 @@
     state.textContent = message;
     var dot = document.getElementById("terminalDot");
     if (dot) dot.style.background = connected ? "#84d6a0" : "#888";
+    // Only show a green header dot while the terminal session is actually active.
+    var headerDot = document.getElementById("workspaceConnectionDot");
+    var headerStatus = document.getElementById("workspaceConnectionLabel");
+    if (headerDot) headerDot.classList.toggle("is-connected", Boolean(connected));
+    if (headerStatus) {
+      headerStatus.textContent = connected ? "Connected"
+        : /reconnect|retry|lost/i.test(message) ? "Reconnecting"
+        : /error|failed/i.test(message) ? "Error"
+        : /ended/i.test(message) ? "Disconnected"
+        : "Connecting";
+    }
   }
   try {
     if (typeof Terminal === "undefined" || typeof FitAddon === "undefined") {
@@ -186,7 +197,10 @@
         var server = (data.servers || []).find(function (item) { return item.id === serverId; });
         if (!server) throw new Error("Saved server not found");
         if (workspaceServerName) workspaceServerName.textContent = server.name;
-        if (workspaceServerMeta) workspaceServerMeta.textContent = server.username + "@" + server.host + ":" + server.port;
+        if (workspaceServerMeta) {
+          workspaceServerMeta.textContent = server.provider === "instabox" ? "Instabox" : "SSH";
+          workspaceServerMeta.title = server.username + "@" + server.host + ":" + server.port;
+        }
       } catch (_) {
         if (workspaceServerName) workspaceServerName.textContent = "Server unavailable";
         if (workspaceServerMeta) workspaceServerMeta.textContent = "Check Servers in the sidebar";
