@@ -182,7 +182,7 @@
       if (!response.ok) throw new Error(response.status === 401 ? "Please sign in again." : "Could not load servers.");
       const data = await response.json();
       const servers = Array.isArray(data.servers) ? data.servers : [];
-      homeServers = servers;
+      homeServers = servers.filter(item => item.connectionMode !== "supporter");
       const supporterMainSelect = $("supporterMainServer");
       if (supporterMainSelect) {
         const chosen = supporterMainSelect.value;
@@ -202,7 +202,7 @@
       }
       renderMobileServers();
       const selectedId = new URLSearchParams(location.search).get("server");
-      list.innerHTML = servers.length ? servers.map((server) => {
+      list.innerHTML = homeServers.length ? homeServers.map((server) => {
         const expiry = supporterExpiryLabel(server);
         return '<div class="sidebar-server-row" data-server-row="' + escapeHtml(server.id) + '">' +
           '<button class="sidebar-server-item' + (selectedId === server.id ? " current" : "") + '" type="button" data-server-open="' + escapeHtml(server.id) + '" data-sidebar-search="servers ' + escapeHtml(server.name) + ' ' + escapeHtml(server.host) + '">' +
@@ -215,7 +215,7 @@
       list.querySelectorAll("[data-server-open]").forEach((button) => button.addEventListener("click", () => {
         location.href = "/terminal?server=" + encodeURIComponent(button.dataset.serverOpen);
       }));
-      updateServerStatuses(servers);
+      updateServerStatuses(homeServers);
       list.querySelectorAll("[data-server-remove]").forEach((button) => button.addEventListener("click", async () => {
         const id = button.dataset.serverRemove;
         if (!window.confirm("Remove this saved server and its stored credential?")) return;
