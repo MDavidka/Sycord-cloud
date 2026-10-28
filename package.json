@@ -4,7 +4,7 @@
   "private": true,
   "description": "Airshell private browser terminal and runtime workspace",
   "engines": {
-    "node": "22.x"
+    "node": "22.16.0"
   },
   "dependencies": {
     "express": "^5.1.0",
