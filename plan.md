@@ -627,3 +627,318 @@ For each idea, score 1–5 on user frequency, time saved, security risk, impleme
 - Live stats announce major changes politely to screen readers; do not announce every numerical refresh.
 - Links from untrusted terminal/file content always show safe target and open outside privileged application context when appropriate.
 - Confirmation for actions touching production should identify environment and actual user identity, not just a red title.
+
+
+## 10. Implementation architecture — incremental, testable, safe
+
+### 10.1 Keep the backend as source of truth
+
+**Existing:** Node.js 22 + Express 5, WebSocket, node-pty, MongoDB optional, SSH/OpenSSH external commands, xterm.js in browser, React Native/Expo wrapper and native SwiftUI source.
+
+**Proposed architecture:**
+
+- Server side validates identity, workspace membership, access rights, operation type, path scope, allowed command semantics, credentials and audit policy.
+- Web, Expo and native UI are presentation clients; no privileged authorization check may live solely in CSS, JS buttons or SwiftUI view state.
+- AI proposes structured operations; deterministic backend tools validate and enforce them.
+- Remote SSH output and files remain untrusted input even when the user owns the server.
+- Nonsecret metadata is separated from encrypted credentials and authorization records.
+- A single API contract defines statuses, data freshness, errors, approval states and reauthentication challenges.
+- Metrics/automation workers are isolated from interactive PTY traffic, with bounded queueing and resource budgets.
+- Feature flags gate experiments and allow rollback without losing the core terminal.
+
+### 10.2 Suggested backend module map (PROPOSED, not existing)
+
+| Module | Responsibility |
+| --- | --- |
+| server/http-app | Express configuration, middleware, route registration |
+| server/auth | login, per-device session, token rotation/revocation, permissions |
+| server/security | CSRF/origin, rate limits, redaction, validation and policy |
+| server/workspaces | workspace scoping and user membership |
+| server/servers | inventory CRUD, connection records, metadata |
+| server/ssh | connection verification, host key, transport and shell management |
+| server/terminal | PTY sessions, WebSocket protocol, reconnect, backpressure |
+| server/files | bounded listing, preview, atomic change and diff |
+| server/diagnostics | read-only metrics, platform detection and refresh |
+| server/ai | model adapters, conversation persistence, structured plans |
+| server/approvals | binding, expiry, one-shot authorization and review |
+| server/audit | redacted immutable action records, retention |
+| server/monitoring | sample store, threshold rules, incidents |
+| server/jobs | schedules, queues, leasing, retry and cancellation |
+| server/supporters | temporary-access policy, expiry and authorization |
+| server/profile | preferences, avatar metadata, device/session list |
+| server/storage | MongoDB and local repository interfaces, migrations |
+| server/api-contracts | typed request/response schemas and documented errors |
+| server/observability | operational logs, traces and diagnostics without secrets |
+
+First extract functions behind existing routes while preserving protocol compatibility. Introduce integration tests before moving responsibility. Avoid a rewrite that blocks SSH workflows for weeks.
+
+### 10.3 Suggested web module map
+
+- ui/tokens.css — only authoritative design tokens and theme mappings.
+- ui/primitives — buttons, rows, icons, input, sheet, modal, status and tooltip.
+- ui/layout — shared AppShell, adaptive sidebar, header and footer.
+- features/chat — conversations, streaming, chat composer and tool timeline.
+- features/servers — list, filters, detail, wizard, status rendering.
+- features/terminal — xterm adapter, keyboard accessory and connection state.
+- features/files — list, preview, edit, diff and save approval.
+- features/settings — profile, security, theme, device sessions.
+- features/activity — events and approval logs.
+- features/monitoring — samples, alerts and history charts.
+- features/automations — rule editor, schedule and execution history.
+- infra/api-client — validated fetch helpers, session handling, abort and retry policy.
+- infra/state — explicit stores/context per workspace and selected server.
+- infra/offline — safe PWA static cache and nonsecret read-only snapshot storage if approved.
+
+**Migration options:** short term keep progressive-enhanced HTML and modular plain JS; medium term evaluate TypeScript or a component library (React/Lit/etc.) only when it reduces duplication and test cost. Do not replace the current stack simply to get fashionable components.
+
+### 10.4 Proposed API contract standards
+
+- All protected endpoints require authentication and a validated workspace scope.
+- Use stable machine-readable errors: code, message, safe detail, retryable, requestId.
+- Each metric includes sampledAt and source plus status unknown/stale/current.
+- Support pagination/cursors for large collections; bounded request bodies and response size.
+- Mutations use request idempotency keys where retry could create duplicates.
+- Use optimistic concurrency for edit operations: revision or content hash prevents lost updates.
+- File and command arguments are fully validated server-side, independent of AI generation.
+- Approval response binds exact serverId + operation + parameters hash + userId + expiry.
+- Every tool action returns executionId, status, timestamps and safely redacted evidence.
+- The native API client and web API adapter should consume the same contract.
+
+### 10.5 API inventory: existing vs proposed
+
+| Endpoint | Status | Purpose |
+| --- | --- | --- |
+| GET /api/servers | EXISTING | list authorized saved servers |
+| POST /api/servers | EXISTING | verify and save authorized connection |
+| GET /api/servers/:id/status | EXISTING | connection status and limited metrics |
+| GET /api/servers/:id/details | EXISTING | host diagnostics |
+| PATCH /api/servers/:id | EXISTING | rename and provider metadata |
+| DELETE /api/servers/:id | EXISTING | remove saved connection, not remote host |
+| GET /api/servers/:id/files | EXISTING | list remote directory |
+| GET /api/servers/:id/file | EXISTING | bounded text preview |
+| GET /api/supporters | EXISTING/documented | list temporary supporter records |
+| GET /api/supporters/:id | EXISTING/documented | supporter details and remaining time |
+| POST /api/chat | EXISTING | AI chat/tool pipeline |
+| POST /api/chat/approve | EXISTING | pending tool approval |
+| GET /api/chat/status | EXISTING | AI availability check |
+| GET/PUT /api/profile | EXISTING | profile preferences |
+| GET /api/terminal/logs | EXISTING | saved terminal log retrieval |
+| GET /api/stats | EXISTING | application process/runtime stats |
+| WebSocket /ws | EXISTING | terminal transport |
+| GET /api/sessions | PROPOSED | list active device sessions |
+| DELETE /api/sessions/:id | PROPOSED | revoke an individual session |
+| POST /api/sessions/revoke-all | PROPOSED | revoke all other devices |
+| GET/POST /api/chats | PROPOSED | server-side chat history with ownership |
+| GET/DELETE /api/chats/:id | PROPOSED | conversation management |
+| GET /api/servers/:id/metrics | PROPOSED | time range, aggregation and freshness |
+| GET /api/activity | PROPOSED | paginated audit/incident events |
+| GET /api/approvals | PROPOSED | pending and completed scoped approvals |
+| POST /api/approvals/:id/decision | PROPOSED | exact action approval/rejection |
+| POST /api/servers/:id/files/preview-change | PROPOSED | server-side diff and integrity preview |
+| POST /api/servers/:id/files/commit-change | PROPOSED | approved bounded atomic change |
+| GET /api/servers/:id/files/history | PROPOSED | file version metadata |
+| GET/POST /api/alert-rules | PROPOSED | authorized threshold watch rules |
+| GET/POST /api/automations | PROPOSED | rule creation and listing |
+| GET /api/jobs/:id | PROPOSED | run state and evidence |
+| POST /api/jobs/:id/cancel | PROPOSED | cancellation request with acknowledgment |
+| GET /api/health/dependencies | PROPOSED/PRIVATE | internally scoped health diagnostics |
+| GET /api/ui-capabilities | PROPOSED | backend-supported features by identity |
+| GET /api/version | PROPOSED | app version, compatibility and feature flags |
+
+Do not let a new route become public because it is “just read-only.” A read-only SSH command can still disclose credentials or private files. Exact request/response shapes belong in an OpenAPI or typed schema package with examples and test fixtures.
+
+### 10.6 Data model proposal
+
+| Collection / record | Essential fields | Privacy / retention |
+| --- | --- | --- |
+| users | id, displayName, auth factors, createdAt | no plaintext passwords |
+| workspaces | id, ownerId, member roles, settings | explicit ownership |
+| sessions | id, userId, device, createdAt, lastSeen, expiresAt, revokedAt | hashed tokens, TTL cleanup |
+| servers | id, workspaceId, name, host, port, user, authMethod, labels, providerInfo | secret reference, no exposed private key |
+| serverSecrets | serverId, encryptedPayload, keyVersion, rotatedAt | separate encryption boundary |
+| sshHostKeys | serverId, fingerprint, verifiedAt, status | changes audited |
+| terminalSessions | id, workspaceId, userId, serverId, status, lastSeq | bounded lifetime, no raw secret input |
+| terminalLogs | workspaceId, serverId, seq, output, recordedAt | redacted, opt-in/retention |
+| conversations | id, workspaceId, userId, title, messagesRef, updatedAt | delete/export controls |
+| approvals | id, actorId, serverId, argumentsHash, scope, expiresAt, decision | one-time and immutable outcome |
+| actionReceipts | id, approvalId, exact target, result, evidenceRef, timestamp | redacted, tamper detection |
+| metrics | serverId, timestamp, cpu, memory, disk, network, sampleQuality | TTL and rollups |
+| incidents | serverId, severity, openedAt, events, closedAt | sourced events only |
+| alerts | ownerId, serverId, kind, threshold, duration, destinations | scoped delivery |
+| automations | ownerId, server scope, trigger, actionType, enabled, nextRunAt | read-only default |
+| jobs | automationId, lease, status, retryCount, startedAt, endedAt | bounded execution |
+| fileRevisions | serverId, canonicalPath, hash, backupRef, creator, timestamp | encrypted/private, TTL |
+| notificationSubscriptions | userId, deviceId, endpoint, encrypted keys, optedInAt | user revocation |
+| productFlags | environment, featureKey, audience, enabled | guarded staged rollout |
+
+Use indexes based on actual query plans. Examples: (workspaceId, serverId), (userId, updatedAt), TTL on session/short-lived records, (serverId, timestamp) for metrics, (automationId, status) for jobs. Define archival and deletion semantics before generating large histories.
+
+### 10.7 WebSocket terminal protocol hardening
+
+- Explicit protocol version and negotiated capability list.
+- One authenticated workspace + server + session per authorized channel.
+- Output messages carry monotonic sequence numbers, bounded buffer and timestamps.
+- Reconnect uses last acknowledged sequence when available; if output was dropped, show a gap notice.
+- Client “close viewer” must not silently kill a remote tmux process; separately confirm “terminate remote session.”
+- Backpressure protects server memory and iPhone rendering; restrict enormous command output.
+- Keepalive and timeout distinguish dead network, sleeping backend and disconnected host.
+- Resize requests are bounded and debounced.
+- Text input is never replayed on network reconnect without user's explicit intent.
+- Audit only metadata by default; raw PTY transcript requires explicit policy and redaction.
+- Do not expose a WebSocket shell via public anonymous tokens or unsafe cross-origin access.
+
+## 11. Trust, privacy and operational safeguards
+
+### 11.1 Threat scenarios to test
+
+| Threat | Prevention and validation |
+| --- | --- |
+| Stolen remembered session | short lifetime, revocation, reauth for sensitive actions, device management |
+| Guessing shared login password | rate limiting, strong auth, MFA/identity roadmap, no public brute-force path |
+| CSRF on write API | verified origin, CSRF strategy, secure cookies and sensitive method checks |
+| Cross-origin WebSocket hijack | authenticated upgrade + Origin/Host validation + per-server access checks |
+| SSH host impersonation | host-key pinning and explicit fingerprint change review |
+| Malicious terminal output | safe text rendering and separation from model instructions |
+| Prompt injection in config/log | tool enforcement isolated from untrusted content, no inherited permissions |
+| Confused-deputy approval | exact argument hash + one-time scoped token + expiry |
+| Recursive destructive command | deterministic policy, user review, least privilege, restricted targets |
+| Path traversal/symlink race | canonical remote path, sandboxing and race-aware APIs |
+| Secrets in error/trace | structured redaction and sensitive-path exclusions |
+| Stale online indicator | timestamp and expiry; “unknown” or “stale” rather than green |
+| Backup not restorable | periodic tested restore, key management and migration rehearsal |
+| Service worker private cache | static allowlist, no protected API/HTML/terminal caching |
+| Notification leaking host/secret | generic locked-screen content and per-device controls |
+| Data shared across workspaces | server-side authorization on each object and WebSocket event |
+| Automatic job execution without consent | read-only default, expiry and scoped approval at execution time |
+
+### 11.2 Privileged operation policy
+
+1. **Read-only inspection:** backend-approved bounded command, logged as an inspection, can run within authenticated scope.
+2. **Write/edit operation:** exact diff or command and target shown in UI; authenticated user approves; backend checks one-time token, permission and expiry.
+3. **Destructive/high-risk operation:** additional explicit confirmation; if production, tighter scope and optional reauth.
+4. **Bulk/multi-server operation:** enumerate targets; do not permit dynamic expansion after approval.
+5. **Scheduled operation:** read-only by default. Writes require a distinct execution-time grant and separate product policy.
+6. **Rollback:** offer only if a verified backup or reversible operation exists. Never invent undo.
+7. **Verification:** gather an independent post-action read/check; exit code alone does not prove outcome.
+8. **Audit:** record what was approved and attempted, what actually ran, verification evidence, failed/partial states and actor.
+
+### 11.3 Log and privacy policy
+
+- Redact standard secrets before storing, previewing, transmitting to AI, including tokens and passwords in command output.
+- Keep an explicit denylist for sensitive file paths and prohibit indiscriminate reading of .env, private keys, auth credentials and browser cookies.
+- Show users what remote data is being sent to external model providers; allow opt-out or read-only local-mode flows where feasible.
+- Avoid capturing terminal keystrokes for analytics. Operational logging should be privacy-preserving and configurable.
+- Distinguish terminal output buffer used for reconnect from persistent audited logs.
+- Provide deletion/export flows for chat history, nonsecret profile data, saved server metadata and recorded diagnostic data as appropriate.
+- Do not send raw server hostnames or account details to analytics by default.
+- Publish data retention, security limitations, backups and supported platform behavior in settings/help.
+
+### 11.4 Authentication modernization path
+
+- Phase A: document current shared-password limitations; rate limit; shorten or justify session durations; reauthenticate destructive actions.
+- Phase B: introduce per-device revocable sessions and device list; isolate workspace ownership.
+- Phase C: optional/passkey and TOTP approaches with secure account recovery and anti-lockout design.
+- Phase D: multi-user roles and least privilege only after clear threat model, invitation/revocation, audits and ownership migration.
+
+Do not add “Face ID security” as a superficial native overlay while the backend still accepts an unrevocable long-lived cookie.
+
+## 12. Performance, reliability and platform targets
+
+### Performance targets (proposed, to measure on device)
+
+| Measure | Target | How to test |
+| --- | --- | --- |
+| Drawer open | visually smooth at 60Hz class, no visible layout jank | mid-range iPhone, open/close 20 times |
+| Tap feedback | visible under ~100ms | device recording/high-speed inspect |
+| Initial shell UI | useful shell quickly on normal 4G | cold and warm network tests |
+| Chat token rendering | incremental without full-page reflow | long streaming response |
+| Terminal typing | keystrokes appear with minimal perceptible delay | Wi-Fi and cellular |
+| Terminal scroll | no noticeable dropped frames on bounded output | stress long output |
+| Server status | displays sampling age and state; never fake freshness | slow/unavailable host |
+| API timeout | explicit per endpoint; no endless spinner | blocked SSH and provider failures |
+| JS payload | enforce documented size budget by route | build report/bundle analyzer |
+| Memory | bounded terminal output and virtualized histories | 30-minute stress on iPhone |
+| Service worker | no private content in cache | cache inspection/security test |
+| Keyboard | last line, send and approval buttons visible | iOS Safari and WebView |
+
+Latency thresholds must be established from real baselines; avoid pretending all 4G networks meet one absolute value. Measure cold start, warm start, background/foreground, 3G/4G simulator throttling, offline, stale DNS and server sleep.
+
+### Performance tactics
+
+- Request deduplication and AbortController per view transition.
+- Avoid polling status for invisible screens or backgrounded PWA when not required.
+- Batch status checks with bounded concurrency, adaptive intervals, exponential backoff and jitter.
+- Cancel stale network requests on server switches; never render old host stats into newly selected host.
+- Render only visible rows in very long logs/lists; avoid unnecessary DOM mutation.
+- Defer nonessential asset loading; preconnect only to known trusted domains.
+- Reduce CSS cascade complexity to improve predictability and debugging.
+- Respect prefers-reduced-motion and low-power settings where available.
+- Use xterm.js maintained addons for fit/search/accessibility where verified and compatible.
+- Prefer explicit diagnostic metrics over expensive continuous full-system SSH command loops.
+- Implement zero-secrets structured logs with safe request IDs for troubleshooting.
+
+## 13. Quality strategy and automated test suite
+
+### 13.1 Suggested testing tools
+
+- Backend: Node test runner / chosen framework with API integration tests; stub SSH transport for deterministic failures.
+- Web: Playwright for functional flows, snapshots, keyboard/viewport behavior and visual regression.
+- Accessibility: axe-core automated checks plus real VoiceOver/keyboard manual passes.
+- Native: Xcode/XCTest where macOS CI is available, Swift unit tests, physical-device manual tests.
+- Expo: RN testing library for reusable native components and end-to-end review on a supported device build.
+- Security: static secret scanning, dependency audits, ASVS checklists, negative authorization tests, prompt-injection fixtures.
+- Load: bounded WebSocket/terminal-output testing, rate-limit tests and simulation of network drops.
+
+### 13.2 Device and state matrix
+
+| Scenario | Required coverage |
+| --- | --- |
+| Width 320/360/375/390/402/430 | drawer, header, server list, composer, terminal toolbar |
+| Tablet portrait/landscape | adaptive navigation and split view |
+| Desktop 1024/1440 | sidebar/panels, keyboard shortcuts, focus |
+| Light/dark/system | true semantic colors, no unwanted shade/glow |
+| Font size 100/150/200% | readable, scrollable, no clipped actions |
+| Reduced motion / high contrast | no essential animated-only communication |
+| VoiceOver | correct spoken status, selection and focus order |
+| Keyboard open/closed | terminal cursor, bottom controls, forms |
+| 0 / 1 / 3 / 100 servers | empty states, long lists, scrolling |
+| Long Unicode host names | proper ellipsis and accessible full label |
+| Online/offline/unknown/stale | flat dot + text + timestamp |
+| SSH key rejected/host key changed | clear auth and trust diagnostics |
+| 401 / 403 / 429 / 500 / timeout | useful recovery; no secrets in error |
+| Provider AI unconfigured | core server and terminal workflows still function |
+| Lost network mid-command | no duplicate send, preserved evidence |
+| App background/restore | honest reconnect and state |
+| Server removed while terminal open | graceful close and explanation |
+| Supporter connection expires | inaccessible after expiry, clear messaging |
+| Unsaved file change | confirmation before navigation |
+| Approval expires/reused | reject, no side effects |
+| Malicious tool output | treated as data, not instructions |
+| PWA update with terminal open | avoid forced reload and data loss |
+
+### 13.3 Golden visual scenarios
+
+Record consistent synthetic fixtures:
+
+- Home empty conversation, Home active chat, Home streaming, Home network error.
+- Sidebar closed/open with 3 servers; expanded/collapsed; 320/390/430; long hosts; no dot glow.
+- Search open with keyboard, search no results, search dismiss.
+- Terminal connected, terminal reconnecting, terminal with extra key strip, terminal selected text.
+- Files empty, files list, code preview, unsaved edit and diff review.
+- VM settings metrics fresh/stale/unavailable, theme dark/light.
+- Approval read-only, approval high-risk, rejected and expired.
+- Account sheet, device sessions, sign-out confirmation.
+- Native iOS first-run, authentication, server list, chat and terminal in portrait/landscape.
+
+For each golden state, compare against baseline *after* design review. A visual test should catch a stray gray gradient, purple tint, halo, incorrect radius, oversized footer or hidden server action before merging.
+
+### 13.4 Code quality gates
+
+- Format/lint for JS, TypeScript, Swift and CSS as supported; validate HTML semantics.
+- Unit tests for URL validation, data scopes, status state machines, approval hashing, expiry, path normalization and error mapping.
+- Integration tests for API authorization, connection failure and terminal reconnect.
+- No unsafe new package without dependency review, maintenance check and license verification.
+- Type schemas on API boundaries, request/response validation, clear error codes.
+- No regression to credentials displayed in client responses or logged.
+- Every PR includes before/after screenshots for visual changes and smoke evidence for behavior changes.
+- Feature flags and rollback strategy for migrations/experimental functionality.
