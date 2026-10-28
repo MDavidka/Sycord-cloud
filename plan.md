@@ -216,3 +216,199 @@ Build reusable components with clear props, state contracts and preview fixtures
 - Every source of data has an API/owner, loading state, empty state, timestamp and meaningful failure mode.
 - No real SSH secrets, host identifiers or personal content in design fixtures.
 - Default light/dark parity; no hardcoded styling exceptions inside feature handlers.
+
+
+## 5. P0 — critical foundations, security and reliability
+
+All P0 work is a prerequisite to advertising Airshell as a trustworthy, general-purpose remote administration tool. P0 is not “optional polish.”
+
+### 5.1 Design stabilization and architecture
+
+- **P0-UI-01 [M] Single design-token authority:** create a versioned tokens file; map it into web CSS, React Native theme and SwiftUI Color assets; audit every hardcoded shade.
+- **P0-UI-02 [L] Remove stylesheet cascade conflicts:** consolidate overlapping sidebar, home, terminal and light-theme styles. Keep an ordered temporary migration path, then delete unused overrides instead of accumulating new !important.
+- **P0-UI-03 [M] One sidebar implementation:** stop duplicating structure in dashboard and terminal HTML; use a shared template/partial or defined client-side component with identical IDs/handlers.
+- **P0-UI-04 [S] Flat status contract:** no box-shadow, glow, pulse or decorative halo on online/offline/checking dots. Add a visual regression assertion.
+- **P0-UI-05 [S] Neutral colors only:** remove purple/blue-tinted incidental surfaces and random backdrop gradients, especially footer and selected rows.
+- **P0-UI-06 [M] iPhone responsive audit:** capture 320/360/390/430 widths, zoomed text and landscape; fix header, keyboard, drawer, bottom overlay, truncation and safe-area bugs.
+- **P0-UI-07 [M] Honest placeholders:** hide or mark disabled nonfunctional Inbox, Research, Roadmap, pinned examples, fake counts and demo content.
+- **P0-UI-08 [M] Shared state contract:** centralize selected server, profile, auth, active chat, sidebar state and UI errors instead of ad-hoc DOM lookups.
+- **P0-UI-09 [M] Accessibility pass:** VoiceOver audit of drawer, server actions, terminal controls, sheets and form errors; focus restoration after modals; keyboard operation.
+- **P0-UI-10 [M] Design regression harness:** automate screenshots of selected Home/Terminal/Files/Settings states at target viewports and compare release-to-release.
+
+### 5.2 Authentication, authorization and secrets
+
+- **P0-SEC-01 [L] Replace indefinite remembered access:** revisit the documented ten-year cookie and shared terminal password. Define absolute session lifetime, idle timeout and explicit reauthentication for sensitive actions.
+- **P0-SEC-02 [L] Device/session revocation:** add server-side revocable session identifiers and a “Signed-in devices” screen with revoke-all and revoke-one.
+- **P0-SEC-03 [L] Strong account model:** plan per-user identity and distinct authorization; do not treat workspace-cookie possession as a sufficient multiuser access model.
+- **P0-SEC-04 [M] Rate limit and abuse controls:** protected login, API, chat and WebSocket endpoints; IP/user/route budgets and secure backoff.
+- **P0-SEC-05 [M] CSRF and origin review:** verify session cookies, state-changing methods, Origin/Host checks and WebSocket handshake authorization.
+- **P0-SEC-06 [M] Protect local secret storage:** dedicated encryption key, rotation strategy, durable encrypted store; never derive everything from a changeable shared password without migration support.
+- **P0-SEC-07 [M] SSH host-key verification UX:** pin fingerprint on first trustworthy connect, detect host key change, require explicit review. Avoid insecure automatic acceptance of changed keys.
+- **P0-SEC-08 [M] Remote command safety:** per-operation allowlists for read tools; enforce server identity, user authorization, exact commands, timeouts, bounded outputs and noninteractive defaults.
+- **P0-SEC-09 [L] Write approval integrity:** approval tokens bound to user/session/server/action/arguments/expiry; one-time execution; prevent post-approval argument substitution or replay.
+- **P0-SEC-10 [M] Secret redaction everywhere:** redact SSH passwords, private keys, provider tokens, access cookies and env secrets from prompts, command output, logs and error bundles.
+- **P0-SEC-11 [M] Prompt-injection boundary:** remote file/terminal output is untrusted data, not tool permissions or higher-priority instructions.
+- **P0-SEC-12 [M] Persistence/retention policy:** documented lifetimes for terminal output chunks, chat, approvals, metrics and diagnostic exports; clear/delete UI.
+- **P0-SEC-13 [M] Authorized temporary access:** supporter expiry means removal from Airshell, not revocation of external root SSH access; communicate this explicitly.
+- **P0-SEC-14 [M] Root-risk review:** prefer non-root dedicated users; require clear warnings and privileges before supporter/root workflows.
+- **P0-SEC-15 [M] Security test baseline:** follow OWASP ASVS 5.0 and targeted Web Security Testing Guide checks before any public onboarding.
+- **P0-SEC-16 [M] Path and command sandboxing:** validate canonical remote paths, symlink handling, traversal and shell quoting; do not rely on string concatenation for permission boundaries.
+- **P0-SEC-17 [M] Session isolation:** validate workspace/server permissions on every endpoint and WebSocket subscription, including reconnect and background jobs.
+- **P0-SEC-18 [M] API response sanitization:** never return credential fields; use explicit output DTOs rather than spreading storage records.
+
+### 5.3 Robustness and data integrity
+
+- **P0-REL-01 [M] Deterministic reconnect:** WebSocket reconnect with exponential backoff, interruption state and no duplicate command replay.
+- **P0-REL-02 [M] Connection lifecycle:** distinguish backend reachability, SSH handshake, auth failure, permission failure and stale sample.
+- **P0-REL-03 [M] Session continuity truthfulness:** tmux reattachment when present; clearly label fallbacks that cannot survive disconnects.
+- **P0-REL-04 [M] Terminal backpressure and bounds:** cap buffered output, rate limit inputs, protect memory and define resume semantics.
+- **P0-REL-05 [M] Durable MongoDB migrations:** version data format, migration scripts, backup verification, transactional behavior where applicable.
+- **P0-REL-06 [M] Backend health checks:** distinguish HTTP process alive from database available, SSH worker available and AI provider configured.
+- **P0-REL-07 [S] PWA cache discipline:** static-only, versioned, safe update prompt; no caching of protected pages/APIs.
+- **P0-REL-08 [M] Error taxonomy:** stable codes for auth/SSH/timeout/network/provider/files/approval failures with user-friendly guidance.
+- **P0-REL-09 [M] Automated smoke tests:** sign-in, add/read/remove server, status, files, terminal connect/reconnect, approval rejection.
+- **P0-REL-10 [M] Backup and disaster recovery test:** test restores for server metadata, encrypted credentials and workspace preferences; verify key continuity.
+
+### P0 exit criteria
+
+- No visual halo/gradient/shade regression on sidebar or status markers.
+- No functional placeholders represented as real destinations.
+- No accidental destructive operation on a tap or mismatched approval.
+- Reconnect never submits a command twice; user sees stale/offline state.
+- Sensitive APIs require valid scoped authentication; revocation and reauthentication policies work.
+- The app passes a basic real-device test matrix and automated smoke suite.
+- Release notes list all data retention and access changes honestly.
+
+## 6. P1 — polished everyday product
+
+### 6.1 Home, chat and contextual overview
+
+- **P1-HOME-01 [M] Better empty state:** brief greeting, selected context and 3–4 real safe shortcuts instead of stacked filler.
+- **P1-HOME-02 [M] Recently used servers:** last used and explicit pinning; preserve across sessions.
+- **P1-HOME-03 [M] Quick command launcher:** Search/Command palette over chats, servers, routes and vetted actions.
+- **P1-HOME-04 [M] Recent conversation list:** rename/archive/delete and search with timestamps.
+- **P1-HOME-05 [M] Chat draft persistence:** per-conversation draft stored securely and never mixed between workspaces.
+- **P1-HOME-06 [M] Stream controls:** visible stop, retry, copy, edit previous message and error recovery.
+- **P1-HOME-07 [M] Rich content:** code blocks with copy, safe links, long tables scrollable, no unsafe HTML from model output.
+- **P1-HOME-08 [M] Active-server context bar:** chosen host and permissions visible above composer.
+- **P1-HOME-09 [S] Agent availability state:** “AI unavailable” when N_API/model not configured, with server-only features still usable.
+- **P1-HOME-10 [M] Action history preview:** a compact recent-operations view linked to detailed receipts.
+- **P1-HOME-11 [M] Smart suggestions grounded in state:** “Check disk pressure on server X” only if a real metric supports it.
+- **P1-HOME-12 [M] Helpful onboarding cards:** dismissible, never return after dismissal without a product reason.
+
+### 6.2 Server inventory and connection management
+
+- **P1-SRV-01 [M] Server details screen:** verified state, last checked, SSH identity, provider metadata and quick actions.
+- **P1-SRV-02 [M] Connection wizard:** SSH key/password/Instabox steps with field-level validation and diagnosis.
+- **P1-SRV-03 [M] Server search and filters:** name/host/tags/status/environment, with no private hostname leaks to telemetry.
+- **P1-SRV-04 [M] Favorites and ordering:** favorite groups, manual reorder, meaningful recent usage.
+- **P1-SRV-05 [M] Group by environment:** Production, Staging, Development, Other; editable, neutral group headings.
+- **P1-SRV-06 [S] Consistent row appearance:** flat status dot, 2 text lines, host truncation, proper targets.
+- **P1-SRV-07 [S] Context menu for remove:** remove trailing default X; menu -> explicit confirmation.
+- **P1-SRV-08 [M] Connection detail diagnostics:** DNS failure vs refused vs timeout vs changed host key vs bad auth.
+- **P1-SRV-09 [M] Rename and label:** save nonsecret descriptions, environment, manual region/provider.
+- **P1-SRV-10 [M] “Last known status” and freshness:** never confuse old success with current reachability.
+- **P1-SRV-11 [M] Batch status refresh:** bounded concurrency and server cooldown to avoid polling storms.
+- **P1-SRV-12 [M] Per-host preferred shell and directory:** only after validation and with least-privilege controls.
+- **P1-SRV-13 [M] Standard connection expiry indicator:** only when actual credential/policy expiry exists.
+- **P1-SRV-14 [S] Accessibility labels:** “Server X, online, last checked at …,” separate contextual actions.
+- **P1-SRV-15 [M] Connection health history:** last N sampled states, gaps and unknown periods accurately shown.
+
+### 6.3 Terminal interactions
+
+- **P1-TERM-01 [M] Reliable iOS keyboard behavior:** composer/key strip respects viewport; no focus jump.
+- **P1-TERM-02 [M] Configurable shortcut bar:** Esc, Tab, Ctrl, Alt, arrows, pipe, slash, tilde, Enter.
+- **P1-TERM-03 [M] Font controls:** size, monospace font fallback, cell resize, contrast and cursor options.
+- **P1-TERM-04 [M] Buffer search:** next/previous results using xterm search addon or equivalent.
+- **P1-TERM-05 [M] Copy/selection:** long press, accessible selection and clipboard, no accidental secret copy to telemetry.
+- **P1-TERM-06 [M] Session tabs:** multiple named sessions per server with explicit close/reattach semantics.
+- **P1-TERM-07 [M] Reconnection timeline:** visible disconnected banner, last output sequence and resumed marker.
+- **P1-TERM-08 [S] Clear viewport vs clear remote shell:** separate actions and truthful labeling.
+- **P1-TERM-09 [M] Terminal resize stability:** ResizeObserver + debounced FitAddon + server PTY resize acknowledgment.
+- **P1-TERM-10 [M] Scrollback controls:** “Jump to live” button only when scrolled away; badge for new output.
+- **P1-TERM-11 [M] Open links safely:** allowlisted schemes; explicit warning before opening remote-provided URLs.
+- **P1-TERM-12 [S] Session identity:** header includes server name and session title, not an ambiguous “Terminal.”
+- **P1-TERM-13 [M] Enhanced offline/error UI:** DNS, auth, server offline, worker unavailable, socket lost all differ.
+- **P1-TERM-14 [M] Keyboard accessory opt-in:** keep it unobtrusive and never obscure cursor/last line.
+- **P1-TERM-15 [M] Terminal accessibility mode:** readable output alternative, reduced effects, documented limitations.
+- **P1-TERM-16 [M] Safe clipboard/paste preview:** long multiline paste warning; preserve indentation and line breaks.
+
+### 6.4 Files and editor
+
+- **P1-FILE-01 [M] Better file navigation:** path breadcrumbs, up, refresh and friendly directory errors.
+- **P1-FILE-02 [M] File-type indicators:** plain consistent icons, no random colors.
+- **P1-FILE-03 [M] Rename/create folder:** explicit scoped write operations with validation.
+- **P1-FILE-04 [M] Text editor MVP:** read and edit files with size limits and permission checks.
+- **P1-FILE-05 [M] Syntax highlighting:** JSON, YAML, JS/TS, Python, Markdown, shell, config files.
+- **P1-FILE-06 [M] Diff-before-save:** inspect edits line by line and confirm exact target path.
+- **P1-FILE-07 [L] Atomic file writes:** temporary file + fsync/rename when possible, permissions preserved, recovery on failure.
+- **P1-FILE-08 [M] Version/backup on edit:** bounded backup history, restore and user-visible retention.
+- **P1-FILE-09 [M] Size and binary safeguards:** reject huge/incompatible text preview, don't decode binary as UTF-8 blindly.
+- **P1-FILE-10 [M] File metadata:** size, owner/mode if available, modified date, symlink status.
+- **P1-FILE-11 [M] Search within file:** match highlighting, wrap behavior and keyboard shortcuts.
+- **P1-FILE-12 [L] Directory search:** bounded remote command, timeout and explicit root/path restriction.
+- **P1-FILE-13 [M] Unsaved edit warnings:** Back/drawer navigation cannot drop draft silently.
+- **P1-FILE-14 [M] No unsafe preview execution:** HTML/SVG/Markdown previews sandboxed or rendered inert; no remote scripts.
+- **P1-FILE-15 [M] Text copy/download:** safe opt-in, content type, platform-specific file sharing.
+- **P1-FILE-16 [M] Permissions error explanation:** display target user and denied operation; no suggestion to bypass controls.
+
+### 6.5 AI assistant and approval UX
+
+- **P1-AI-01 [M] Target server selector:** explicit persistent target before requesting operations.
+- **P1-AI-02 [M] Tool-step timeline:** Inspect -> Interpret -> Plan -> Approval -> Execute -> Verify.
+- **P1-AI-03 [M] Read-only vs write badge:** distinguish capabilities by real API policy.
+- **P1-AI-04 [M] Exact command approval:** show literal command, target host, reason, risk and estimated impact.
+- **P1-AI-05 [M] Diff approval for edits:** show before/after and exact file path.
+- **P1-AI-06 [M] Scope and time of approval:** one action only unless user explicitly approves a bounded batch.
+- **P1-AI-07 [M] Progress and cancellation:** cancel pending/long steps where safe, not claim kill worked unless acknowledged.
+- **P1-AI-08 [M] Action receipt:** exact server, timestamp, tool, output/exit code, verification and status.
+- **P1-AI-09 [M] Error explanations:** model/provider auth, context length, rate limit, timeout and lost connection.
+- **P1-AI-10 [M] Server-awareness:** AI uses authenticated workspace inventory; never assumes hidden servers exist.
+- **P1-AI-11 [M] Read-only diagnostic templates:** pre-vetted disk/memory/process/network inspections with bounded outputs.
+- **P1-AI-12 [M] Distinguish source vs assistant claim:** clearly mark raw command output, model summary and user action.
+- **P1-AI-13 [M] Chat retry/stop mechanics:** do not retry mutating tools automatically.
+- **P1-AI-14 [M] Safe conversation export:** redaction preview before sharing conversation.
+- **P1-AI-15 [M] Server file selection:** explicit file picker, context window and approval policy.
+- **P1-AI-16 [M] Prompt injection tests:** adversarial log, file and shell content cannot override user approvals or execute silently.
+
+### 6.6 Monitoring and activity
+
+- **P1-MON-01 [M] Server overview:** CPU/RAM/disk/uptime metrics and last sample time, limited to what backend can measure.
+- **P1-MON-02 [M] Refresh policies:** manual + 5/15/30/60 seconds, visible sampling and device/network costs.
+- **P1-MON-03 [L] Bounded historical telemetry:** backend persistence and retention, not only browser arrays.
+- **P1-MON-04 [M] Resource charts:** clear units and reference ranges; gaps displayed as gaps, not zeros.
+- **P1-MON-05 [M] Disk pressure warnings:** configuration thresholds, sensible sample persistence.
+- **P1-MON-06 [M] Connectivity history:** online/offline/unknown timeline without confidence overstatement.
+- **P1-MON-07 [M] Activity timeline MVP:** real connections, approvals, job outcomes, changes and alerts.
+- **P1-MON-08 [M] Severity and server filters:** accessible filters with reproducible results.
+- **P1-MON-09 [M] Failure diagnosis bundle:** server test stage, safe error code, timestamps and guidance.
+- **P1-MON-10 [M] Alert preferences:** explicit opt-in, dedupe, quiet hours and no private data in push body.
+- **P1-MON-11 [M] System health panel:** show backend reachability, DB persistence status, SSH availability, AI configured/unavailable.
+- **P1-MON-12 [M] Trust labels:** “read from remote host at 17:32,” never claim provider billing/uptime from unrelated metrics.
+
+### 6.7 Account, native and PWA
+
+- **P1-APP-01 [M] Profile screen:** coherent header, avatar, theme, security and permissions.
+- **P1-APP-02 [M] Native UI parity checklist:** login, server list, chat, approvals, terminal and files must share backend semantics.
+- **P1-APP-03 [M] Local secure credential handling:** native Keychain for appropriate local tokens; avoid storing remote SSH passwords in app plaintext.
+- **P1-APP-04 [M] Native biometric app unlock:** optional on supported devices; not a substitute for backend authorization.
+- **P1-APP-05 [M] Native share/copy:** safe host details, redacted diagnostics, file export with user intent.
+- **P1-APP-06 [S] Background app behavior:** terminal session reattach rather than pretending iOS background execution is unlimited.
+- **P1-APP-07 [M] PWA update notice:** user-visible “Update available” when new static version is ready, without interrupting active terminal work.
+- **P1-APP-08 [M] PWA installation guide:** Safari -> Add to Home Screen, capability/limitation explanation.
+- **P1-APP-09 [M] App icon and splash consistency:** match real brand without fake OS indicators or excessive delay.
+- **P1-APP-10 [M] Haptic policy:** only meaningful action feedback; respect Reduced Motion and user settings.
+- **P1-APP-11 [M] Theme synchronization:** no flash, dark/light/system parity across web and native.
+- **P1-APP-12 [M] Localization architecture:** one clear UI language per locale; do not mix English and Hungarian in a single screen.
+- **P1-APP-13 [S] Last workspace recovery:** show/retry known HTTPS URL without leaking private tokens.
+- **P1-APP-14 [M] Mobile WebView audit:** no double status header, safe external link handling, cookie continuity and keyboard correctness.
+- **P1-APP-15 [S] Settings import/export:** nonsecret UI preferences only; explicit explanation of exclusions.
+
+### P1 release criteria
+
+- A new user can connect a server without referring to GitHub docs, or receives a precise diagnosis.
+- App can be used on 320px and 430px iPhones without clipped form controls or content hidden by safe areas.
+- Common commands, files, chat and VM diagnostics work after ordinary network disruption and reauthentication.
+- Every write or terminal command proposed by AI is reviewed, correctly bound, recorded and verified.
+- No fake Inbox/Roadmap/Research destinations remain.
+- Cross-page sidebar and themes visually match, without custom shaded exceptions.
