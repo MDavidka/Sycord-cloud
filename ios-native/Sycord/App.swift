@@ -56,7 +56,7 @@ struct LoginView: View {
         VStack(spacing: 24) {
             Spacer()
             Image(systemName: "terminal.fill").font(.system(size: 44)).foregroundStyle(.tint)
-            VStack(spacing: 8) { Text("Welcome to Sycord").font(.largeTitle.bold()); Text("Sign in to your workspace").foregroundStyle(.secondary) }
+            VStack(spacing: 8) { Text("Welcome to Airshell").font(.largeTitle.bold()); Text("Sign in to your workspace").foregroundStyle(.secondary) }
             SecureField("Terminal password", text: $password).textContentType(.password).textInputAutocapitalization(.never).padding().background(.quaternary, in: RoundedRectangle(cornerRadius: 14))
             if let error { Text(error).font(.callout).foregroundStyle(.red).frame(maxWidth: .infinity, alignment: .leading) }
             Button { Task { await signIn() } } label: { Group { if busy { ProgressView().tint(.black) } else { Text("Sign in") } }.frame(maxWidth: .infinity).padding().background(Color.primary, in: Capsule()).foregroundStyle(Color(uiColor: .systemBackground)).fontWeight(.semibold) }.disabled(password.isEmpty || busy)
@@ -96,11 +96,19 @@ struct ChatView: View {
     @State private var notice: String?
     private var index: Int { conversations.firstIndex(where: { $0.id == activeID }) ?? 0 }
     private var messages: [ChatMessage] { conversations.isEmpty ? [] : conversations[index].messages }
-    private var draftBinding: Binding<String> { Binding(get: { conversations.isEmpty ? "" : conversations[index].draft }, set: { update { $0.draft = $0 } }) }
+    private var draftBinding: Binding<String> { Binding(get: { conversations.isEmpty ? "" : conversations[index].draft }, set: { value in update { $0.draft = value } }) }
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                if !conversations.isEmpty {
+                if messages.isEmpty {
+                    VStack(alignment: .leading, spacing: 14) {
+                        Text("What can I help you with?").font(.system(size: 25, weight: .medium))
+                        Text("Ask about your servers or start a new task.").font(.subheadline).foregroundStyle(.secondary)
+                        quickAction("Check server health", icon: "waveform.path.ecg", prompt: "Check the health of my saved servers using read-only diagnostics.")
+                        NavigationLink { ServersView() } label: { Label("Open a server terminal", systemImage: "terminal").frame(maxWidth: .infinity, alignment: .leading).frame(minHeight: 44) }
+                        quickAction("Review recent logs", icon: "doc.text", prompt: "Review recent server logs using read-only commands and summarize warnings.")
+                    }.padding(24).frame(maxWidth: 560).frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if !conversations.isEmpty {
                     ScrollViewReader { proxy in
                         ScrollView {
                             LazyVStack(alignment: .leading, spacing: 18) {
@@ -119,27 +127,40 @@ struct ChatView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
                 if let notice { Text(notice).font(.footnote).foregroundStyle(.secondary).padding(.horizontal) }
-                HStack(alignment: .bottom, spacing: 10) {
-                    TextField("Ask about your servers…", text: draftBinding, axis: .vertical).lineLimit(1...5).padding(12).background(.quaternary, in: RoundedRectangle(cornerRadius: 20))
-                    Button { Task { await send() } } label: {
+            }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                VStack(alignment: .leading, spacing: 8) {
+                    TextField("Ask about your servers…", text: draftBinding, axis: .vertical).lineLimit(1...5).padding(.horizontal, 6).padding(.top, 6)
+                    HStack {
+                    NavigationLink { ServersView() } label: { Image(systemName: "server.rack").frame(width: 44, height: 44) }.accessibilityLabel("Server tools")
+                    Spacer()
+                    Button { UIImpactFeedbackGenerator(style: .soft).impactOccurred(); Task { await send() } } label: {
                         Group {
                             if busy { ProgressView() }
                             else { Image(systemName: "arrow.up").fontWeight(.bold) }
                         }
-                        .frame(width: 42, height: 42)
+                        .frame(width: 44, height: 44)
                         .background(Color.primary, in: Circle())
                         .foregroundStyle(Color(uiColor: .systemBackground))
                     }
                     .disabled(busy || draftBinding.wrappedValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                }.padding(.horizontal).padding(.vertical, 8)
+                    }
+                }.padding(10).background(Color(uiColor: .secondarySystemBackground), in: RoundedRectangle(cornerRadius: 25)).padding(.horizontal, 16).padding(.bottom, 8)
+
             }
-            .navigationTitle("Sycord")
+            .navigationTitle("Airshell")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) { Menu { ForEach(conversations) { item in Button(item.title) { activeID = item.id } } } label: { Image(systemName: "sidebar.left") } }
                 ToolbarItem(placement: .navigationBarTrailing) { Button { let c = Conversation(); conversations.append(c); activeID = c.id; persist() } label: { Image(systemName: "square.and.pencil") } }
             }
             .onAppear { restoreChats() }
         }
+    }
+    private func quickAction(_ title: String, icon: String, prompt: String) -> some View {
+        Button { UIImpactFeedbackGenerator(style: .soft).impactOccurred(); update { $0.draft = prompt } } label: {
+            Label(title, systemImage: icon).frame(maxWidth: .infinity, alignment: .leading).frame(minHeight: 44)
+        }.buttonStyle(.plain).disabled(busy)
     }
     @ViewBuilder private func messageView(_ message: ChatMessage) -> some View {
         if message.role == "user" { Text(message.content).padding(.horizontal, 15).padding(.vertical, 11).background(.quaternary, in: RoundedRectangle(cornerRadius: 20)).frame(maxWidth: .infinity, alignment: .trailing) }
