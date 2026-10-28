@@ -16,8 +16,7 @@ body.airshell-terminal .vm-settings-panel {
   scrollbar-color:#454548 transparent;
 }
 body.airshell-terminal .vm-settings-panel[hidden],
-body.airshell-terminal .vm-settings-view[hidden],
-body.airshell-terminal .vm-feedback[hidden] { display:none!important; }
+body.airshell-terminal .vm-settings-panel [hidden] { display:none!important; }
 body.airshell-terminal[data-vm-view="settings"] .terminal-main > .terminal-command-composer,
 body.airshell-terminal[data-vm-view="settings"] .terminal-main > .terminal-keypad { display:none!important; }
 body.airshell-terminal .terminal-chat-new.active { background:#303033!important; color:#fff!important; }
