@@ -250,7 +250,7 @@
       <div class="home-sidebar-account">
         <button class="home-sidebar-account-button" id="sidebarAccountToggle" type="button" aria-label="Open account and settings">
           <span class="sidebar-account-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></svg></span>
-          <span class="sidebar-account-details"><strong>My account</strong><small>Settings &amp; preferences</small></span>
+          <span class="sidebar-account-details"><strong>My account</strong><small>Settings & preferences</small></span>
           <svg class="sidebar-account-ellipsis" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="5" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="19" cy="12" r="1" fill="currentColor"/></svg>
         </button>
       </div>
@@ -295,9 +295,26 @@
     <main class="home-main terminal-main">
       <div id="terminal" aria-label="Interactive server terminal"></div>
       <section class="server-files-panel" id="serverFilesPanel" hidden aria-label="Server files">
-        <div class="server-files-toolbar"><button type="button" id="filesUp" aria-label="Parent directory" title="Parent directory">↑</button><input id="filesPath" type="text" value="." aria-label="Remote directory path" autocapitalize="off" spellcheck="false"><button type="button" id="filesGo">Go</button><button type="button" id="filesRefresh" aria-label="Refresh directory" title="Refresh directory">↻</button></div>
+        <div class="files-head">
+          <div class="files-nav">
+            <button class="files-icon-button" type="button" id="filesUp" aria-label="Parent directory" title="Parent directory"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+            <button class="files-icon-button" type="button" id="filesRefresh" aria-label="Refresh directory" title="Refresh directory"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.2-5.8"/><path d="M21 4v5h-5"/></svg></button>
+            <nav class="files-breadcrumb" id="filesBreadcrumb" aria-label="Remote path"></nav>
+          </div>
+          <div class="files-actions">
+            <button class="files-upload-button" type="button" id="filesUploadButton" disabled title="Upload files to this folder on the connected VM, up to 5 GB each"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V5M7 9l5-5 5 5"/><path d="M5 19h14"/></svg><span>Upload</span></button>
+            <input id="filesUploadInput" type="file" multiple hidden>
+          </div>
+        </div>
+        <div class="files-path-row"><input id="filesPath" type="text" value="." aria-label="Remote directory path" autocapitalize="off" spellcheck="false"><button class="files-go" type="button" id="filesGo">Go</button></div>
+        <div class="files-progress" id="filesProgress" hidden>
+          <div class="files-progress-meta"><span id="filesProgressLabel">Uploading</span><span id="filesProgressPercent">0%</span></div>
+          <div class="files-progress-track"><div id="filesProgressBar"></div></div>
+        </div>
         <p class="server-files-status" id="filesStatus" aria-live="polite">Choose a saved server to browse its files.</p>
-        <div class="server-files-list" id="filesList" role="list"></div>
+        <div class="files-drop" id="filesDrop">
+          <div class="server-files-list" id="filesList" role="list"></div>
+        </div>
         <section class="server-file-preview" id="filePreviewWrap" hidden>
           <div class="server-file-preview-head"><span id="filePreviewName">File preview</span><button type="button" id="closeFilePreview">Close</button></div>
           <pre id="filePreview"></pre>
@@ -327,7 +344,7 @@
   <script src="/assets/home.js?v=ai-agent-tools-1" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/lib/xterm.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.10.0/lib/addon-fit.min.js"></script>
-  <script src="/assets/terminal.js?v=vm-settings-1" defer></script>
+  <script src="/assets/terminal.js?v=vm-files-upload-1" defer></script>
   <script src="/assets/vm-settings.js?v=1" defer></script>
   <style id="profile-popup-compact-overrides">
     .airshell-home .home-topbar .home-profile-menu { border-radius:24px !important; }
@@ -471,6 +488,7 @@
     @media(prefers-reduced-motion:reduce) { body.airshell-terminal .home-topbar button { transition:none!important; } }
   </style>
     <link rel="stylesheet" href="/assets/sidebar-modern.css?v=3">
+    <link rel="stylesheet" href="/assets/files-browser.css?v=1">
   <script src="/assets/sidebar-modern.js?v=1" defer></script>
 </body>
 </html>
