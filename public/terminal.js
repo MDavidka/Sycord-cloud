@@ -105,22 +105,63 @@
     function formatBytes(bytes) {
       if (!Number.isFinite(bytes) || bytes < 0) return "";
       if (bytes < 1024) return bytes + " B";
-      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-      if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(bytes >= 10 * 1024 ? 0 : 1) + " KB";
+      if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(bytes >= 10 * 1024 * 1024 ? 0 : 1) + " MB";
       return (bytes / (1024 * 1024 * 1024)).toFixed(1) + " GB";
     }
+    function formatModified(value) {
+      var ms = Number(value) * 1000;
+      if (!Number.isFinite(ms) || ms <= 0) return "";
+      try { return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(ms)); }
+      catch (_) { return ""; }
+    }
+    var folderIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
+    var fileIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>';
     function remoteChildPath(name) {
-      if (currentRemotePath === ".") return name;
+      if (currentRemotePath === "." || currentRemotePath === "") return name;
       if (currentRemotePath === "/") return "/" + name;
       return currentRemotePath.replace(/\/+$/, "") + "/" + name;
     }
     function parentRemotePath(value) {
-      var clean = value.replace(/\/+$/, "");
-      if (!clean || clean === "/") return "/";
+      var clean = String(value || ".").replace(/\/+$/, "");
+      if (!clean || clean === ".") return "..";
+      if (clean === "/") return "/";
+      if (clean === "..") return "../..";
       var index = clean.lastIndexOf("/");
       if (index < 0) return ".";
       if (index === 0) return "/";
       return clean.slice(0, index);
+    }
+    function renderBreadcrumb(pathValue) {
+      var nav = document.getElementById("filesBreadcrumb");
+      if (!nav) return;
+      nav.replaceChildren();
+      var clean = pathValue || ".";
+      if (!clean.startsWith("/")) {
+        var current = document.createElement("span");
+        current.className = "files-crumb";
+        current.textContent = clean === "." ? "Home directory" : clean;
+        nav.appendChild(current);
+        return;
+      }
+      var parts = clean.split("/").filter(Boolean);
+      var root = document.createElement("button");
+      root.type = "button"; root.className = "files-crumb"; root.textContent = "/";
+      root.addEventListener("click", function () { loadRemoteFiles("/"); });
+      nav.appendChild(root);
+      var built = "";
+      parts.forEach(function (part, index) {
+        var sep = document.createElement("span");
+        sep.className = "files-crumb-sep"; sep.textContent = "/";
+        nav.appendChild(sep);
+        built += "/" + part;
+        var target = built;
+        var crumb = document.createElement("button");
+        crumb.type = "button"; crumb.className = "files-crumb"; crumb.textContent = part;
+        if (index === parts.length - 1) crumb.setAttribute("aria-current", "page");
+        crumb.addEventListener("click", function () { loadRemoteFiles(target); });
+        nav.appendChild(crumb);
+      });
     }
     function renderRemoteEntries(entries) {
       if (!filesList) return;
@@ -129,7 +170,11 @@
       if (!entries.length) {
         var empty = document.createElement("div");
         empty.className = "server-files-empty";
-        empty.textContent = "This directory is empty.";
+        var title = document.createElement("strong");
+        title.textContent = "This folder is empty";
+        var note = document.createElement("span");
+        note.textContent = "Drop files here, or use Upload. They are written to this folder on the connected VM, up to 5 GB each.";
+        empty.append(title, note);
         filesList.appendChild(empty);
         return;
       }
@@ -140,14 +185,21 @@
         button.setAttribute("role", "listitem");
         var icon = document.createElement("span");
         icon.className = "file-type-icon";
-        icon.textContent = entry.type === "directory" ? "▰" : "▤";
+        icon.innerHTML = entry.type === "directory" ? folderIcon : fileIcon;
+        var copy = document.createElement("span");
+        copy.className = "file-copy";
         var name = document.createElement("span");
         name.className = "file-name";
         name.textContent = entry.name;
+        var sub = document.createElement("span");
+        sub.className = "file-sub";
+        var when = formatModified(entry.modified);
+        sub.textContent = entry.type === "directory" ? (when ? "Folder · " + when : "Folder") : (when || "File");
+        copy.append(name, sub);
         var meta = document.createElement("span");
         meta.className = "file-meta";
-        meta.textContent = entry.type === "directory" ? "Folder" : formatBytes(entry.size);
-        button.append(icon, name, meta);
+        meta.textContent = entry.type === "directory" ? "" : formatBytes(entry.size);
+        button.append(icon, copy, meta);
         button.addEventListener("click", function () {
           if (entry.type === "directory") loadRemoteFiles(remoteChildPath(entry.name));
           else loadRemoteFile(remoteChildPath(entry.name));
@@ -159,6 +211,7 @@
       if (!serverId || !filesList) return;
       currentRemotePath = pathValue || ".";
       if (filesPathInput) filesPathInput.value = currentRemotePath;
+      renderBreadcrumb(currentRemotePath);
       if (filesStatus) filesStatus.textContent = "Loading directory…";
       if (filesList) { filesList.replaceChildren(); delete filesList.dataset.loaded; }
       if (filesPreviewWrap) filesPreviewWrap.hidden = true;
@@ -168,6 +221,7 @@
         if (!response.ok) throw new Error(data.error || "Could not load directory.");
         currentRemotePath = data.path || currentRemotePath;
         if (filesPathInput) filesPathInput.value = currentRemotePath;
+        renderBreadcrumb(currentRemotePath);
         if (filesStatus) filesStatus.textContent = (data.entries || []).length + " items · " + currentRemotePath;
         renderRemoteEntries(Array.isArray(data.entries) ? data.entries : []);
       } catch (error) {
@@ -201,11 +255,151 @@
     var filesRefresh = document.getElementById("filesRefresh");
     var filesUp = document.getElementById("filesUp");
     var closeFilePreview = document.getElementById("closeFilePreview");
+    var filesUploadButton = document.getElementById("filesUploadButton");
+    var filesUploadInput = document.getElementById("filesUploadInput");
+    var filesDrop = document.getElementById("filesDrop");
+    var filesProgress = document.getElementById("filesProgress");
+    var filesProgressLabel = document.getElementById("filesProgressLabel");
+    var filesProgressPercent = document.getElementById("filesProgressPercent");
+    var filesProgressBar = document.getElementById("filesProgressBar");
+    var uploadQueue = [];
+    var uploadActive = false;
+    if (filesUploadButton) filesUploadButton.disabled = !serverId;
     if (filesGo) filesGo.addEventListener("click", function () { loadRemoteFiles(filesPathInput ? filesPathInput.value.trim() || "." : "."); });
     if (filesPathInput) filesPathInput.addEventListener("keydown", function (event) { if (event.key === "Enter") { event.preventDefault(); loadRemoteFiles(filesPathInput.value.trim() || "."); } });
     if (filesRefresh) filesRefresh.addEventListener("click", function () { loadRemoteFiles(currentRemotePath); });
     if (filesUp) filesUp.addEventListener("click", function () { loadRemoteFiles(parentRemotePath(currentRemotePath)); });
     if (closeFilePreview) closeFilePreview.addEventListener("click", function () { if (filesPreviewWrap) filesPreviewWrap.hidden = true; });
+
+    function setUploadProgress(label, loaded, total) {
+      if (filesProgress) filesProgress.hidden = false;
+      if (filesProgressLabel) filesProgressLabel.textContent = label;
+      var pct = total > 0 ? Math.min(100, Math.round((loaded / total) * 100)) : 0;
+      if (filesProgressPercent) filesProgressPercent.textContent = pct + "%";
+      if (filesProgressBar) filesProgressBar.style.width = pct + "%";
+    }
+    async function readJsonResponse(response) {
+      var data = await response.json().catch(function () { return {}; });
+      return data;
+    }
+    async function uploadOneFile(file, directory, onProgress) {
+      var base = "/api/servers/" + encodeURIComponent(serverId) + "/uploads";
+      async function start(overwrite) {
+        var response = await fetch(base, {
+          method: "POST", credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ filename: file.name, size: file.size, directory: directory, overwrite: overwrite })
+        });
+        return { response: response, data: await readJsonResponse(response) };
+      }
+      var opened = await start(false);
+      if (opened.response.status === 409 && opened.data.code === "EXISTS") {
+        var replace = window.confirm('"' + file.name + '" already exists in this folder. Replace it on the VM?');
+        if (!replace) return false;
+        opened = await start(true);
+      }
+      if (!opened.response.ok) throw new Error(opened.data.error || "Could not start the upload.");
+      var uploadId = opened.data.uploadId;
+      var chunkSize = opened.data.chunkSize || 4 * 1024 * 1024;
+      var itemUrl = base + "/" + encodeURIComponent(uploadId);
+      try {
+        var offset = 0;
+        var index = 0;
+        while (offset < file.size) {
+          var end = Math.min(file.size, offset + chunkSize);
+          var blob = file.slice(offset, end);
+          var accepted = false;
+          var reason = "Could not upload " + file.name + ".";
+          for (var attempt = 0; attempt < 3 && !accepted; attempt += 1) {
+            var response = await fetch(itemUrl, {
+              method: "PUT", credentials: "same-origin",
+              headers: { "Content-Type": "application/octet-stream", "X-Chunk-Index": String(index), "X-Chunk-Offset": String(offset) },
+              body: blob
+            });
+            var data = await readJsonResponse(response);
+            if (response.ok) accepted = true;
+            else reason = data.error || reason;
+          }
+          if (!accepted) throw new Error(reason);
+          offset = end;
+          index += 1;
+          onProgress(offset);
+        }
+        var done = await fetch(itemUrl + "/complete", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: "{}" });
+        var doneData = await readJsonResponse(done);
+        if (!done.ok) throw new Error(doneData.error || "The VM did not save " + file.name + ".");
+        return true;
+      } catch (error) {
+        fetch(itemUrl, { method: "DELETE", credentials: "same-origin" }).catch(function () {});
+        throw error;
+      }
+    }
+    async function drainUploads() {
+      if (uploadActive) return;
+      uploadActive = true;
+      if (filesUploadButton) filesUploadButton.disabled = true;
+      var failed = 0;
+      var saved = 0;
+      try {
+        while (uploadQueue.length) {
+          var batch = uploadQueue.slice();
+          var total = batch.reduce(function (sum, item) { return sum + item.file.size; }, 0);
+          var finished = 0;
+          uploadQueue = [];
+          for (var i = 0; i < batch.length; i += 1) {
+            var item = batch[i];
+            var label = "Uploading " + item.file.name + " · " + (i + 1) + " of " + batch.length;
+            setUploadProgress(label, finished, total);
+            try {
+              var wrote = await uploadOneFile(item.file, item.directory, function (loaded) {
+                setUploadProgress(label, finished + loaded, total);
+              });
+              if (wrote) saved += 1;
+            } catch (error) {
+              failed += 1;
+              if (filesStatus) filesStatus.textContent = error.message || "Upload failed.";
+            }
+            finished += item.file.size;
+            setUploadProgress(label, finished, total);
+          }
+        }
+      } finally {
+        uploadActive = false;
+        if (filesUploadButton) filesUploadButton.disabled = !serverId;
+        if (filesProgress) filesProgress.hidden = true;
+        if (filesStatus) filesStatus.textContent = failed ? (saved + " uploaded, " + failed + " failed.") : (saved ? saved + " file" + (saved === 1 ? "" : "s") + " uploaded to this VM." : filesStatus.textContent);
+        if (saved) loadRemoteFiles(currentRemotePath);
+      }
+    }
+    function queueUploads(fileList) {
+      if (!serverId) return;
+      var directory = currentRemotePath || ".";
+      Array.prototype.forEach.call(fileList || [], function (file) {
+        if (file && typeof file.size === "number") uploadQueue.push({ file: file, directory: directory });
+      });
+      if (uploadQueue.length) drainUploads();
+    }
+    if (filesUploadButton && filesUploadInput) {
+      filesUploadButton.addEventListener("click", function () { filesUploadInput.click(); });
+      filesUploadInput.addEventListener("change", function () {
+        queueUploads(filesUploadInput.files);
+        filesUploadInput.value = "";
+      });
+    }
+    if (filesDrop) {
+      ["dragenter", "dragover"].forEach(function (name) {
+        filesDrop.addEventListener(name, function (event) {
+          event.preventDefault();
+          if (serverId) filesDrop.classList.add("is-dragover");
+        });
+      });
+      filesDrop.addEventListener("dragleave", function () { filesDrop.classList.remove("is-dragover"); });
+      filesDrop.addEventListener("drop", function (event) {
+        event.preventDefault();
+        filesDrop.classList.remove("is-dragover");
+        if (event.dataTransfer && event.dataTransfer.files) queueUploads(event.dataTransfer.files);
+      });
+    }
 
     async function loadWorkspaceIdentity() {
       if (!serverId) {
